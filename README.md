@@ -1,4 +1,4 @@
-# Weather Tracker
+# WealthTracker
 
 A [Next.js](https://nextjs.org) app with [Tailwind CSS v4](https://tailwindcss.com), bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Weather Tracker",
-  description: "Track weather with a Next.js and Tailwind CSS app.",
+  title: "WealthTracker",
+  description: "WealthTracker — a Next.js and Tailwind CSS app.",
 };
 
 export default function RootLayout({

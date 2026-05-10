@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { NAV, SECONDARY_NAV } from "@/shared/config";
 import { cn } from "@/shared/lib";
-import { MaterialIcon } from "@/shared/ui";
+import { MaterialIcon, WealthTrackerLogo } from "@/shared/ui";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -18,9 +18,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex bg-tertiary-container w-sidebar-width h-screen fixed left-0 top-0 border-r border-outline-variant flex-col py-stack-lg z-50">
       <div className="px-gutter mb-stack-lg flex items-center gap-stack-sm">
-        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-headline-md">
-          W
-        </div>
+        <WealthTrackerLogo size={36} decorative />
         <div>
           <h1 className="text-headline-md font-headline-md text-on-tertiary tracking-tight">
             WealthTracker

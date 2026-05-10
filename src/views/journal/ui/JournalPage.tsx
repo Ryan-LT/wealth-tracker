@@ -1,5 +1,7 @@
 "use client";
 
+import InputAdornment from "@mui/material/InputAdornment";
+import TextField from "@mui/material/TextField";
 import { useMemo } from "react";
 
 import {
@@ -33,11 +35,39 @@ export function JournalPage() {
       <TopAppBar
         start={
           <div className="flex min-w-0 flex-1 max-w-full items-center gap-stack-sm text-on-surface-variant sm:max-w-md">
-            <MaterialIcon name="search" />
-            <input
+            <TextField
               type="search"
               placeholder="Search transactions..."
-              className="flex-1 bg-transparent outline-none border-0 font-body-md text-body-md placeholder:text-on-surface-variant"
+              variant="standard"
+              size="small"
+              fullWidth
+              hiddenLabel
+              slotProps={{
+                htmlInput: {
+                  "aria-label": "Search transactions",
+                },
+                input: {
+                  disableUnderline: false,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <MaterialIcon name="search" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={{
+                "& .MuiInput-root": {
+                  fontSize: "0.875rem",
+                  lineHeight: "1.25rem",
+                  color: "var(--color-on-surface-variant)",
+                },
+                "& .MuiInput-root:before": {
+                  borderBottomColor: "var(--color-outline-variant)",
+                },
+                "& .MuiInput-root:after": {
+                  borderBottomColor: "var(--color-secondary)",
+                },
+              }}
             />
           </div>
         }

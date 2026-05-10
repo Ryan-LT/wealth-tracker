@@ -1,6 +1,9 @@
 "use client";
 
-import type { ChangeEvent, ReactNode } from "react";
+import Box from "@mui/material/Box";
+import Slider from "@mui/material/Slider";
+import Typography from "@mui/material/Typography";
+import type { ReactNode } from "react";
 import { useId } from "react";
 
 import { cn } from "@/shared/lib";
@@ -11,9 +14,7 @@ type RangeSliderProps = {
   min: number;
   max: number;
   step?: number;
-  /** Right-aligned number formatter (e.g. formatVnd) — receives the current value. */
   format?: (v: number) => ReactNode;
-  /** Optional min/max axis labels rendered under the rail. */
   minLabel?: string;
   maxLabel?: string;
   onChange: (next: number) => void;
@@ -32,31 +33,33 @@ export function RangeSlider({
   onChange,
   className,
 }: RangeSliderProps) {
-  const id = useId();
-
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    onChange(Number(e.target.value));
-  }
+  const labelId = useId();
+  const sliderId = useId();
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
-      <div className="flex justify-between items-center">
-        <label htmlFor={id} className="text-label-sm font-label-sm text-on-surface-variant">
+    <Box className={cn("flex flex-col gap-2", className)}>
+      <div className="flex justify-between items-center gap-2">
+        <Typography
+          id={labelId}
+          component="span"
+          className="text-label-sm font-label-sm text-on-surface-variant"
+        >
           {label}
-        </label>
+        </Typography>
         <span className="text-data-tabular font-data-tabular text-on-surface font-bold">
           {format ? format(value) : value}
         </span>
       </div>
-      <input
-        id={id}
-        type="range"
+      <Slider
+        id={sliderId}
+        aria-labelledby={labelId}
+        value={value}
         min={min}
         max={max}
         step={step}
-        value={value}
-        onChange={handleChange}
-        className="w-full accent-secondary cursor-pointer"
+        onChange={(_, v) => onChange(v as number)}
+        color="secondary"
+        size="medium"
       />
       {(minLabel || maxLabel) && (
         <div className="flex justify-between text-xs text-on-surface-variant font-data-tabular">
@@ -64,6 +67,6 @@ export function RangeSlider({
           <span>{maxLabel}</span>
         </div>
       )}
-    </div>
+    </Box>
   );
 }

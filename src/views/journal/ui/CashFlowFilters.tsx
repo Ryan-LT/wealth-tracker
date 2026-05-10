@@ -1,5 +1,9 @@
 "use client";
 
+import InputAdornment from "@mui/material/InputAdornment";
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
+
 import { MaterialIcon } from "@/shared/ui";
 
 type CashFlowFiltersProps = {
@@ -19,30 +23,49 @@ export function CashFlowFilters({
 }: CashFlowFiltersProps) {
   return (
     <div className="flex flex-wrap gap-3">
-      <div className="relative">
-        <MaterialIcon
-          name="calendar_month"
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => onDateChange(e.target.value)}
-          className="pl-9 pr-3 py-2 border border-outline-variant rounded bg-surface-container-lowest focus:border-secondary focus:ring-1 focus:ring-secondary font-label-sm text-label-sm text-primary h-10"
-        />
-      </div>
-      <select
+      <TextField
+        type="date"
+        value={date}
+        onChange={(e) => onDateChange(e.target.value)}
+        size="small"
+        variant="outlined"
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <MaterialIcon name="calendar_month" size={18} className="text-on-surface-variant" />
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={{
+          minWidth: 180,
+          "& .MuiOutlinedInput-root": {
+            bgcolor: "var(--color-surface-container-lowest)",
+            height: 40,
+          },
+        }}
+      />
+      <TextField
+        select
         value={category}
         onChange={(e) => onCategoryChange(e.target.value)}
-        className="px-3 py-2 border border-outline-variant rounded bg-surface-container-lowest focus:border-secondary focus:ring-1 focus:ring-secondary font-label-sm text-label-sm text-primary h-10 appearance-none pr-8"
+        size="small"
+        variant="outlined"
+        sx={{
+          minWidth: 160,
+          "& .MuiOutlinedInput-root": {
+            bgcolor: "var(--color-surface-container-lowest)",
+            height: 40,
+          },
+        }}
       >
         {categories.map((c) => (
-          <option key={c} value={c}>
+          <MenuItem key={c} value={c}>
             {c}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </TextField>
     </div>
   );
 }

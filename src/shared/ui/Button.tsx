@@ -1,3 +1,6 @@
+"use client";
+
+import MuiButton from "@mui/material/Button";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { cn } from "@/shared/lib";
@@ -5,26 +8,11 @@ import { cn } from "@/shared/lib";
 type Variant = "primary" | "secondary" | "ghost" | "outline-secondary";
 type Size = "sm" | "md";
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "color"> & {
   variant?: Variant;
   size?: Size;
   block?: boolean;
   startIcon?: ReactNode;
-};
-
-const VARIANT_CLASSES: Record<Variant, string> = {
-  primary:
-    "bg-secondary text-on-secondary hover:opacity-90 disabled:opacity-50 transition-opacity",
-  secondary:
-    "bg-surface border border-outline-variant text-primary hover:bg-surface-container-low transition-colors",
-  ghost: "text-on-surface-variant hover:bg-surface-container-low transition-colors",
-  "outline-secondary":
-    "border border-secondary text-secondary bg-transparent hover:bg-secondary/10 transition-colors",
-};
-
-const SIZE_CLASSES: Record<Size, string> = {
-  sm: "h-9 px-3 text-label-sm font-label-sm",
-  md: "h-10 px-4 text-label-sm font-label-sm",
 };
 
 export function Button({
@@ -34,22 +22,52 @@ export function Button({
   startIcon,
   className,
   children,
+  disabled,
   ...rest
 }: ButtonProps) {
+  const isPrimary = variant === "primary";
+  const isGhost = variant === "ghost";
+  const isOutlineSecondary = variant === "outline-secondary";
+
   return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded uppercase tracking-wider",
-        "active:opacity-80 disabled:cursor-not-allowed",
-        VARIANT_CLASSES[variant],
-        SIZE_CLASSES[size],
-        block && "w-full",
-        className,
-      )}
+    <MuiButton
+      type={rest.type ?? "button"}
+      disabled={disabled}
+      variant={
+        isGhost ? "text" : isPrimary ? "contained" : "outlined"
+      }
+      color={
+        isPrimary
+          ? "secondary"
+          : isOutlineSecondary
+            ? "secondary"
+            : "inherit"
+      }
+      size={size === "sm" ? "small" : "medium"}
+      startIcon={startIcon}
+      disableElevation
+      className={cn("active:opacity-80", className)}
+      sx={{
+        width: block ? "100%" : undefined,
+        ...(variant === "secondary" && {
+          borderColor: "var(--color-outline-variant)",
+          color: "var(--color-primary)",
+          bgcolor: "var(--color-surface)",
+          "&:hover": {
+            bgcolor: "var(--color-surface-container-low)",
+            borderColor: "var(--color-outline-variant)",
+          },
+        }),
+        ...(isGhost && {
+          color: "var(--color-on-surface-variant)",
+          "&:hover": {
+            bgcolor: "var(--color-surface-container-low)",
+          },
+        }),
+      }}
       {...rest}
     >
-      {startIcon}
       {children}
-    </button>
+    </MuiButton>
   );
 }

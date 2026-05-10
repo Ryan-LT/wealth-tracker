@@ -16,7 +16,7 @@ import { PreferencesCard } from "./PreferencesCard";
 
 export function SettingsPage() {
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
-  const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
@@ -39,24 +39,18 @@ export function SettingsPage() {
           <AssetManagementTable
             assets={assets}
             onDelete={(id) => setAssets((prev) => prev.filter((a) => a.id !== id))}
-            onAdd={() => {
-              const id = `asset-${Date.now()}`;
-              setAssets((prev) => [
-                ...prev,
-                {
-                  id,
-                  name: "New Asset",
-                  category: "Cash",
-                  currentValue: 0,
-                },
-              ]);
-            }}
+            onUpdate={(next) =>
+              setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))
+            }
+            onAdd={(asset) => setAssets((prev) => [...prev, asset])}
           />
           <IncomeSourcesGrid
             sources={sources}
-            onAdd={() => {
-              /* no-op for now; surface lives in the Settings page only */
-            }}
+            onCreate={(source) => setSources((prev) => [...prev, source])}
+            onUpdate={(source) =>
+              setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))
+            }
+            onDelete={(id) => setSources((prev) => prev.filter((s) => s.id !== id))}
           />
         </div>
 

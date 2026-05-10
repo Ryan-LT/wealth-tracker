@@ -1,10 +1,11 @@
 "use client";
 
+import InputAdornment from "@mui/material/InputAdornment";
+import TextField from "@mui/material/TextField";
 import type { ChangeEvent } from "react";
 import { useId } from "react";
 
-import { cn } from "@/shared/lib";
-import { formatThousands } from "@/shared/lib";
+import { cn, formatThousands } from "@/shared/lib";
 
 type MoneyInputProps = {
   label?: string;
@@ -12,16 +13,10 @@ type MoneyInputProps = {
   onChange: (next: number) => void;
   placeholder?: string;
   className?: string;
-  /** "₫" by default; pass empty string to omit. */
   symbol?: string;
-  /** Use thousand separators while typing. */
   separated?: boolean;
 };
 
-/**
- * VND-style money input with leading "₫" glyph and right-aligned tabular figures.
- * Accepts free-form digits / separators while typing, but stores a clean number.
- */
 export function MoneyInput({
   label,
   value,
@@ -32,7 +27,8 @@ export function MoneyInput({
   separated = true,
 }: MoneyInputProps) {
   const id = useId();
-  const display = separated && Number.isFinite(value) ? formatThousands(value) : String(value || "");
+  const display =
+    separated && Number.isFinite(value) ? formatThousands(value) : String(value || "");
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const digits = e.target.value.replace(/[^\d-]/g, "");
@@ -41,36 +37,45 @@ export function MoneyInput({
   }
 
   return (
-    <div className={cn("flex flex-col w-full", className)}>
-      {label ? (
-        <label
-          htmlFor={id}
-          className="block font-label-sm text-label-sm text-on-surface-variant mb-1 uppercase tracking-wider"
-        >
-          {label}
-        </label>
-      ) : null}
-      <div className="relative">
-        {symbol ? (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-data-tabular text-data-tabular text-on-surface-variant pointer-events-none">
-            {symbol}
-          </span>
-        ) : null}
-        <input
-          id={id}
-          type="text"
-          inputMode="numeric"
-          value={display}
-          onChange={handleChange}
-          placeholder={placeholder}
-          className={cn(
-            "w-full h-10 pr-3 py-2 border border-outline-variant rounded",
-            "focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none transition-colors",
-            "font-data-tabular text-data-tabular text-right bg-surface-container-lowest",
-            symbol ? "pl-7" : "pl-3",
-          )}
-        />
-      </div>
-    </div>
+    <TextField
+      id={id}
+      label={label}
+      value={display}
+      onChange={handleChange}
+      placeholder={placeholder}
+      size="small"
+      fullWidth
+      variant="outlined"
+      inputMode="numeric"
+      className={cn(className)}
+      slotProps={{
+        input: {
+          startAdornment: symbol ? (
+            <InputAdornment position="start">
+              <span className="font-data-tabular text-data-tabular text-on-surface-variant pointer-events-none">
+                {symbol}
+              </span>
+            </InputAdornment>
+          ) : undefined,
+        },
+      }}
+      sx={{
+        ...(label
+          ? {
+              "& .MuiInputLabel-root": {
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                color: "var(--color-on-surface-variant)",
+              },
+            }
+          : {}),
+        "& input": {
+          fontVariantNumeric: "tabular-nums",
+          textAlign: "right",
+        },
+      }}
+    />
   );
 }

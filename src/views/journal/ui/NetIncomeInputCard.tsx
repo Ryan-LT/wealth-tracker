@@ -1,8 +1,10 @@
 "use client";
 
+import InputAdornment from "@mui/material/InputAdornment";
+import TextField from "@mui/material/TextField";
 import { useId, useState } from "react";
 
-import { Card, MaterialIcon } from "@/shared/ui";
+import { Button, Card, MaterialIcon } from "@/shared/ui";
 
 type NetIncomeInputCardProps = {
   initialValue: number;
@@ -39,30 +41,45 @@ export function NetIncomeInputCard({ initialValue, onUpdate }: NetIncomeInputCar
       </div>
 
       <div className="flex items-end gap-4 mt-8">
-        <div className="flex-1 relative">
-          <label htmlFor={id} className="sr-only">
-            Net income amount
-          </label>
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span className="font-headline-lg text-headline-lg text-primary">₫</span>
-          </div>
-          <input
-            id={id}
-            type="text"
-            inputMode="decimal"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="0.00"
-            className="block w-full pl-8 pr-4 py-2 border-0 border-b-2 border-outline-variant bg-transparent focus:ring-0 focus:border-secondary font-headline-lg text-headline-lg text-primary text-right outline-none"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="h-12 px-6 bg-surface border border-outline-variant text-primary font-label-sm text-label-sm rounded hover:bg-surface-container-low transition-colors uppercase"
-        >
+        <TextField
+          id={id}
+          type="text"
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="0.00"
+          size="medium"
+          fullWidth
+          variant="standard"
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <span className="font-headline-lg text-headline-lg text-primary">₫</span>
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{
+            "& input": {
+              fontSize: "1.25rem",
+              lineHeight: "1.75rem",
+              fontWeight: 600,
+              textAlign: "right",
+              color: "var(--color-primary)",
+            },
+            "& .MuiInput-underline:before": {
+              borderBottomColor: "var(--color-outline-variant)",
+              borderBottomWidth: 2,
+            },
+            "& .MuiInput-underline:after": {
+              borderBottomColor: "var(--color-secondary)",
+            },
+          }}
+        />
+        <Button type="button" variant="secondary" className="shrink-0 h-12" onClick={handleSubmit}>
           Update
-        </button>
+        </Button>
       </div>
     </Card>
   );

@@ -1,3 +1,4 @@
+export { WealthTrackerLogo } from "./WealthTrackerLogo";
 export { MaterialIcon } from "./MaterialIcon";
 export { Card, SectionHeader } from "./Card";
 export { Button } from "./Button";

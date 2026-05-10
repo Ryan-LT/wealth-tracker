@@ -1,6 +1,10 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { createElement, type CSSProperties } from "react";
 
 import { cn } from "@/shared/lib";
+
+import { resolveSymbolIcon } from "./materialIconRegistry";
 
 type MaterialIconProps = {
   name: string;
@@ -11,6 +15,10 @@ type MaterialIconProps = {
   className?: string;
 };
 
+/**
+ * Renders an [@mui/icons-material](https://mui.com/material-ui/material-icons/) SVG.
+ * Pass a snake_case **symbol key** that matches `materialIconRegistry.tsx` (e.g. `account_balance`).
+ */
 export function MaterialIcon({
   name,
   filled = false,
@@ -18,21 +26,23 @@ export function MaterialIcon({
   weight,
   className,
 }: MaterialIconProps) {
-  const style: CSSProperties = {};
-  if (size) style.fontSize = `${size}px`;
-  if (filled || weight) {
-    const f = filled ? 1 : 0;
-    const w = weight ?? 400;
-    style.fontVariationSettings = `"FILL" ${f}, "wght" ${w}, "GRAD" 0, "opsz" 24`;
+  const Icon = resolveSymbolIcon(name, !filled);
+
+  const sx: Record<string, unknown> = {};
+  if (size !== undefined) {
+    sx.fontSize = size;
+    sx.width = size;
+    sx.height = size;
   }
 
-  return (
-    <span
-      aria-hidden="true"
-      className={cn("material-symbols-outlined", filled && "is-filled", className)}
-      style={style}
-    >
-      {name}
-    </span>
-  );
+  const style: CSSProperties | undefined =
+    weight !== undefined ? { fontWeight: weight } : undefined;
+
+  return createElement(Icon, {
+    className: cn(className),
+    sx,
+    style,
+    "aria-hidden": true,
+    tabIndex: -1,
+  });
 }

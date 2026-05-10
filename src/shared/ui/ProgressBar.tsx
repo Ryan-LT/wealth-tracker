@@ -1,8 +1,12 @@
+"use client";
+
+import Box from "@mui/material/Box";
+import LinearProgress from "@mui/material/LinearProgress";
+
 import { cn } from "@/shared/lib";
 
 type ProgressBarProps = {
   value: number;
-  /** Defaults to 100. */
   max?: number;
   tone?: "secondary" | "error";
   className?: string;
@@ -17,14 +21,20 @@ export function ProgressBar({
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
 
   return (
-    <div className={cn("w-full bg-surface-container-highest rounded-full h-2", className)}>
-      <div
-        className={cn(
-          "h-2 rounded-full transition-[width] duration-300",
-          tone === "secondary" ? "bg-secondary" : "bg-error",
-        )}
-        style={{ width: `${pct}%` }}
+    <Box className={cn("w-full", className)}>
+      <LinearProgress
+        variant="determinate"
+        value={pct}
+        color={tone === "secondary" ? "secondary" : "error"}
+        sx={{
+          height: 8,
+          borderRadius: "9999px",
+          bgcolor: "var(--color-surface-container-highest)",
+          "& .MuiLinearProgress-bar": {
+            borderRadius: "9999px",
+          },
+        }}
       />
-    </div>
+    </Box>
   );
 }

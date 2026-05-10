@@ -1,5 +1,7 @@
 "use client";
 
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
 import { useState } from "react";
 
 import { formatVnd } from "@/shared/lib";
@@ -19,8 +21,8 @@ export function NetWorthCard({ totalNetWorth, monthChangePct }: NetWorthCardProp
 
   return (
     <Card className="lg:col-span-2 p-6">
-      <div className="flex justify-between items-start mb-stack-lg">
-        <div>
+      <div className="flex justify-between items-start mb-stack-lg gap-4">
+        <div className="min-w-0">
           <h3 className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">
             Total Net Worth
           </h3>
@@ -35,18 +37,34 @@ export function NetWorthCard({ totalNetWorth, monthChangePct }: NetWorthCardProp
             </span>
           </div>
         </div>
-        <select
+        <TextField
+          select
+          size="small"
           value={range}
-          onChange={(e) => setRange(e.target.value as (typeof RANGE_OPTIONS)[number])}
-          className="bg-surface border border-outline-variant text-on-surface font-label-sm text-label-sm rounded h-8 px-2 py-0 focus:border-secondary focus:ring-0"
+          onChange={(e) =>
+            setRange(e.target.value as (typeof RANGE_OPTIONS)[number])
+          }
+          sx={{
+            minWidth: 88,
+            flexShrink: 0,
+            "& .MuiOutlinedInput-root": {
+              height: 32,
+              bgcolor: "var(--color-surface)",
+            },
+          }}
         >
           {RANGE_OPTIONS.map((opt) => (
-            <option key={opt}>{opt}</option>
+            <MenuItem key={opt} value={opt}>
+              {opt}
+            </MenuItem>
           ))}
-        </select>
+        </TextField>
       </div>
 
-      <MiniLineChart />
+      <MiniLineChart
+        totalNetWorth={totalNetWorth}
+        monthChangePct={monthChangePct}
+      />
     </Card>
   );
 }

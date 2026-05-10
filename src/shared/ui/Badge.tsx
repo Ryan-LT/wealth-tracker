@@ -1,3 +1,6 @@
+"use client";
+
+import Chip from "@mui/material/Chip";
 import type { ReactNode } from "react";
 
 import { cn } from "@/shared/lib";
@@ -11,15 +14,40 @@ type BadgeTone =
   | "tag"
   | "danger";
 
-const TONE_CLASSES: Record<BadgeTone, string> = {
-  success: "bg-secondary/10 text-secondary",
-  active: "bg-secondary-container text-on-secondary-container",
-  passive: "bg-surface-variant text-on-surface-variant",
-  neutral: "bg-surface-container-high text-on-surface-variant",
-  subtle:
-    "bg-surface border border-outline-variant text-on-surface-variant",
-  tag: "bg-surface border border-outline-variant text-on-surface-variant",
-  danger: "bg-error-container text-on-error-container",
+const TONE_SX: Record<
+  BadgeTone,
+  { bgcolor?: string; color?: string; border?: string }
+> = {
+  success: {
+    bgcolor: "rgba(0, 108, 73, 0.1)",
+    color: "var(--color-secondary)",
+  },
+  active: {
+    bgcolor: "var(--color-secondary-container)",
+    color: "var(--color-on-secondary-container)",
+  },
+  passive: {
+    bgcolor: "var(--color-surface-variant)",
+    color: "var(--color-on-surface-variant)",
+  },
+  neutral: {
+    bgcolor: "var(--color-surface-container-high)",
+    color: "var(--color-on-surface-variant)",
+  },
+  subtle: {
+    bgcolor: "var(--color-surface)",
+    color: "var(--color-on-surface-variant)",
+    border: "1px solid var(--color-outline-variant)",
+  },
+  tag: {
+    bgcolor: "var(--color-surface)",
+    color: "var(--color-on-surface-variant)",
+    border: "1px solid var(--color-outline-variant)",
+  },
+  danger: {
+    bgcolor: "var(--color-error-container)",
+    color: "var(--color-on-error-container)",
+  },
 };
 
 type BadgeProps = {
@@ -35,16 +63,32 @@ export function Badge({
   className,
   children,
 }: BadgeProps) {
+  const sx = TONE_SX[tone];
+
   return (
-    <span
-      className={cn(
-        "inline-flex items-center px-2 py-1 rounded font-label-sm text-label-sm tracking-wider whitespace-nowrap",
-        uppercase && "uppercase",
-        TONE_CLASSES[tone],
-        className,
-      )}
-    >
-      {children}
-    </span>
+    <Chip
+      label={children}
+      size="small"
+      variant={tone === "subtle" || tone === "tag" ? "outlined" : "filled"}
+      className={cn("font-label-sm tracking-wider", className)}
+      sx={{
+        height: "auto",
+        py: 0.25,
+        px: 0.5,
+        "& .MuiChip-label": {
+          px: 0.5,
+          fontSize: "0.75rem",
+          lineHeight: "1rem",
+          textTransform: uppercase ? "uppercase" : "none",
+        },
+        ...sx,
+        ...(tone === "subtle" || tone === "tag"
+          ? {
+              bgcolor: sx.bgcolor,
+              borderColor: "var(--color-outline-variant)",
+            }
+          : {}),
+      }}
+    />
   );
 }

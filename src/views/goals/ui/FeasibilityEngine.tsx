@@ -1,3 +1,5 @@
+"use client";
+
 import { formatVnd } from "@/shared/lib";
 import { Badge, Card, MaterialIcon } from "@/shared/ui";
 

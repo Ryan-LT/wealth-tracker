@@ -1,10 +1,14 @@
+"use client";
+
 import type { ButtonHTMLAttributes } from "react";
+
+import MuiIconButton from "@mui/material/IconButton";
 
 import { cn } from "@/shared/lib";
 
 import { MaterialIcon } from "./MaterialIcon";
 
-type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "color"> & {
   icon: string;
   label: string;
   filled?: boolean;
@@ -12,8 +16,7 @@ type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 /**
- * Round, transparent icon button used for the topbar bell / account-circle
- * actions and inline-row "edit" / "delete" buttons.
+ * Round icon button used for top bar actions and inline row controls.
  */
 export function IconButton({
   icon,
@@ -24,18 +27,20 @@ export function IconButton({
   ...rest
 }: IconButtonProps) {
   return (
-    <button
+    <MuiIconButton
       type="button"
       aria-label={label}
       className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center",
         "text-on-surface-variant hover:bg-surface-container-low transition-colors",
-        "cursor-pointer active:opacity-80",
         className,
       )}
+      sx={{
+        width: 40,
+        height: 40,
+      }}
       {...rest}
     >
-      <MaterialIcon name={icon} filled={filled} size={size} />
-    </button>
+      <MaterialIcon name={icon} filled={filled} size={size ?? 24} />
+    </MuiIconButton>
   );
 }

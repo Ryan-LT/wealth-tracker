@@ -32,7 +32,7 @@ export function JournalPage() {
     <>
       <TopAppBar
         start={
-          <div className="flex items-center gap-stack-sm w-full max-w-md text-on-surface-variant">
+          <div className="flex min-w-0 flex-1 max-w-full items-center gap-stack-sm text-on-surface-variant sm:max-w-md">
             <MaterialIcon name="search" />
             <input
               type="search"

@@ -26,11 +26,11 @@ export function WhatIfSliders({
           label="Monthly Contribution"
           value={monthlyContribution}
           onChange={onMonthlyContributionChange}
-          min={1_000_000}
+          min={0}
           max={100_000_000}
           step={250_000}
           format={(v) => formatVnd(v)}
-          minLabel="1M ₫"
+          minLabel="0 ₫"
           maxLabel="100M ₫"
         />
         <RangeSlider

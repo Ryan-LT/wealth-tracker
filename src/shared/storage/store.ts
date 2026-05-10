@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-const NS = "wt:v1:";
+const NS = "wt:v2:";
 
 type Listener = () => void;
 

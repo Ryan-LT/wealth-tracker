@@ -49,7 +49,7 @@ export function GoalCreatorForm({
           label="Target Amount (₫)"
           value={profile.targetAmount}
           onChange={(targetAmount) => onChange({ ...profile, targetAmount })}
-          placeholder="500.000.000"
+          placeholder="0"
         />
 
         <div>

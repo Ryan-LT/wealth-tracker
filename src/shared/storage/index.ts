@@ -12,8 +12,8 @@ export type { Transaction, ActivityRow } from "./transactions";
 export { INCOME_SOURCES_SEED, SETTINGS_ASSETS_SEED } from "./incomeSources";
 export type { IncomeSource, IncomeSourceKind, SettingsAsset } from "./incomeSources";
 
-export { GOALS_SEED } from "./goals";
+export { EMPTY_GOAL_PROFILE, GOALS_SEED } from "./goals";
 export type { GoalsState, GoalProfile } from "./goals";
 
-export { PREFERENCES_SEED, DASHBOARD_SEED } from "./preferences";
-export type { Preferences, DashboardSummary } from "./preferences";
+export { PREFERENCES_SEED } from "./preferences";
+export type { Preferences } from "./preferences";

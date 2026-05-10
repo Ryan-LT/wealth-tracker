@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  EMPTY_GOAL_PROFILE,
   GOALS_SEED,
   INCOME_SOURCES_SEED,
   PREFERENCES_SEED,
@@ -20,7 +21,9 @@ export function SettingsPage() {
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
   const activeProfile =
-    goals.profiles.find((p) => p.id === goals.activeProfileId) ?? goals.profiles[0];
+    goals.profiles.find((p) => p.id === goals.activeProfileId) ??
+    goals.profiles[0] ??
+    EMPTY_GOAL_PROFILE;
 
   return (
     <main className="flex-1 overflow-y-auto w-full pb-24 md:pb-8 bg-background pt-stack-lg px-margin-mobile md:px-gutter max-w-container-max mx-auto">

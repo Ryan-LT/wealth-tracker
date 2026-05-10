@@ -8,7 +8,7 @@ type MonthlySummaryCardProps = {
 
 export function MonthlySummaryCard({ inflow, outflow }: MonthlySummaryCardProps) {
   const yieldNet = inflow - outflow;
-  const max = Math.max(inflow, 1);
+  const max = Math.max(inflow, outflow, 1);
 
   return (
     <Card className="lg:col-span-4 p-6 flex flex-col">

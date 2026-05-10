@@ -22,7 +22,7 @@ type TopAppBarProps = {
 
 export function TopAppBar({
   start,
-  metricLabel = "Metric: Net Worth",
+  metricLabel,
   metricValue,
   showActions = true,
   end,
@@ -31,34 +31,50 @@ export function TopAppBar({
   return (
     <header
       className={cn(
-        "bg-surface h-16 w-full sticky top-0 z-40",
-        "border-b border-outline-variant",
-        "flex justify-between items-center px-gutter",
+        "sticky top-0 inset-x-0 z-40 box-border w-full min-w-0 max-w-full",
+        "bg-surface border-b border-outline-variant",
+        "pt-[env(safe-area-inset-top)]",
         className,
       )}
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">{start}</div>
+      <div
+        className={cn(
+          "flex h-14 min-h-14 w-full min-w-0 max-w-full items-center gap-2 sm:min-h-16 sm:gap-3 md:gap-4",
+          // Horizontal safe area + align with page gutters (main uses px-margin-mobile / md:px-gutter).
+          "ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))]",
+          "md:ps-[max(1.5rem,env(safe-area-inset-left))] md:pe-[max(1.5rem,env(safe-area-inset-right))]",
+        )}
+      >
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 basis-0 items-center gap-2 sm:gap-4",
+            "[&_h1]:min-w-0 [&_h1]:truncate [&_h2]:min-w-0 [&_h2]:truncate",
+          )}
+        >
+          {start}
+        </div>
 
-      <div className="flex items-center gap-stack-md shrink-0">
-        {metricLabel ? (
-          <div className="hidden lg:flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
-            <span className="uppercase tracking-wider">{metricLabel}</span>
-            {metricValue ? (
-              <span className="font-data-tabular text-data-tabular text-primary font-bold">
-                {metricValue}
-              </span>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
+          {metricLabel ? (
+            <div className="hidden max-w-[min(100%,14rem)] items-center gap-2 font-label-sm text-label-sm text-on-surface-variant md:flex lg:max-w-[min(100%,18rem)]">
+              <span className="shrink-0 uppercase tracking-wider">{metricLabel}</span>
+              {metricValue ? (
+                <span className="min-w-0 truncate font-data-tabular text-data-tabular font-bold text-primary">
+                  {metricValue}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
 
-        {showActions ? (
-          <div className="flex items-center gap-stack-sm">
-            <IconButton icon="notifications" label="Notifications" />
-            <IconButton icon="account_circle" label="Account" />
-          </div>
-        ) : null}
+          {showActions ? (
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+              <IconButton icon="notifications" label="Notifications" />
+              <IconButton icon="account_circle" label="Account" />
+            </div>
+          ) : null}
 
-        {end}
+          {end}
+        </div>
       </div>
     </header>
   );

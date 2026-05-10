@@ -21,28 +21,21 @@ export type GoalsState = {
   activeProfileId: string;
 };
 
+/** Draft-shaped defaults when there are no saved profiles yet. */
+export const EMPTY_GOAL_PROFILE: GoalProfile = {
+  id: "",
+  name: "",
+  targetAmount: 0,
+  targetDate: "",
+  monthlyContribution: 0,
+};
+
 export const GOALS_SEED: GoalsState = {
   primary: {
-    name: "New House Fund",
-    targetAmount: 200_000_000,
-    saved: 130_000_000,
+    name: "",
+    targetAmount: 0,
+    saved: 0,
   },
-  profiles: [
-    {
-      id: "vacation-home",
-      name: "Vacation Home",
-      targetAmount: 500_000_000,
-      targetDate: "2028-06-30",
-      monthlyContribution: 4_250_000,
-      active: true,
-    },
-    {
-      id: "retirement",
-      name: "Retirement Fund",
-      targetAmount: 20_000_000_000,
-      targetDate: "2035-12-31",
-      monthlyContribution: 12_500_000,
-    },
-  ],
-  activeProfileId: "vacation-home",
+  profiles: [],
+  activeProfileId: "",
 };

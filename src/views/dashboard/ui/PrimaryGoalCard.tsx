@@ -35,7 +35,8 @@ function GoalDiamond({ percent }: { percent: number }) {
 }
 
 export function PrimaryGoalCard({ name, targetAmount, saved }: PrimaryGoalCardProps) {
-  const pct = Math.round((saved / targetAmount) * 100);
+  const pct =
+    targetAmount === 0 ? 0 : Math.round((saved / targetAmount) * 100);
 
   return (
     <Card className="p-6 flex flex-col">

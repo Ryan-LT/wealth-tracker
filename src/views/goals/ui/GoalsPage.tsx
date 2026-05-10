@@ -2,7 +2,12 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { GOALS_SEED, type GoalProfile, useTable } from "@/shared/storage";
+import {
+  EMPTY_GOAL_PROFILE,
+  GOALS_SEED,
+  type GoalProfile,
+  useTable,
+} from "@/shared/storage";
 import { TopAppBar } from "@/widgets/top-app-bar";
 
 import { FeasibilityEngine } from "./FeasibilityEngine";
@@ -11,15 +16,16 @@ import { ProjectionTimelineChart } from "./ProjectionTimelineChart";
 import { SavedProfilesStrip } from "./SavedProfilesStrip";
 import { WhatIfSliders } from "./WhatIfSliders";
 
-const CURRENT_SAVINGS_RATE = 5_000_000;
-
 function profileById(profiles: GoalProfile[], id: string): GoalProfile | undefined {
   return profiles.find((p) => p.id === id);
 }
 
 export function GoalsPage() {
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
-  const activeProfile = profileById(goals.profiles, goals.activeProfileId) ?? goals.profiles[0];
+  const activeProfile =
+    profileById(goals.profiles, goals.activeProfileId) ??
+    goals.profiles[0] ??
+    EMPTY_GOAL_PROFILE;
 
   const [draft, setDraft] = useState<GoalProfile>(activeProfile);
   const [lastLoadedId, setLastLoadedId] = useState(activeProfile.id);
@@ -53,7 +59,7 @@ export function GoalsPage() {
   }
 
   const monthsToTarget = useMemo(() => {
-    if (!draft.targetDate) return 60;
+    if (!draft.targetDate) return 1;
     const now = new Date();
     const target = new Date(draft.targetDate);
     const months = Math.max(
@@ -69,13 +75,18 @@ export function GoalsPage() {
   );
 
   const note = useMemo(() => {
-    if (CURRENT_SAVINGS_RATE >= requiredMonthly) {
-      const surplus = CURRENT_SAVINGS_RATE - requiredMonthly;
-      const monthsEarly = Math.floor((surplus * monthsToTarget) / Math.max(1, requiredMonthly));
-      return `Based on your current net income trajectory, you are on track to reach this goal ${monthsEarly} months early.`;
+    const rate = draft.monthlyContribution;
+    if (draft.targetAmount <= 0 || !draft.targetDate) {
+      return "Set a target amount, date, and monthly contribution to see tailored guidance.";
     }
-    return "Increase contributions or extend the timeline to bring this goal back on track.";
-  }, [requiredMonthly, monthsToTarget]);
+    if (requiredMonthly <= 0) return "";
+    if (rate >= requiredMonthly) {
+      const surplus = rate - requiredMonthly;
+      const monthsEarly = Math.floor((surplus * monthsToTarget) / Math.max(1, requiredMonthly));
+      return `At your entered monthly contribution, you are on track to reach this goal ${monthsEarly} months early.`;
+    }
+    return "Increase the monthly contribution or extend the timeline to bring this goal back on track.";
+  }, [draft.monthlyContribution, draft.targetAmount, draft.targetDate, requiredMonthly, monthsToTarget]);
 
   return (
     <>
@@ -106,14 +117,17 @@ export function GoalsPage() {
             />
             <FeasibilityEngine
               requiredMonthly={requiredMonthly}
-              currentRate={CURRENT_SAVINGS_RATE}
+              currentRate={draft.monthlyContribution}
               note={note}
             />
           </div>
           <div className="lg:col-span-8 flex flex-col gap-stack-md">
             <ProjectionTimelineChart
               targetAmount={draft.targetAmount}
-              progress={Math.min(1, CURRENT_SAVINGS_RATE / Math.max(1, requiredMonthly))}
+              progress={Math.min(
+                1,
+                draft.monthlyContribution / Math.max(1, requiredMonthly),
+              )}
             />
             <WhatIfSliders
               monthlyContribution={draft.monthlyContribution}

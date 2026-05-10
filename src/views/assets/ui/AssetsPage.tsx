@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { formatVnd } from "@/shared/lib";
+import { formatVnd, totalAssetValue, totalDebtBalance } from "@/shared/lib";
 import {
   ASSETS_SEED,
   DEBTS_SEED,
@@ -22,12 +22,9 @@ export function AssetsPage() {
   const [debts] = useTable("debts", DEBTS_SEED);
 
   const totals = useMemo(() => {
-    const realEstate = assets.realEstate.reduce((s, p) => s + p.estValue, 0);
-    const cash = assets.cashAccounts.reduce((s, a) => s + a.balance, 0);
-    const investments = assets.investments.reduce((s, i) => s + i.value, 0);
-    const liabilities = debts.reduce((s, d) => s + d.balance, 0);
-    const totalAssets = realEstate + cash + investments;
-    return { totalAssets, liabilities };
+    const gross = totalAssetValue(assets);
+    const liabilities = totalDebtBalance(debts);
+    return { totalAssets: gross, liabilities };
   }, [assets, debts]);
 
   return (

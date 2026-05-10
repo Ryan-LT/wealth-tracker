@@ -1,9 +1,19 @@
 "use client";
 
+import { useMemo } from "react";
+
+import {
+  monthlyIncomeByKind,
+  totalAssetValue,
+  totalDebtBalance,
+} from "@/shared/lib";
 import {
   ACTIVITY_SEED,
-  DASHBOARD_SEED,
+  ASSETS_SEED,
+  DEBTS_SEED,
   GOALS_SEED,
+  INCOME_SOURCES_SEED,
+  type AssetsState,
   useTable,
 } from "@/shared/storage";
 import { TopAppBar } from "@/widgets/top-app-bar";
@@ -14,9 +24,25 @@ import { PrimaryGoalCard } from "./PrimaryGoalCard";
 import { RecentActivityTable } from "./RecentActivityTable";
 
 export function DashboardPage() {
-  const [summary] = useTable("dashboard", DASHBOARD_SEED);
+  const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
+  const [debts] = useTable("debts", DEBTS_SEED);
+  const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [goals] = useTable("goals", GOALS_SEED);
   const [activity] = useTable("activity", ACTIVITY_SEED);
+
+  const summary = useMemo(() => {
+    const grossAssets = totalAssetValue(assets);
+    const liabilities = totalDebtBalance(debts);
+    const netWorth = grossAssets - liabilities;
+    return {
+      totalNetWorth: netWorth,
+      monthChangePct: 0,
+      activeIncome: monthlyIncomeByKind(sources, "active"),
+      passiveIncome: monthlyIncomeByKind(sources, "passive"),
+      totalDebt: -liabilities,
+      eoyProjection: 0,
+    };
+  }, [assets, debts, sources]);
 
   return (
     <>

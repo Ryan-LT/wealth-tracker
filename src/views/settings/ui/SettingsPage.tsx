@@ -1,5 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
+
+import { mergeAssetCategoryOptions } from "@/shared/config";
 import {
   EMPTY_GOAL_PROFILE,
   GOALS_SEED,
@@ -25,6 +28,11 @@ export function SettingsPage() {
     goals.profiles[0] ??
     EMPTY_GOAL_PROFILE;
 
+  const assetCategoryOptions = useMemo(
+    () => mergeAssetCategoryOptions(prefs, assets),
+    [prefs, assets],
+  );
+
   return (
     <main className="flex-1 overflow-y-auto w-full pb-24 md:pb-8 bg-background pt-stack-lg px-margin-mobile md:px-gutter max-w-container-max mx-auto">
       <div className="mb-stack-lg">
@@ -38,6 +46,15 @@ export function SettingsPage() {
         <div className="xl:col-span-2 flex flex-col gap-stack-lg">
           <AssetManagementTable
             assets={assets}
+            categoryOptions={assetCategoryOptions}
+            onRegisterCustomCategory={(category) =>
+              setPrefs((p) => ({
+                ...p,
+                extraAssetCategories: [
+                  ...new Set([...(p.extraAssetCategories ?? []), category.trim()]),
+                ],
+              }))
+            }
             onDelete={(id) => setAssets((prev) => prev.filter((a) => a.id !== id))}
             onUpdate={(next) =>
               setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))

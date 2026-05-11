@@ -58,7 +58,7 @@ export function TopAppBar({
 
         <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
           {metricLabel ? (
-            <div className="hidden max-w-[min(100%,14rem)] items-center gap-2 font-label-sm text-label-sm text-on-surface-variant md:flex lg:max-w-[min(100%,18rem)]">
+            <div className="hidden max-w-[min(100%,14rem)] items-center gap-2 font-label-sm text-label-sm text-on-surface-variant lg:flex lg:max-w-[min(100%,18rem)]">
               <span className="shrink-0 uppercase tracking-wider">{metricLabel}</span>
               {metricValue ? (
                 <span className="min-w-0 truncate font-data-tabular text-data-tabular font-bold text-primary">

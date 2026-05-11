@@ -2,21 +2,49 @@
 
 import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
-import type { ChangeEvent } from "react";
-import { useId } from "react";
+import type { TextFieldProps } from "@mui/material/TextField";
+import { NumericFormat, type NumberFormatValues } from "react-number-format";
 
-import { cn, formatThousands } from "@/shared/lib";
+import { cn } from "@/shared/lib";
 
-type MoneyInputProps = {
+export type MoneyInputProps = {
   label?: string;
   value: number;
   onChange: (next: number) => void;
   placeholder?: string;
   className?: string;
+  /** Currency glyph before the value (empty string = no adornment). */
   symbol?: string;
-  separated?: boolean;
+  /** Fraction digits; `0` = whole VND amounts. */
+  decimals?: number;
+  allowNegative?: boolean;
+  min?: number;
+  max?: number;
+  size?: TextFieldProps["size"];
+  margin?: TextFieldProps["margin"];
+  variant?: TextFieldProps["variant"];
+  fullWidth?: TextFieldProps["fullWidth"];
+  autoFocus?: boolean;
+  disabled?: boolean;
+  sx?: TextFieldProps["sx"];
 };
 
+function allowValues(
+  values: NumberFormatValues,
+  opts: { allowNegative: boolean; min?: number; max?: number },
+): boolean {
+  const v = values.floatValue;
+  if (v === undefined) return true;
+  if (!opts.allowNegative && v < 0) return false;
+  if (opts.min !== undefined && v < opts.min) return false;
+  if (opts.max !== undefined && v > opts.max) return false;
+  return true;
+}
+
+/**
+ * VND-style amount field with thousand separators while typing.
+ * Uses `react-number-format` so the caret behaves correctly during edits.
+ */
 export function MoneyInput({
   label,
   value,
@@ -24,30 +52,42 @@ export function MoneyInput({
   placeholder,
   className,
   symbol = "₫",
-  separated = true,
+  decimals = 0,
+  allowNegative = false,
+  min,
+  max,
+  size = "small",
+  margin,
+  variant = "outlined",
+  fullWidth = true,
+  autoFocus,
+  disabled,
+  sx,
 }: MoneyInputProps) {
-  const id = useId();
-  const display =
-    separated && Number.isFinite(value) ? formatThousands(value) : String(value || "");
-
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    const digits = e.target.value.replace(/[^\d-]/g, "");
-    const parsed = digits === "" || digits === "-" ? 0 : Number(digits);
-    if (!Number.isNaN(parsed)) onChange(parsed);
-  }
+  const safeValue = Number.isFinite(value) ? value : 0;
 
   return (
-    <TextField
-      id={id}
+    <NumericFormat
+      customInput={TextField}
+      thousandSeparator=","
+      decimalScale={decimals}
+      fixedDecimalScale={decimals > 0}
+      allowNegative={allowNegative}
+      value={safeValue}
+      onValueChange={(vals) => {
+        onChange(vals.floatValue ?? 0);
+      }}
+      isAllowed={(vals) => allowValues(vals, { allowNegative, min, max })}
       label={label}
-      value={display}
-      onChange={handleChange}
       placeholder={placeholder}
-      size="small"
-      fullWidth
-      variant="outlined"
-      inputMode="numeric"
+      size={size}
+      margin={margin}
+      variant={variant}
+      fullWidth={fullWidth}
+      autoFocus={autoFocus}
+      disabled={disabled}
       className={cn(className)}
+      inputMode="decimal"
       slotProps={{
         input: {
           startAdornment: symbol ? (
@@ -75,6 +115,7 @@ export function MoneyInput({
           fontVariantNumeric: "tabular-nums",
           textAlign: "right",
         },
+        ...sx,
       }}
     />
   );

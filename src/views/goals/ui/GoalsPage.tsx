@@ -46,10 +46,31 @@ export function GoalsPage() {
   );
 
   function saveCurrentSetup() {
-    setGoals((prev) => ({
-      ...prev,
-      profiles: prev.profiles.map((p) => (p.id === draft.id ? draft : p)),
-    }));
+    setGoals((prev) => {
+      const existingById =
+        draft.id !== "" ? prev.profiles.find((p) => p.id === draft.id) : undefined;
+      const id = existingById ? draft.id : `goal-${Date.now()}`;
+
+      const saved: GoalProfile = {
+        ...(existingById ?? {}),
+        id,
+        name: draft.name.trim() || "Untitled goal",
+        targetAmount: draft.targetAmount,
+        targetDate: draft.targetDate,
+        monthlyContribution: draft.monthlyContribution,
+      };
+
+      const hasId = prev.profiles.some((p) => p.id === id);
+      const profiles = hasId
+        ? prev.profiles.map((p) => (p.id === id ? saved : p))
+        : [...prev.profiles, saved];
+
+      return {
+        ...prev,
+        profiles,
+        activeProfileId: id,
+      };
+    });
   }
 
   function simulate() {

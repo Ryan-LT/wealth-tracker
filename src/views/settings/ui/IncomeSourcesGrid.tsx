@@ -15,7 +15,7 @@ import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
 
 import type { IncomeSource, IncomeSourceKind } from "@/shared/storage";
-import { Button, MaterialIcon } from "@/shared/ui";
+import { Button, MaterialIcon, MoneyInput } from "@/shared/ui";
 
 import { IncomeSourceCard } from "./IncomeSourceCard";
 
@@ -182,19 +182,14 @@ export function IncomeSourcesGrid({
             value={draft?.icon ?? ""}
             onChange={(e) => setDraft((d) => (d ? { ...d, icon: e.target.value } : d))}
           />
-          <TextField
+          <MoneyInput
             margin="dense"
             label="Monthly amount (₫)"
-            type="number"
-            fullWidth
-            slotProps={{ htmlInput: { min: 0, step: 1 } }}
             value={draft?.monthly ?? 0}
-            onChange={(e) => {
-              const raw = e.target.value === "" ? 0 : Number(e.target.value);
-              setDraft((d) =>
-                d ? { ...d, monthly: Number.isFinite(raw) ? Math.max(0, raw) : 0 } : d,
-              );
-            }}
+            min={0}
+            onChange={(v) =>
+              setDraft((d) => (d ? { ...d, monthly: Math.max(0, v) } : d))
+            }
           />
           <TextField
             margin="dense"

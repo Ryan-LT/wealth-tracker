@@ -19,7 +19,7 @@ import { RealEstateSection } from "./RealEstateSection";
 
 export function AssetsPage() {
   const [assets, setAssets] = useTable<AssetsState>("assets", ASSETS_SEED);
-  const [debts] = useTable("debts", DEBTS_SEED);
+  const [debts, setDebts] = useTable("debts", DEBTS_SEED);
 
   const totals = useMemo(() => {
     const gross = totalAssetValue(assets);
@@ -51,7 +51,14 @@ export function AssetsPage() {
             <LendingInvestmentsSection investments={assets.investments} />
           </div>
           <div className="lg:col-span-4 space-y-stack-lg">
-            <DebtsSection debts={debts} />
+            <DebtsSection
+              debts={debts}
+              onAdd={(debt) => setDebts((prev) => [...prev, debt])}
+              onUpdate={(debt) =>
+                setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
+              }
+              onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
+            />
             <FinancialSummaryWidget
               totalAssets={totals.totalAssets}
               totalLiabilities={totals.liabilities}

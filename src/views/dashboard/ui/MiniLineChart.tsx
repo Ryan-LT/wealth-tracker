@@ -12,13 +12,22 @@ registerChartJs();
 type MiniLineChartProps = {
   totalNetWorth: number;
   monthChangePct: number;
+  /** When provided (6 points), shows preferences-backed history + live NW. */
+  chartLabels?: string[];
+  chartValues?: number[];
 };
 
 export function MiniLineChart({
   totalNetWorth,
   monthChangePct,
+  chartLabels,
+  chartValues,
 }: MiniLineChartProps) {
   const { labels, values } = useMemo(() => {
+    if (chartLabels?.length === 6 && chartValues?.length === 6) {
+      return { labels: chartLabels, values: chartValues };
+    }
+
     const monthLabels: string[] = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -41,7 +50,7 @@ export function MiniLineChart({
     );
 
     return { labels: monthLabels, values: points };
-  }, [totalNetWorth, monthChangePct]);
+  }, [totalNetWorth, monthChangePct, chartLabels, chartValues]);
 
   const chartData = useMemo(
     () => ({
@@ -80,7 +89,7 @@ export function MiniLineChart({
       scales: {
         x: {
           grid: { display: false },
-          ticks: { maxRotation: 0, font: { size: 11 } },
+          ticks: { display: false },
         },
         y: {
           grid: { color: "rgba(0, 0, 0, 0.06)" },
@@ -94,12 +103,19 @@ export function MiniLineChart({
   );
 
   return (
-    <div
-      className="h-48 w-full border-b border-l border-outline-variant bg-surface-container-low/30"
-      role="img"
-      aria-label="Net worth history"
-    >
-      <Line data={chartData} options={options} />
+    <div>
+      <div
+        className="h-48 w-full border-b border-l border-outline-variant bg-surface-container-low/30"
+        role="img"
+        aria-label="Net worth history"
+      >
+        <Line data={chartData} options={options} />
+      </div>
+      <div className="mt-2 flex justify-between px-2 font-data-tabular text-[10px] text-on-surface-variant">
+        {labels.map((label, i) => (
+          <span key={`${label}-${i}`}>{label}</span>
+        ))}
+      </div>
     </div>
   );
 }

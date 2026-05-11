@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import Autocomplete from "@mui/material/Autocomplete";
 import MuiButton from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -10,12 +11,17 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 
+import { isDefaultAssetCategory } from "@/shared/config";
 import { formatThousands } from "@/shared/lib";
 import type { SettingsAsset } from "@/shared/storage";
-import { Button, MaterialIcon } from "@/shared/ui";
+import { Button, MaterialIcon, MoneyInput } from "@/shared/ui";
 
 type AssetManagementTableProps = {
   assets: SettingsAsset[];
+  /** Category combobox options (defaults + saved customs + in-use labels). */
+  categoryOptions: string[];
+  /** Persist a user-typed category so it appears in the list next time. */
+  onRegisterCustomCategory?: (category: string) => void;
   onDelete: (id: string) => void;
   onUpdate: (asset: SettingsAsset) => void;
   onAdd: (asset: SettingsAsset) => void;
@@ -23,6 +29,8 @@ type AssetManagementTableProps = {
 
 export function AssetManagementTable({
   assets,
+  categoryOptions,
+  onRegisterCustomCategory,
   onDelete,
   onUpdate,
   onAdd,
@@ -56,10 +64,19 @@ export function AssetManagementTable({
 
   function saveAssetDialog() {
     if (!assetDraft?.id) return;
+    const trimmedCat = assetDraft.category.trim() || "Cash";
+    const next: SettingsAsset = {
+      ...assetDraft,
+      name: assetDraft.name.trim(),
+      category: trimmedCat,
+    };
+    if (trimmedCat && !isDefaultAssetCategory(trimmedCat)) {
+      onRegisterCustomCategory?.(trimmedCat);
+    }
     if (assetDialogMode === "edit") {
-      onUpdate(assetDraft);
+      onUpdate(next);
     } else if (assetDialogMode === "create") {
-      onAdd(assetDraft);
+      onAdd(next);
     }
     closeAssetDialog();
   }
@@ -166,28 +183,31 @@ export function AssetManagementTable({
               setAssetDraft((d) => (d ? { ...d, name: e.target.value } : d))
             }
           />
-          <TextField
-            margin="dense"
-            label="Category"
-            fullWidth
+          <Autocomplete
+            freeSolo
+            options={categoryOptions}
             value={assetDraft?.category ?? ""}
-            onChange={(e) =>
-              setAssetDraft((d) => (d ? { ...d, category: e.target.value } : d))
-            }
+            onChange={(_, newValue) => {
+              const v = typeof newValue === "string" ? newValue : "";
+              setAssetDraft((d) => (d ? { ...d, category: v } : d));
+            }}
+            onInputChange={(_, inputValue, reason) => {
+              if (reason === "input" || reason === "clear") {
+                setAssetDraft((d) => (d ? { ...d, category: inputValue } : d));
+              }
+            }}
+            renderInput={(params) => (
+              <TextField {...params} margin="dense" label="Category" fullWidth />
+            )}
           />
-          <TextField
+          <MoneyInput
             margin="dense"
             label="Current value (₫)"
-            type="number"
-            fullWidth
-            slotProps={{ htmlInput: { min: 0, step: 1 } }}
             value={assetDraft?.currentValue ?? 0}
-            onChange={(e) => {
-              const v = e.target.value === "" ? 0 : Number(e.target.value);
-              setAssetDraft((d) =>
-                d ? { ...d, currentValue: Number.isFinite(v) ? Math.max(0, v) : 0 } : d,
-              );
-            }}
+            min={0}
+            onChange={(v) =>
+              setAssetDraft((d) => (d ? { ...d, currentValue: Math.max(0, v) } : d))
+            }
           />
         </DialogContent>
         <DialogActions>

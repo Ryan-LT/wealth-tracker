@@ -20,7 +20,7 @@ type RecentActivityTableProps = {
 export function RecentActivityTable({ rows }: RecentActivityTableProps) {
   return (
     <Card>
-      <div className="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center rounded-t-xl">
+      <div className="flex items-center justify-between rounded-t-xl border-b border-outline-variant bg-slate-50 px-6 py-4 dark:bg-surface-container-low">
         <h3 className="font-headline-md text-headline-md text-primary">
           Recent Terminal Activity
         </h3>
@@ -50,7 +50,14 @@ export function RecentActivityTable({ rows }: RecentActivityTableProps) {
             </TableRow>
           </TableHead>
           <TableBody className="font-data-tabular text-data-tabular text-on-surface">
-            {rows.map((row, idx) => (
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="font-body-md text-body-md text-on-surface-variant py-8">
+                  No transactions yet. Add journal lines to see recent activity on the dashboard.
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((row, idx) => (
               <TableRow
                 key={row.id}
                 hover
@@ -71,7 +78,8 @@ export function RecentActivityTable({ rows }: RecentActivityTableProps) {
                   {formatVnd(row.amount, { showSign: row.amount > 0 })}
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

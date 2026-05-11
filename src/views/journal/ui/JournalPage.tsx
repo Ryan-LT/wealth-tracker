@@ -4,6 +4,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import { useMemo } from "react";
 
+import { resolvedMonthlyCashflowDisplay } from "@/shared/lib";
 import {
   INCOME_SOURCES_SEED,
   PREFERENCES_SEED,
@@ -29,6 +30,11 @@ export function JournalPage() {
       passive: sources.filter((s) => s.kind === "passive"),
     };
   }, [sources]);
+
+  const monthlyCashflow = useMemo(
+    () => resolvedMonthlyCashflowDisplay(transactions, prefs),
+    [transactions, prefs],
+  );
 
   return (
     <>
@@ -87,7 +93,10 @@ export function JournalPage() {
             initialValue={prefs.netMonthIncome}
             onUpdate={(netMonthIncome) => setPrefs((p) => ({ ...p, netMonthIncome }))}
           />
-          <MonthlySummaryCard inflow={prefs.monthInflow} outflow={prefs.monthOutflow} />
+          <MonthlySummaryCard
+            inflow={monthlyCashflow.inflow}
+            outflow={monthlyCashflow.outflow}
+          />
 
           <IncomeSourcesPanel title="Salary & Active Income" sources={active} />
           <IncomeSourcesPanel title="Passive Income Sources" sources={passive} />

@@ -6,7 +6,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import TextField from "@mui/material/TextField";
 import dayjs from "dayjs";
 
-import { Button, MaterialIcon } from "@/shared/ui";
+import { Button, MaterialIcon, MoneyInput } from "@/shared/ui";
 
 type GoalConfigurationCardProps = {
   primaryTarget: number;
@@ -34,16 +34,13 @@ export function GoalConfigurationCard({
           </div>
         </div>
         <div className="p-stack-md flex flex-col gap-stack-md">
-          <TextField
-            id="primary-target"
+          <MoneyInput
             label="Primary Target (₫)"
+            symbol=""
+            value={primaryTarget}
+            min={0}
+            onChange={onPrimaryTargetChange}
             size="small"
-            fullWidth
-            value={primaryTarget.toLocaleString("en-US")}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/[^\d]/g, "");
-              onPrimaryTargetChange(digits === "" ? 0 : Number(digits));
-            }}
             sx={{
               "& .MuiInputLabel-root": {
                 fontSize: "0.75rem",

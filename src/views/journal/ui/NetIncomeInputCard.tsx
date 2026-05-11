@@ -1,10 +1,8 @@
 "use client";
 
-import InputAdornment from "@mui/material/InputAdornment";
-import TextField from "@mui/material/TextField";
-import { useId, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { Button, Card, MaterialIcon } from "@/shared/ui";
+import { Button, Card, MaterialIcon, MoneyInput } from "@/shared/ui";
 
 type NetIncomeInputCardProps = {
   initialValue: number;
@@ -12,15 +10,11 @@ type NetIncomeInputCardProps = {
 };
 
 export function NetIncomeInputCard({ initialValue, onUpdate }: NetIncomeInputCardProps) {
-  const [value, setValue] = useState(
-    initialValue.toLocaleString("en-US", { minimumFractionDigits: 2 }),
-  );
-  const id = useId();
+  const [amount, setAmount] = useState(initialValue);
 
-  function handleSubmit() {
-    const parsed = Number(value.replace(/,/g, ""));
-    if (Number.isFinite(parsed)) onUpdate(parsed);
-  }
+  useEffect(() => {
+    setAmount(initialValue);
+  }, [initialValue]);
 
   return (
     <Card className="lg:col-span-8 p-6 relative overflow-hidden flex flex-col justify-between">
@@ -41,25 +35,13 @@ export function NetIncomeInputCard({ initialValue, onUpdate }: NetIncomeInputCar
       </div>
 
       <div className="flex items-end gap-4 mt-8">
-        <TextField
-          id={id}
-          type="text"
-          inputMode="decimal"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="0.00"
-          size="medium"
-          fullWidth
+        <MoneyInput
+          value={amount}
+          onChange={setAmount}
+          decimals={2}
           variant="standard"
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <span className="font-headline-lg text-headline-lg text-primary">₫</span>
-                </InputAdornment>
-              ),
-            },
-          }}
+          size="medium"
+          placeholder="0.00"
           sx={{
             "& input": {
               fontSize: "1.25rem",
@@ -77,7 +59,12 @@ export function NetIncomeInputCard({ initialValue, onUpdate }: NetIncomeInputCar
             },
           }}
         />
-        <Button type="button" variant="secondary" className="shrink-0 h-12" onClick={handleSubmit}>
+        <Button
+          type="button"
+          variant="secondary"
+          className="shrink-0 h-12"
+          onClick={() => onUpdate(amount)}
+        >
           Update
         </Button>
       </div>

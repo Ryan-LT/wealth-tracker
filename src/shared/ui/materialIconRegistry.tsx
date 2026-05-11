@@ -43,6 +43,7 @@ import Search from "@mui/icons-material/Search";
 import Settings from "@mui/icons-material/Settings";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
 import ShowChart from "@mui/icons-material/ShowChart";
+import TrendingDown from "@mui/icons-material/TrendingDown";
 import TrendingUp from "@mui/icons-material/TrendingUp";
 import Work from "@mui/icons-material/Work";
 import WorkOutlined from "@mui/icons-material/WorkOutlined";
@@ -89,6 +90,7 @@ const REGISTRY: Record<string, IconPair> = {
   search: { filled: Search },
   settings: { filled: Settings, outlined: SettingsOutlined },
   show_chart: { filled: ShowChart },
+  trending_down: { filled: TrendingDown },
   trending_up: { filled: TrendingUp },
   work: { filled: Work, outlined: WorkOutlined },
 };

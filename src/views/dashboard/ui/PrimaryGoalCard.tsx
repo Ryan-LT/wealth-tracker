@@ -7,28 +7,44 @@ type PrimaryGoalCardProps = {
   saved: number;
 };
 
-/**
- * Diamond-shaped goal progress visualization that mirrors the screenshot:
- * a 12px-rounded square rotated 45° as the track, with a thicker green ring
- * inside indicating progress. The percentage label sits in the upright center.
- */
-function GoalDiamond({ percent }: { percent: number }) {
+/** Circular ring progress — matches `executive_dashboard_vnd_updated_nav/code.html`. */
+function GoalRing({ percent }: { percent: number }) {
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  const clamped = Math.min(100, Math.max(0, percent));
+  const offset = c - (clamped / 100) * c;
+
   return (
-    <div className="flex-1 flex items-center justify-center relative py-2">
-      <div className="relative w-32 h-32 flex items-center justify-center">
-        <div
-          className="absolute inset-0 border-8 border-surface-container-highest"
-          style={{ borderRadius: "0.75rem", transform: "rotate(45deg)" }}
-        />
-        <div
-          className="absolute inset-0 border-8 border-secondary"
-          style={{ borderRadius: "0.75rem", transform: "rotate(45deg)" }}
-        />
-        <div className="text-center relative z-10">
-          <span className="block font-headline-md text-headline-md text-primary">
-            {percent}%
-          </span>
-        </div>
+    <div className="relative flex flex-1 items-center justify-center py-2">
+      <div className="relative flex h-32 w-32 items-center justify-center">
+        <svg
+          className="absolute inset-0 -rotate-90"
+          viewBox="0 0 128 128"
+          aria-hidden
+        >
+          <circle
+            cx="64"
+            cy="64"
+            r={r}
+            fill="none"
+            stroke="var(--color-surface-container-highest)"
+            strokeWidth="8"
+          />
+          <circle
+            cx="64"
+            cy="64"
+            r={r}
+            fill="none"
+            stroke="var(--color-secondary)"
+            strokeWidth="8"
+            strokeDasharray={c}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+        </svg>
+        <span className="relative z-10 font-headline-md text-headline-md text-primary">
+          {percent}%
+        </span>
       </div>
     </div>
   );
@@ -47,7 +63,7 @@ export function PrimaryGoalCard({ name, targetAmount, saved }: PrimaryGoalCardPr
       <div className="font-data-tabular text-data-tabular text-on-surface-variant mb-stack-lg">
         Target: {formatVnd(targetAmount)}
       </div>
-      <GoalDiamond percent={pct} />
+      <GoalRing percent={pct} />
       <div className="mt-stack-md text-center font-data-tabular text-data-tabular text-primary">
         {formatVnd(saved)} Saved
       </div>

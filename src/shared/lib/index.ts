@@ -5,4 +5,18 @@ export {
   monthlyIncomeByKind,
   totalAssetValue,
   totalDebtBalance,
+  totalMonthlyIncomeFromSources,
 } from "./wealthTotals";
+export {
+  buildNetWorthChartSeries,
+  estimatedMonthlyNetCashflow,
+  fractionalMonthsUntilYearEnd,
+  monthCalendarKey,
+  monthToDateNetWorthChangePercent,
+  monthlyCashflowFromTransactions,
+  projectNetWorthEndOfYear,
+  resolvedMonthlyCashflowDisplay,
+  syncNetWorthTracking,
+  transactionsToActivityRows,
+} from "./finance";
+export type { NetWorthMonthSnapshot } from "@/shared/storage/preferences";

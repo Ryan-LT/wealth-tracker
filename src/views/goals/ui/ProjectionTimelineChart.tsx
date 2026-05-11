@@ -200,7 +200,15 @@ export function ProjectionTimelineChart({
 
     const dueSeries = hasSchedule
       ? axisDates.map((d) => {
-          const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+          const endOfDay = new Date(
+            d.getFullYear(),
+            d.getMonth(),
+            d.getDate(),
+            23,
+            59,
+            59,
+            999,
+          );
           return cumulativeDueAtOrBefore(endOfDay, schedule);
         })
       : axisDates.map(() => 0);
@@ -364,14 +372,15 @@ export function ProjectionTimelineChart({
   ]);
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col p-stack-md">
+    <Card className="flex w-full flex-col p-stack-md">
       <h3 className="text-headline-md font-headline-md text-on-surface border-b border-outline-variant pb-2 mb-3">
         Projection (linear)
       </h3>
       <p className="mb-2 text-label-sm text-on-surface-variant">
-        X: month starts from this month, checkpoint / goal days when needed; hover for full date.
+        X: month starts from this month, checkpoint / goal days when needed;
+        hover for full date.
       </p>
-      <div className="relative min-h-[16rem] w-full flex-1 rounded border border-outline-variant bg-surface-container-low overflow-hidden lg:min-h-[20rem]">
+      <div className="relative h-64 w-full rounded border border-outline-variant bg-surface-container-low overflow-hidden sm:h-72">
         <span className="absolute top-3 right-3 z-10 text-label-sm font-label-sm text-error bg-surface-container-lowest px-1 rounded">
           Target: {formatVnd(targetAmount)}
         </span>

@@ -220,7 +220,7 @@ export function GoalsPage() {
 
   return (
     <>
-      <main className="flex w-full min-w-0 flex-1 flex-col pb-24 md:min-h-screen md:pb-8">
+      <main className="flex w-full min-w-0 flex-1 flex-col md:min-h-screen">
         <div className="border-b border-outline-variant/70 px-margin-mobile py-stack-md md:px-stack-lg">
           <header className="mb-stack-md">
             <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
@@ -237,8 +237,8 @@ export function GoalsPage() {
           />
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-stack-md lg:grid-cols-12 lg:gap-0">
-          <div className="flex min-h-0 flex-col gap-stack-md border-outline-variant px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-4 lg:border-r">
+        <div className="grid min-h-0 flex-1 grid-cols-1 items-start gap-stack-md lg:grid-cols-12 lg:gap-0">
+          <div className="flex min-h-0 w-full flex-col gap-stack-md border-outline-variant px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-4 lg:border-r">
             <GoalCreatorForm
               profile={draft}
               savedPlans={goals.profiles}
@@ -258,7 +258,7 @@ export function GoalsPage() {
               note={note}
             />
           </div>
-          <div className="flex min-h-0 flex-1 flex-col gap-stack-md px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-8">
+          <div className="flex w-full min-w-0 flex-col gap-stack-md px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-8">
             <ProjectionTimelineChart
               targetAmount={draft.targetAmount}
               startingAmount={startingBalance}

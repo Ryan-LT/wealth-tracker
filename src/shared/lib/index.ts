@@ -4,8 +4,10 @@ export { formatShortDate, formatIsoDate } from "./formatDate";
 export {
   monthlyIncomeByKind,
   totalAssetValue,
+  totalCombinedAssetValue,
   totalDebtBalance,
   totalMonthlyIncomeFromSources,
+  totalSettingsAssetsValue,
 } from "./wealthTotals";
 export {
   buildNetWorthChartSeries,

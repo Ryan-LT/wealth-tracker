@@ -9,7 +9,7 @@ import {
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
   syncNetWorthTracking,
-  totalAssetValue,
+  totalCombinedAssetValue,
   totalDebtBalance,
   totalMonthlyIncomeFromSources,
   transactionsToActivityRows,
@@ -20,6 +20,7 @@ import {
   GOALS_SEED,
   INCOME_SOURCES_SEED,
   PREFERENCES_SEED,
+  SETTINGS_ASSETS_SEED,
   TRANSACTIONS_SEED,
   type AssetsState,
   useTable,
@@ -34,27 +35,29 @@ import { RecentActivityTable } from "./RecentActivityTable";
 export function DashboardPage() {
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts] = useTable("debts", DEBTS_SEED);
+  const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [goals] = useTable("goals", GOALS_SEED);
   const [transactions] = useTable("transactions", TRANSACTIONS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
   const netWorth = useMemo(() => {
-    const gross = totalAssetValue(assets);
+    const gross = totalCombinedAssetValue(assets, settingsAssets);
     const liabilities = totalDebtBalance(debts);
     return gross - liabilities;
-  }, [assets, debts]);
+  }, [assets, debts, settingsAssets]);
 
   useEffect(() => {
     setPrefs((p) => syncNetWorthTracking(p, netWorth));
   }, [netWorth, setPrefs]);
 
   const summary = useMemo(() => {
-    const grossAssets = totalAssetValue(assets);
+    const grossAssets = totalCombinedAssetValue(assets, settingsAssets);
     const liabilities = totalDebtBalance(debts);
     const nw = grossAssets - liabilities;
     const incomeTotal = totalMonthlyIncomeFromSources(sources);
     return {
+      totalAssets: grossAssets,
       totalNetWorth: nw,
       monthChangePct: monthToDateNetWorthChangePercent(prefs, nw),
       activeIncome: monthlyIncomeByKind(sources, "active"),
@@ -62,7 +65,7 @@ export function DashboardPage() {
       totalDebt: -liabilities,
       eoyProjection: projectNetWorthEndOfYear(nw, prefs, incomeTotal),
     };
-  }, [assets, debts, sources, prefs]);
+  }, [assets, debts, sources, prefs, settingsAssets]);
 
   const chartSeries = useMemo(
     () => buildNetWorthChartSeries(prefs.netWorthMonthlyHistory ?? [], netWorth),
@@ -114,6 +117,7 @@ export function DashboardPage() {
         </div>
 
         <MetricGrid
+          totalAssets={summary.totalAssets}
           activeIncome={summary.activeIncome}
           passiveIncome={summary.passiveIncome}
           totalDebt={summary.totalDebt}

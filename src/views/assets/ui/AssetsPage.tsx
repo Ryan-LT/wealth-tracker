@@ -2,16 +2,24 @@
 
 import { useMemo } from "react";
 
-import { formatVnd, totalAssetValue, totalDebtBalance } from "@/shared/lib";
+import {
+  formatVnd,
+  totalAssetValue,
+  totalCombinedAssetValue,
+  totalDebtBalance,
+  totalSettingsAssetsValue,
+} from "@/shared/lib";
 import {
   ASSETS_SEED,
   DEBTS_SEED,
+  SETTINGS_ASSETS_SEED,
   type AssetsState,
   useTable,
 } from "@/shared/storage";
 import { TopAppBar } from "@/widgets/top-app-bar";
 
 import { CashEquivalentsSection } from "./CashEquivalentsSection";
+import { CatalogAssetsSection } from "./CatalogAssetsSection";
 import { DebtsSection } from "./DebtsSection";
 import { FinancialSummaryWidget } from "./FinancialSummaryWidget";
 import { LendingInvestmentsSection } from "./LendingInvestmentsSection";
@@ -20,12 +28,20 @@ import { RealEstateSection } from "./RealEstateSection";
 export function AssetsPage() {
   const [assets, setAssets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts, setDebts] = useTable("debts", DEBTS_SEED);
+  const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
 
   const totals = useMemo(() => {
-    const gross = totalAssetValue(assets);
+    const tracker = totalAssetValue(assets);
+    const catalog = totalSettingsAssetsValue(settingsAssets);
+    const gross = totalCombinedAssetValue(assets, settingsAssets);
     const liabilities = totalDebtBalance(debts);
-    return { totalAssets: gross, liabilities };
-  }, [assets, debts]);
+    return {
+      totalAssets: gross,
+      trackerAssetTotal: tracker,
+      settingsCatalogTotal: catalog,
+      liabilities,
+    };
+  }, [assets, debts, settingsAssets]);
 
   return (
     <>
@@ -49,6 +65,7 @@ export function AssetsPage() {
             />
             <CashEquivalentsSection accounts={assets.cashAccounts} />
             <LendingInvestmentsSection investments={assets.investments} />
+            <CatalogAssetsSection items={settingsAssets} />
           </div>
           <div className="lg:col-span-4 space-y-stack-lg">
             <DebtsSection
@@ -62,6 +79,8 @@ export function AssetsPage() {
             <FinancialSummaryWidget
               totalAssets={totals.totalAssets}
               totalLiabilities={totals.liabilities}
+              trackerAssetTotal={totals.trackerAssetTotal}
+              settingsCatalogTotal={totals.settingsCatalogTotal}
             />
           </div>
         </div>

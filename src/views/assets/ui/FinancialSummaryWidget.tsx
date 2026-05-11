@@ -3,6 +3,10 @@ import { formatVnd } from "@/shared/lib";
 type FinancialSummaryWidgetProps = {
   totalAssets: number;
   totalLiabilities: number;
+  /** Portfolio sections on this page (real estate, cash, investments). */
+  trackerAssetTotal: number;
+  /** Sum from Settings → Asset Management catalog. */
+  settingsCatalogTotal: number;
 };
 
 /**
@@ -12,6 +16,8 @@ type FinancialSummaryWidgetProps = {
 export function FinancialSummaryWidget({
   totalAssets,
   totalLiabilities,
+  trackerAssetTotal,
+  settingsCatalogTotal,
 }: FinancialSummaryWidgetProps) {
   const netWorth = totalAssets - totalLiabilities;
 
@@ -21,11 +27,28 @@ export function FinancialSummaryWidget({
         Financial Summary
       </h3>
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-4">
           <span className="font-body-md text-body-md text-on-tertiary-container">
-            Total Assets
+            Tracker sections
           </span>
           <span className="font-data-tabular text-data-tabular font-medium">
+            {formatVnd(trackerAssetTotal)}
+          </span>
+        </div>
+        <div className="flex justify-between items-center gap-4">
+          <span className="font-body-md text-body-md text-on-tertiary-container">
+            Settings catalog
+          </span>
+          <span className="font-data-tabular text-data-tabular font-medium">
+            {formatVnd(settingsCatalogTotal)}
+          </span>
+        </div>
+        <div className="h-px bg-outline-variant/30 w-full" />
+        <div className="flex justify-between items-center">
+          <span className="font-body-md text-body-md font-medium text-on-tertiary-container">
+            Total assets
+          </span>
+          <span className="font-data-tabular text-data-tabular font-semibold">
             {formatVnd(totalAssets)}
           </span>
         </div>

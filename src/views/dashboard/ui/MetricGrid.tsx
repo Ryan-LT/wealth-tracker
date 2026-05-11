@@ -3,6 +3,7 @@ import { formatVnd } from "@/shared/lib";
 import { MetricCard } from "./MetricCard";
 
 type MetricGridProps = {
+  totalAssets: number;
   activeIncome: number;
   passiveIncome: number;
   totalDebt: number;
@@ -10,13 +11,20 @@ type MetricGridProps = {
 };
 
 export function MetricGrid({
+  totalAssets,
   activeIncome,
   passiveIncome,
   totalDebt,
   eoyProjection,
 }: MetricGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-stack-md mb-stack-lg">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-stack-md mb-stack-lg">
+      <MetricCard
+        icon="account_balance"
+        label="Total Assets"
+        value={formatVnd(totalAssets)}
+        hint="Tracker + Settings catalog"
+      />
       <MetricCard
         icon="work"
         label="Active Income"

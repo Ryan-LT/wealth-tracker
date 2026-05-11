@@ -42,7 +42,6 @@ export function TopAppBar({
       <div
         className={cn(
           "flex h-14 min-h-14 w-full min-w-0 max-w-full items-center gap-2 sm:min-h-16 sm:gap-3 md:gap-4",
-          // Horizontal safe area + align with page gutters (main uses px-margin-mobile / md:px-gutter).
           "ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))]",
           "md:ps-[max(1.5rem,env(safe-area-inset-left))] md:pe-[max(1.5rem,env(safe-area-inset-right))]",
         )}
@@ -59,7 +58,9 @@ export function TopAppBar({
         <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
           {metricLabel ? (
             <div className="hidden max-w-[min(100%,14rem)] items-center gap-2 font-label-sm text-label-sm text-on-surface-variant lg:flex lg:max-w-[min(100%,18rem)]">
-              <span className="shrink-0 uppercase tracking-wider">{metricLabel}</span>
+              <span className="shrink-0 uppercase tracking-wider">
+                {metricLabel}
+              </span>
               {metricValue ? (
                 <span className="min-w-0 truncate font-data-tabular text-data-tabular font-bold text-primary">
                   {metricValue}

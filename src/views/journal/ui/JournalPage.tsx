@@ -1,7 +1,5 @@
 "use client";
 
-import InputAdornment from "@mui/material/InputAdornment";
-import TextField from "@mui/material/TextField";
 import { useMemo } from "react";
 
 import { resolvedMonthlyCashflowDisplay } from "@/shared/lib";
@@ -11,8 +9,6 @@ import {
   TRANSACTIONS_SEED,
   useTable,
 } from "@/shared/storage";
-import { MaterialIcon } from "@/shared/ui";
-import { TopAppBar } from "@/widgets/top-app-bar";
 
 import { CashFlowHistoryTable } from "./CashFlowHistoryTable";
 import { IncomeSourcesPanel } from "./IncomeSourcesPanel";
@@ -38,46 +34,6 @@ export function JournalPage() {
 
   return (
     <>
-      <TopAppBar
-        start={
-          <div className="flex min-w-0 flex-1 max-w-full items-center gap-stack-sm text-on-surface-variant sm:max-w-md">
-            <TextField
-              type="search"
-              placeholder="Search transactions..."
-              variant="standard"
-              size="small"
-              fullWidth
-              hiddenLabel
-              slotProps={{
-                htmlInput: {
-                  "aria-label": "Search transactions",
-                },
-                input: {
-                  disableUnderline: false,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <MaterialIcon name="search" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{
-                "& .MuiInput-root": {
-                  fontSize: "0.875rem",
-                  lineHeight: "1.25rem",
-                  color: "var(--color-on-surface-variant)",
-                },
-                "& .MuiInput-root:before": {
-                  borderBottomColor: "var(--color-outline-variant)",
-                },
-                "& .MuiInput-root:after": {
-                  borderBottomColor: "var(--color-secondary)",
-                },
-              }}
-            />
-          </div>
-        }
-      />
       <main className="flex-1 w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter py-stack-lg space-y-stack-lg pb-24 md:pb-8">
         <header className="flex flex-col gap-1 mb-8">
           <h2 className="font-headline-lg text-headline-lg text-primary">
@@ -91,7 +47,9 @@ export function JournalPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-stack-md">
           <NetIncomeInputCard
             initialValue={prefs.netMonthIncome}
-            onUpdate={(netMonthIncome) => setPrefs((p) => ({ ...p, netMonthIncome }))}
+            onUpdate={(netMonthIncome) =>
+              setPrefs((p) => ({ ...p, netMonthIncome }))
+            }
           />
           <MonthlySummaryCard
             inflow={monthlyCashflow.inflow}
@@ -99,7 +57,10 @@ export function JournalPage() {
           />
 
           <IncomeSourcesPanel title="Salary & Active Income" sources={active} />
-          <IncomeSourcesPanel title="Passive Income Sources" sources={passive} />
+          <IncomeSourcesPanel
+            title="Passive Income Sources"
+            sources={passive}
+          />
 
           <CashFlowHistoryTable transactions={transactions} />
         </div>

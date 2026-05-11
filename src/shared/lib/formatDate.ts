@@ -1,30 +1,14 @@
-const MONTHS_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-/** Format an ISO date string as "Oct 24, 2023". */
-export function formatShortDate(iso: string): string {
-  const d = new Date(iso);
+/**
+ * Format an ISO calendar date for on-screen display as **DD/MM/YYYY**
+ * (fixed for this app; values are stored as ISO strings elsewhere).
+ */
+export function formatDisplayDate(iso: string): string {
+  const raw = iso.trim();
+  if (!raw) return iso;
+  const d = new Date(raw.includes("T") ? raw : `${raw}T12:00:00`);
   if (Number.isNaN(d.getTime())) return iso;
-  return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
-
-/** Format an ISO date as "YYYY-MM-DD". */
-export function formatIsoDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
 }

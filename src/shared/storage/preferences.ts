@@ -5,8 +5,6 @@ export type NetWorthMonthSnapshot = {
 };
 
 export type Preferences = {
-  baseCurrency: "VND";
-  dateFormat: "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
   /** Net income fallback when month inflow/outflow are unset. */
   netMonthIncome: number;
   /** Inflow / outflow for resolved monthly cash flow when both are set. */
@@ -27,8 +25,6 @@ export type Preferences = {
 };
 
 export const PREFERENCES_SEED: Preferences = {
-  baseCurrency: "VND",
-  dateFormat: "DD/MM/YYYY",
   netMonthIncome: 0,
   monthInflow: 0,
   monthOutflow: 0,

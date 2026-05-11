@@ -16,7 +16,7 @@ export {
   totalGoalStartingBalance,
 } from "./goalSeedLines";
 export { formatVnd, formatThousands } from "./formatVnd";
-export { formatShortDate, formatIsoDate } from "./formatDate";
+export { formatDisplayDate } from "./formatDate";
 export {
   monthlyIncomeByKind,
   totalAssetValue,

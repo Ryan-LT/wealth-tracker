@@ -14,7 +14,6 @@ import {
 import { AssetManagementTable } from "./AssetManagementTable";
 import { DebtsSection } from "./DebtsSection";
 import { IncomeSourcesGrid } from "./IncomeSourcesGrid";
-import { PreferencesCard } from "./PreferencesCard";
 
 export function SettingsPage() {
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
@@ -28,55 +27,50 @@ export function SettingsPage() {
   );
 
   return (
-    <main className="flex-1 overflow-y-auto w-full pb-24 md:pb-8 bg-background pt-stack-lg px-margin-mobile md:px-gutter max-w-container-max mx-auto">
+    <main className="mx-auto w-full max-w-container-max flex-1 overflow-y-auto bg-background px-margin-mobile pb-24 pt-stack-lg md:px-gutter md:pb-8">
       <div className="mb-stack-lg">
         <h1 className="font-headline-lg text-headline-lg text-primary">Asset configuration</h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant mt-2">
-          Manage catalog assets, debts, income sources, and terminal preferences.
+        <p className="mt-2 font-body-lg text-body-lg text-on-surface-variant">
+          Manage catalog assets, debts, and income sources. Amounts are shown in Vietnamese đồng (₫);
+          dates use DD/MM/YYYY.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-stack-lg">
-        <div className="xl:col-span-2 flex flex-col gap-stack-lg">
-          <AssetManagementTable
-            assets={assets}
-            categoryOptions={assetCategoryOptions}
-            onRegisterCustomCategory={(category) =>
-              setPrefs((p) => ({
-                ...p,
-                extraAssetCategories: [
-                  ...new Set([...(p.extraAssetCategories ?? []), category.trim()]),
-                ],
-              }))
-            }
-            onDelete={(id) => setAssets((prev) => prev.filter((a) => a.id !== id))}
-            onUpdate={(next) =>
-              setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))
-            }
-            onAdd={(asset) => setAssets((prev) => [...prev, asset])}
-            onReorder={(ordered) => setAssets(() => ordered)}
-          />
-          <DebtsSection
-            debts={debts}
-            onAdd={(debt) => setDebts((prev) => [...prev, debt])}
-            onUpdate={(debt) =>
-              setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
-            }
-            onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
-          />
-          <IncomeSourcesGrid
-            sources={sources}
-            onCreate={(source) => setSources((prev) => [...prev, source])}
-            onUpdate={(source) =>
-              setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))
-            }
-            onDelete={(id) => setSources((prev) => prev.filter((s) => s.id !== id))}
-          />
-        </div>
-
-        <div className="flex flex-col gap-stack-lg">
-          <PreferencesCard preferences={prefs} onChange={setPrefs} />
-        </div>
+      <div className="flex flex-col gap-stack-lg">
+        <AssetManagementTable
+          assets={assets}
+          categoryOptions={assetCategoryOptions}
+          onRegisterCustomCategory={(category) =>
+            setPrefs((p) => ({
+              ...p,
+              extraAssetCategories: [
+                ...new Set([...(p.extraAssetCategories ?? []), category.trim()]),
+              ],
+            }))
+          }
+          onDelete={(id) => setAssets((prev) => prev.filter((a) => a.id !== id))}
+          onUpdate={(next) =>
+            setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))
+          }
+          onAdd={(asset) => setAssets((prev) => [...prev, asset])}
+          onReorder={(ordered) => setAssets(() => ordered)}
+        />
+        <DebtsSection
+          debts={debts}
+          onAdd={(debt) => setDebts((prev) => [...prev, debt])}
+          onUpdate={(debt) =>
+            setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
+          }
+          onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
+        />
+        <IncomeSourcesGrid
+          sources={sources}
+          onCreate={(source) => setSources((prev) => [...prev, source])}
+          onUpdate={(source) =>
+            setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))
+          }
+          onDelete={(id) => setSources((prev) => prev.filter((s) => s.id !== id))}
+        />
       </div>
     </main>
   );

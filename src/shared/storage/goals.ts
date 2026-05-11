@@ -1,10 +1,33 @@
+export type GoalSeedLine = {
+  id: string;
+  /** `custom` or a key from {@link buildGoalStartingOptions} (e.g. `re:id`, `catalog:id`). */
+  sourceKey: string;
+  /**
+   * For `custom`, the entered amount. For keyed rows, a fallback if the asset row
+   * disappears; live balances are preferred when the key still exists.
+   */
+  amount: number;
+};
+
 export type GoalProfile = {
   id: string;
   name: string;
   targetAmount: number;
   /** ISO date (yyyy-mm-dd). */
   targetDate: string;
+  /**
+   * Legacy field; kept for older saves. Live projection uses current income sources
+   * from Asset configuration, not this value.
+   */
   monthlyContribution: number;
+  /** One or more balances that seed the projection (summed). */
+  seedLines?: GoalSeedLine[];
+  /**
+   * @deprecated Migrated into `seedLines`. Read only for older localStorage.
+   */
+  seedSourceKey?: string;
+  /** @deprecated Migrated into `seedLines`. */
+  seedAmount?: number;
   active?: boolean;
 };
 
@@ -28,6 +51,7 @@ export const EMPTY_GOAL_PROFILE: GoalProfile = {
   targetAmount: 0,
   targetDate: "",
   monthlyContribution: 0,
+  seedLines: [],
 };
 
 export const GOALS_SEED: GoalsState = {

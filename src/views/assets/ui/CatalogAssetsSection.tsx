@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { formatThousands, totalSettingsAssetsValue } from "@/shared/lib";
+import { assetCategoryBadgeClassNames } from "@/shared/config";
+import { cn, formatThousands, totalSettingsAssetsValue } from "@/shared/lib";
 import {
   settingsAssetLiquidityLabel,
   type SettingsAsset,
@@ -24,10 +25,10 @@ export function CatalogAssetsSection({ items }: CatalogAssetsSectionProps) {
         <div className="min-w-0">
           <h3 className="flex items-center gap-2 text-headline-md font-headline-md tracking-tight text-primary">
             <MaterialIcon name="inventory_2" className="text-secondary" />
-            Asset catalog (Settings)
+            Asset catalog
           </h3>
           <p className="mt-1 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-            Managed in Settings → Asset Management
+            Managed in Asset configuration
           </p>
           <p className="mt-2 font-body-sm text-body-sm text-on-surface-variant">
             These line items are added to your total assets together with Real Estate, Cash, and
@@ -38,13 +39,13 @@ export function CatalogAssetsSection({ items }: CatalogAssetsSectionProps) {
           href="/settings"
           className="shrink-0 font-label-sm text-label-sm text-secondary hover:underline"
         >
-          Edit in Settings
+          Open configuration
         </Link>
       </div>
 
       {items.length === 0 ? (
         <p className="font-body-md text-body-md text-on-surface-variant py-2">
-          No catalog assets yet. Add them under Settings → Asset Management to include them in net
+          No catalog assets yet. Add them under Asset configuration → Asset Management to include them in net
           worth.
         </p>
       ) : (
@@ -79,7 +80,14 @@ export function CatalogAssetsSection({ items }: CatalogAssetsSectionProps) {
                   >
                     <td className="py-3 font-body-md text-body-md text-primary">{row.name}</td>
                     <td className="py-3 font-body-md text-body-md text-on-surface-variant">
-                      {row.category}
+                      <span
+                        className={cn(
+                          "inline-flex max-w-[14rem] truncate rounded-full px-2.5 py-0.5 font-label-sm text-label-sm",
+                          assetCategoryBadgeClassNames(row.category),
+                        )}
+                      >
+                        {row.category}
+                      </span>
                     </td>
                     <td className="py-3 font-body-md text-body-md text-on-surface-variant">
                       {settingsAssetLiquidityLabel(row.liquidity)}

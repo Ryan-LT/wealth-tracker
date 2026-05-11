@@ -32,7 +32,7 @@ import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
-import { isDefaultAssetCategory } from "@/shared/config";
+import { assetCategoryBadgeClassNames, isDefaultAssetCategory } from "@/shared/config";
 import { cn, formatThousands } from "@/shared/lib";
 import {
   SETTINGS_ASSET_LIQUIDITY_DEFAULT,
@@ -199,7 +199,14 @@ function SortableAssetRow({
       </td>
       <td className="py-4 font-body-md text-body-md text-primary">{asset.name}</td>
       <td className="py-4 font-body-md text-body-md text-on-surface-variant">
-        {asset.category}
+        <span
+          className={cn(
+            "inline-flex max-w-[14rem] truncate rounded-full px-2.5 py-0.5 font-label-sm text-label-sm",
+            assetCategoryBadgeClassNames(asset.category),
+          )}
+        >
+          {asset.category}
+        </span>
       </td>
       <td className="py-4 font-body-md text-body-md text-on-surface-variant">
         <span

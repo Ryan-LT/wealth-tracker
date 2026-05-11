@@ -1,4 +1,15 @@
 export { cn } from "./cn";
+export { buildGoalStartingOptions } from "./goalStartingOptions";
+export type { GoalStartingOption } from "./goalStartingOptions";
+export {
+  appendGoalSeedLine,
+  dedupeNonCustomSeedLines,
+  labelForSeedLine,
+  migrateLegacySeedsToLines,
+  resolvedSeedLineAmount,
+  sanitizeSeedLinesAgainstOptions,
+  totalGoalStartingBalance,
+} from "./goalSeedLines";
 export { formatVnd, formatThousands } from "./formatVnd";
 export { formatShortDate, formatIsoDate } from "./formatDate";
 export {

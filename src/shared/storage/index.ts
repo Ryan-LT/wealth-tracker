@@ -23,7 +23,7 @@ export {
 } from "./incomeSources";
 
 export { EMPTY_GOAL_PROFILE, GOALS_SEED } from "./goals";
-export type { GoalsState, GoalProfile } from "./goals";
+export type { GoalsState, GoalProfile, GoalSeedLine } from "./goals";
 
 export { PREFERENCES_SEED } from "./preferences";
 export type { Preferences, NetWorthMonthSnapshot } from "./preferences";

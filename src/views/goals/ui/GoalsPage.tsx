@@ -3,8 +3,19 @@
 import { useCallback, useMemo, useState } from "react";
 
 import {
+  buildGoalStartingOptions,
+  formatVnd,
+  migrateLegacySeedsToLines,
+  sanitizeSeedLinesAgainstOptions,
+  totalGoalStartingBalance,
+  totalMonthlyIncomeFromSources,
+} from "@/shared/lib";
+import {
+  ASSETS_SEED,
   EMPTY_GOAL_PROFILE,
   GOALS_SEED,
+  INCOME_SOURCES_SEED,
+  SETTINGS_ASSETS_SEED,
   type GoalProfile,
   useTable,
 } from "@/shared/storage";
@@ -14,30 +25,49 @@ import { FeasibilityEngine } from "./FeasibilityEngine";
 import { GoalCreatorForm } from "./GoalCreatorForm";
 import { ProjectionTimelineChart } from "./ProjectionTimelineChart";
 import { SavedProfilesStrip } from "./SavedProfilesStrip";
-import { WhatIfSliders } from "./WhatIfSliders";
 
 function profileById(profiles: GoalProfile[], id: string): GoalProfile | undefined {
   return profiles.find((p) => p.id === id);
 }
 
+function normalizeGoalProfile(p: GoalProfile, seedKeys: Set<string>): GoalProfile {
+  const raw = migrateLegacySeedsToLines(p);
+  const lines = sanitizeSeedLinesAgainstOptions(raw, seedKeys);
+  return {
+    ...p,
+    seedLines: lines,
+    monthlyContribution: typeof p.monthlyContribution === "number" ? p.monthlyContribution : 0,
+  };
+}
+
 export function GoalsPage() {
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
+  const [assets] = useTable("assets", ASSETS_SEED);
+  const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+
+  const seedOptions = useMemo(
+    () => buildGoalStartingOptions(assets, settingsAssets),
+    [assets, settingsAssets],
+  );
+
+  const seedKeySet = useMemo(() => new Set(seedOptions.map((o) => o.key)), [seedOptions]);
+
+  const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
+
   const activeProfile =
     profileById(goals.profiles, goals.activeProfileId) ??
     goals.profiles[0] ??
     EMPTY_GOAL_PROFILE;
 
-  const [draft, setDraft] = useState<GoalProfile>(activeProfile);
+  const [draft, setDraft] = useState<GoalProfile>(() =>
+    normalizeGoalProfile(activeProfile, seedKeySet),
+  );
   const [lastLoadedId, setLastLoadedId] = useState(activeProfile.id);
-  const [timelineShift, setTimelineShift] = useState(0);
 
-  // React-recommended "store information from previous renders" pattern:
-  // when the active profile changes (e.g. user clicks "Load" on the strip),
-  // reset the draft synchronously during render. React discards the in-flight
-  // render and retries with the updated state.
   if (lastLoadedId !== goals.activeProfileId) {
     setLastLoadedId(goals.activeProfileId);
-    setDraft(activeProfile);
+    setDraft(normalizeGoalProfile(activeProfile, seedKeySet));
   }
 
   const loadProfile = useCallback(
@@ -46,6 +76,7 @@ export function GoalsPage() {
   );
 
   function saveCurrentSetup() {
+    const cleanLines = sanitizeSeedLinesAgainstOptions(draft.seedLines ?? [], seedKeySet);
     setGoals((prev) => {
       const existingById =
         draft.id !== "" ? prev.profiles.find((p) => p.id === draft.id) : undefined;
@@ -57,7 +88,8 @@ export function GoalsPage() {
         name: draft.name.trim() || "Untitled goal",
         targetAmount: draft.targetAmount,
         targetDate: draft.targetDate,
-        monthlyContribution: draft.monthlyContribution,
+        monthlyContribution: incomeMonthly,
+        seedLines: cleanLines,
       };
 
       const hasId = prev.profiles.some((p) => p.id === id);
@@ -74,40 +106,45 @@ export function GoalsPage() {
   }
 
   function simulate() {
-    // For now, the feasibility engine numbers below already react to draft changes;
-    // explicitly re-set draft to ensure derived values flow through React state.
-    setDraft({ ...draft });
+    setDraft((d) => ({ ...d }));
   }
 
   const monthsToTarget = useMemo(() => {
     if (!draft.targetDate) return 1;
     const now = new Date();
     const target = new Date(draft.targetDate);
-    const months = Math.max(
-      1,
-      (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth()) - timelineShift,
-    );
-    return months;
-  }, [draft.targetDate, timelineShift]);
+    if (Number.isNaN(target.getTime())) return 1;
+    const months =
+      (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+    return Math.max(1, months);
+  }, [draft.targetDate]);
 
-  const requiredMonthly = useMemo(
-    () => Math.ceil(draft.targetAmount / monthsToTarget),
-    [draft.targetAmount, monthsToTarget],
+  const startingBalance = useMemo(
+    () => totalGoalStartingBalance(draft.seedLines, seedOptions),
+    [draft.seedLines, seedOptions],
+  );
+
+  const projectedAtTarget = useMemo(
+    () => startingBalance + incomeMonthly * monthsToTarget,
+    [startingBalance, incomeMonthly, monthsToTarget],
   );
 
   const note = useMemo(() => {
-    const rate = draft.monthlyContribution;
     if (draft.targetAmount <= 0 || !draft.targetDate) {
-      return "Set a target amount, date, and monthly contribution to see tailored guidance.";
+      return "Enter a goal name, target amount, target date, and one or more starting sources to see a projection.";
     }
-    if (requiredMonthly <= 0) return "";
-    if (rate >= requiredMonthly) {
-      const surplus = rate - requiredMonthly;
-      const monthsEarly = Math.floor((surplus * monthsToTarget) / Math.max(1, requiredMonthly));
-      return `At your entered monthly contribution, you are on track to reach this goal ${monthsEarly} months early.`;
+    if (incomeMonthly <= 0 && projectedAtTarget < draft.targetAmount) {
+      return "Add monthly income under Asset configuration → Income sources. Without it, only your combined starting balances count toward the goal.";
     }
-    return "Increase the monthly contribution or extend the timeline to bring this goal back on track.";
-  }, [draft.monthlyContribution, draft.targetAmount, draft.targetDate, requiredMonthly, monthsToTarget]);
+    if (projectedAtTarget >= draft.targetAmount) {
+      const surplus = projectedAtTarget - draft.targetAmount;
+      return surplus > 0
+        ? `Linear projection exceeds the goal by about ${formatVnd(surplus)} at the target date.`
+        : "Linear projection reaches the goal on time.";
+    }
+    const gap = draft.targetAmount - projectedAtTarget;
+    return `Short by about ${formatVnd(gap)} at the target date. Raise income or starting balances, extend the date, or lower the target.`;
+  }, [draft.targetAmount, draft.targetDate, incomeMonthly, projectedAtTarget]);
 
   return (
     <>
@@ -118,7 +155,9 @@ export function GoalsPage() {
             Goal Simulator
           </h2>
           <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-            Plan and forecast major financial milestones.
+            Stack starting balances from your assets (and custom amounts), then apply total monthly
+            income from Asset configuration to see whether you can reach the goal by your target
+            date.
           </p>
         </header>
 
@@ -132,31 +171,27 @@ export function GoalsPage() {
           <div className="lg:col-span-4 flex flex-col gap-stack-md">
             <GoalCreatorForm
               profile={draft}
+              seedOptions={seedOptions}
+              monthlyIncomeTotal={incomeMonthly}
               onChange={setDraft}
               onSimulate={simulate}
               onSave={saveCurrentSetup}
             />
             <FeasibilityEngine
-              requiredMonthly={requiredMonthly}
-              currentRate={draft.monthlyContribution}
+              monthlyIncome={incomeMonthly}
+              startingBalance={startingBalance}
+              projectedBalanceAtTarget={projectedAtTarget}
+              targetAmount={draft.targetAmount}
+              monthsToTarget={monthsToTarget}
               note={note}
             />
           </div>
           <div className="lg:col-span-8 flex flex-col gap-stack-md">
             <ProjectionTimelineChart
               targetAmount={draft.targetAmount}
-              progress={Math.min(
-                1,
-                draft.monthlyContribution / Math.max(1, requiredMonthly),
-              )}
-            />
-            <WhatIfSliders
-              monthlyContribution={draft.monthlyContribution}
-              onMonthlyContributionChange={(monthlyContribution) =>
-                setDraft({ ...draft, monthlyContribution })
-              }
-              timelineShiftMonths={timelineShift}
-              onTimelineShiftChange={setTimelineShift}
+              startingAmount={startingBalance}
+              monthlyIncome={incomeMonthly}
+              monthsToTarget={monthsToTarget}
             />
           </div>
         </div>

@@ -12,45 +12,34 @@ registerChartJs();
 
 type ProjectionTimelineChartProps = {
   targetAmount: number;
-  /**
-   * Position of the "today" amount expressed as a fraction of target (0..1).
-   * The chart adapts its curve subtly based on this value.
-   */
-  progress: number;
+  startingAmount: number;
+  /** Total monthly income applied toward the goal each month (₫). */
+  monthlyIncome: number;
+  /** Whole months from today to the goal date (minimum 1). */
+  monthsToTarget: number;
 };
 
-/** SVG-space Y (0 = top, 100 = bottom), matching the prior bezier control layout. */
-function svgYAt(
-  x: number,
-  startY: number,
-  midY: number,
-  endY: number,
-): number {
-  if (x <= 50) {
-    const t = x / 50;
-    return (1 - t) ** 2 * startY + 2 * (1 - t) * t * midY + t ** 2 * 50;
+function sampleMonthTicks(months: number, maxPoints: number): number[] {
+  const m = Math.max(1, months);
+  if (m <= maxPoints) {
+    return Array.from({ length: m + 1 }, (_, i) => i);
   }
-  const t = (x - 50) / 50;
-  const cy = 100 - midY;
-  return (1 - t) ** 2 * 50 + 2 * (1 - t) * t * cy + t ** 2 * endY;
+  const n = maxPoints;
+  return Array.from({ length: n }, (_, i) => Math.round((i / (n - 1)) * m));
 }
 
 export function ProjectionTimelineChart({
   targetAmount,
-  progress,
+  startingAmount,
+  monthlyIncome,
+  monthsToTarget,
 }: ProjectionTimelineChartProps) {
-  const clamped = Math.max(0, Math.min(1, progress));
-  const startY = 100 - clamped * 30;
-  const midY = 75 - clamped * 35;
-  const endY = 10 + (1 - clamped) * 5;
-
   const { chartData, options } = useMemo(() => {
-    const xs = [0, 25, 50, 75, 100];
-    const labels = ["Today", "Year 1", "Year 2", "Year 3", "Target"];
-    const projected = xs.map((x) => {
-      const svgY = svgYAt(x, startY, midY, endY);
-      return (targetAmount * (100 - svgY)) / 100;
-    });
+    const ticks = sampleMonthTicks(monthsToTarget, 6);
+    const labels = ticks.map((t, i) =>
+      i === 0 ? "Start" : t >= monthsToTarget ? "Target" : `M${t}`,
+    );
+    const projected = ticks.map((t) => startingAmount + monthlyIncome * t);
 
     const data = {
       labels,
@@ -61,7 +50,7 @@ export function ProjectionTimelineChart({
           fill: true,
           borderColor: "#006c49",
           backgroundColor: "rgba(108, 248, 187, 0.35)",
-          tension: 0.35,
+          tension: 0.15,
           borderWidth: 2,
           pointRadius: 3,
           pointHoverRadius: 5,
@@ -116,25 +105,22 @@ export function ProjectionTimelineChart({
     };
 
     return { chartData: data, options: chartOptions };
-  }, [targetAmount, startY, midY, endY]);
+  }, [targetAmount, startingAmount, monthlyIncome, monthsToTarget]);
 
   return (
     <Card className="p-stack-md grow">
       <h3 className="text-headline-md font-headline-md text-on-surface border-b border-outline-variant pb-2 mb-4">
-        Projection Timeline
+        Projection (linear)
       </h3>
+      <p className="text-body-sm font-body-md text-on-surface-variant mb-3">
+        Assumes your total monthly income from Asset configuration is allocated toward this goal
+        each month, on top of the combined starting balances you selected.
+      </p>
       <div className="relative w-full h-64 rounded border border-outline-variant bg-surface-container-low overflow-hidden">
         <span className="absolute top-3 right-3 z-10 text-label-sm font-label-sm text-error bg-surface-container-lowest px-1 rounded">
           Target: {formatVnd(targetAmount)}
         </span>
         <Line data={chartData} options={options} />
-      </div>
-      <div className="flex justify-between mt-2 text-label-sm font-label-sm text-on-surface-variant px-2">
-        <span>Today</span>
-        <span>Year 1</span>
-        <span>Year 2</span>
-        <span>Year 3</span>
-        <span>Target</span>
       </div>
     </Card>
   );

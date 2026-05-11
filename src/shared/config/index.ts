@@ -1,5 +1,6 @@
 export {
   DEFAULT_ASSET_CATEGORIES,
+  assetCategoryBadgeClassNames,
   isDefaultAssetCategory,
   mergeAssetCategoryOptions,
 } from "./assetCategories";

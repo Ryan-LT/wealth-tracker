@@ -8,6 +8,7 @@ import {
   ensureKeyedSeedDefaults,
   formatVnd,
   migrateLegacySeedsToLines,
+  normalizeStoredCheckpoints,
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
   totalMonthlyIncomeFromSources,
@@ -24,7 +25,6 @@ import {
   type GoalsState,
   useTable,
 } from "@/shared/storage";
-import { TopAppBar } from "@/widgets/top-app-bar";
 
 import { FeasibilityEngine } from "./FeasibilityEngine";
 import { GoalCreatorForm } from "./GoalCreatorForm";
@@ -58,6 +58,7 @@ function normalizeGoalProfile(
   return {
     ...p,
     seedLines: lines,
+    checkpoints: normalizeStoredCheckpoints(p.checkpoints),
     monthlyContribution: typeof p.monthlyContribution === "number" ? p.monthlyContribution : 0,
     includeMonthlyIncome: p.includeMonthlyIncome !== false,
   };
@@ -140,6 +141,7 @@ export function GoalsPage() {
         monthlyContribution: incomeMonthly,
         includeMonthlyIncome: draft.includeMonthlyIncome !== false,
         seedLines: cleanLines,
+        checkpoints: normalizeStoredCheckpoints(draft.checkpoints),
       };
 
       const clampedLines = clampSeedLinesToAllocationPool(
@@ -192,23 +194,21 @@ export function GoalsPage() {
 
   const note = useMemo(() => {
     if (draft.targetAmount <= 0 || !draft.targetDate) {
-      return "Enter a plan name, target amount, target date, and one or more starting sources to see a projection.";
+      return "Add target, date, and starting sources.";
     }
     if (applyMonthlyIncome && incomeMonthly <= 0 && projectedAtTarget < draft.targetAmount) {
-      return "Add monthly income under Asset configuration → Income sources. Without it, only your allocated starting amounts count toward the plan.";
+      return "No monthly income in settings — only starting allocations count.";
     }
     if (!applyMonthlyIncome && projectedAtTarget < draft.targetAmount) {
       const gap = draft.targetAmount - projectedAtTarget;
-      return `Monthly income is off for this plan — projection stays at your allocated starting total (${formatVnd(startingBalance)}). Short by about ${formatVnd(gap)}. Turn income on, add starting allocations, extend the date, or lower the target.`;
+      return `Income off for this plan — flat at ${formatVnd(startingBalance)}; short ~${formatVnd(gap)}.`;
     }
     if (projectedAtTarget >= draft.targetAmount) {
       const surplus = projectedAtTarget - draft.targetAmount;
-      return surplus > 0
-        ? `Linear projection exceeds the target by about ${formatVnd(surplus)} at the goal date.`
-        : "Linear projection reaches the target on time.";
+      return surplus > 0 ? `Ahead by ~${formatVnd(surplus)}.` : "On target.";
     }
     const gap = draft.targetAmount - projectedAtTarget;
-    return `Short by about ${formatVnd(gap)} at the goal date. Raise income or allocations, extend the date, or lower the target.`;
+    return `Short ~${formatVnd(gap)} vs target.`;
   }, [
     applyMonthlyIncome,
     draft.targetAmount,
@@ -220,31 +220,25 @@ export function GoalsPage() {
 
   return (
     <>
-      <TopAppBar />
-      <main className="p-margin-mobile md:p-stack-lg max-w-container-max mx-auto pb-24 md:pb-8 w-full">
-        <header className="mb-stack-lg">
-          <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
-            Goal Plan
-          </h2>
-          <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-            Allocate starting amounts from each asset (shared across all plans so totals never
-            exceed what you really hold). Other plans reserve their slice; this editor shows how
-            much is left. Income from Asset configuration can be applied monthly toward the target,
-            or turned off for a fixed starting-only view. Use New plan for another goal; Load
-            switches plans.
-          </p>
-        </header>
+      <main className="flex w-full min-w-0 flex-1 flex-col pb-24 md:min-h-screen md:pb-8">
+        <div className="border-b border-outline-variant/70 px-margin-mobile py-stack-md md:px-stack-lg">
+          <header className="mb-stack-md">
+            <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
+              Goal Plan
+            </h2>
+          </header>
 
-        <SavedProfilesStrip
-          profiles={goals.profiles}
-          activeId={goals.activeProfileId}
-          onLoad={loadProfile}
-          onNew={startNewPlan}
-          onDelete={deletePlan}
-        />
+          <SavedProfilesStrip
+            profiles={goals.profiles}
+            activeId={goals.activeProfileId}
+            onLoad={loadProfile}
+            onNew={startNewPlan}
+            onDelete={deletePlan}
+          />
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-stack-md lg:gap-stack-lg">
-          <div className="lg:col-span-4 flex flex-col gap-stack-md">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-stack-md lg:grid-cols-12 lg:gap-0">
+          <div className="flex min-h-0 flex-col gap-stack-md border-outline-variant px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-4 lg:border-r">
             <GoalCreatorForm
               profile={draft}
               savedPlans={goals.profiles}
@@ -264,13 +258,14 @@ export function GoalsPage() {
               note={note}
             />
           </div>
-          <div className="lg:col-span-8 flex flex-col gap-stack-md">
+          <div className="flex min-h-0 flex-1 flex-col gap-stack-md px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-8">
             <ProjectionTimelineChart
               targetAmount={draft.targetAmount}
               startingAmount={startingBalance}
               monthlyIncome={effectiveMonthlyIncome}
               monthsToTarget={monthsToTarget}
               targetDateIso={draft.targetDate}
+              checkpoints={draft.checkpoints ?? []}
             />
           </div>
         </div>

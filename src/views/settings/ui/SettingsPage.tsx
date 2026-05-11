@@ -27,7 +27,7 @@ export function SettingsPage() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-container-max flex-1 overflow-y-auto bg-background px-margin-mobile pb-24 pt-stack-lg md:px-gutter md:pb-8">
+    <main className="flex w-full min-w-0 flex-1 flex-col overflow-y-auto bg-background pb-24 pt-stack-lg max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
       <div className="mb-stack-lg">
         <h1 className="font-headline-lg text-headline-lg text-primary">Asset configuration</h1>
         <p className="mt-2 font-body-lg text-body-lg text-on-surface-variant">

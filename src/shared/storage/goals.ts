@@ -9,6 +9,15 @@ export type GoalSeedLine = {
   amount: number;
 };
 
+/** Installment: ₫ due on `date`. Cumulative “due” on the chart sums these in date order. */
+export type GoalCheckpoint = {
+  id: string;
+  /** ISO yyyy-mm-dd — payment / draw on this date. */
+  date: string;
+  /** ₫ to pay (or set aside) on this date — not a running total; the chart cumulates automatically. */
+  amount: number;
+};
+
 export type GoalProfile = {
   id: string;
   name: string;
@@ -22,6 +31,11 @@ export type GoalProfile = {
   monthlyContribution: number;
   /** One or more balances that seed the projection (summed). */
   seedLines?: GoalSeedLine[];
+  /**
+   * Optional payment dates: each row is an **installment** on `date`; cumulative due on the chart
+   * is the running sum in date order.
+   */
+  checkpoints?: GoalCheckpoint[];
   /**
    * @deprecated Migrated into `seedLines`. Read only for older localStorage.
    */
@@ -76,6 +90,7 @@ export const EMPTY_GOAL_PROFILE: GoalProfile = {
   targetDate: "",
   monthlyContribution: 0,
   seedLines: [],
+  checkpoints: [],
   includeMonthlyIncome: true,
 };
 

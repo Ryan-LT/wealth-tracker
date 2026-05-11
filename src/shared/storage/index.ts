@@ -26,7 +26,7 @@ export {
   GOAL_SIMULATOR_NEW_SENTINEL,
   goalProfileForDashboard,
 } from "./goals";
-export type { GoalsState, GoalProfile, GoalSeedLine } from "./goals";
+export type { GoalsState, GoalProfile, GoalSeedLine, GoalCheckpoint } from "./goals";
 
 export { PREFERENCES_SEED } from "./preferences";
 export type { Preferences, NetWorthMonthSnapshot } from "./preferences";

@@ -61,8 +61,8 @@ export function FeasibilityEngine({
           {incomeConfiguredTotal !== undefined &&
           monthlyIncome === 0 &&
           incomeConfiguredTotal > 0 ? (
-            <p className="text-label-sm font-label-sm text-on-surface-variant pl-0 pr-8">
-              Off for this plan — settings total is {formatVnd(incomeConfiguredTotal)}/mo.
+            <p className="text-label-sm text-on-surface-variant">
+              Off — settings still {formatVnd(incomeConfiguredTotal)}/mo.
             </p>
           ) : null}
         </div>
@@ -97,9 +97,9 @@ export function FeasibilityEngine({
           </span>
         </div>
         {note ? (
-          <div className="mt-2 text-label-sm font-label-sm text-on-surface-variant bg-surface-container-low p-2 rounded">
+          <p className="mt-2 text-label-sm text-on-surface-variant bg-surface-container-low p-2 rounded">
             {note}
-          </div>
+          </p>
         ) : null}
       </div>
     </Card>

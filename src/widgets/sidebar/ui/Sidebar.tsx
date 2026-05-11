@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { NAV, SECONDARY_NAV } from "@/shared/config";
+import { NAV } from "@/shared/config";
 import { cn } from "@/shared/lib";
 import { MaterialIcon, WealthTrackerLogo } from "@/shared/ui";
 
@@ -50,27 +50,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      <div className="mt-auto px-4 flex flex-col gap-stack-xs border-t border-outline-variant/30 pt-stack-sm">
-        {SECONDARY_NAV.map((item) => {
-          const active = isActive(pathname, item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-stack-md px-4 py-2 transition-colors font-body-md text-body-md",
-                active
-                  ? "text-on-tertiary font-bold"
-                  : "text-on-tertiary-container hover:text-on-tertiary",
-              )}
-            >
-              <MaterialIcon name={item.icon} size={20} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
     </aside>
   );
 }

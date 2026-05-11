@@ -14,14 +14,16 @@ import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
   cn,
   effectiveGoalSeedLineAmount,
+  formatDisplayDate,
   formatVnd,
   labelForSeedLine,
   totalGoalStartingBalance,
   type GoalStartingOption,
 } from "@/shared/lib";
-import type { GoalProfile, GoalSeedLine } from "@/shared/storage";
+import type { GoalCheckpoint, GoalProfile, GoalSeedLine } from "@/shared/storage";
 import { Button, Card, MoneyInput, MaterialIcon } from "@/shared/ui";
 
+import { CheckpointsModal } from "./CheckpointsModal";
 import { StartingBalancesModal } from "./StartingBalancesModal";
 
 type GoalCreatorFormProps = {
@@ -55,6 +57,7 @@ export function GoalCreatorForm({
   onSave,
 }: GoalCreatorFormProps) {
   const [startingBalancesOpen, setStartingBalancesOpen] = useState(false);
+  const [checkpointsOpen, setCheckpointsOpen] = useState(false);
 
   const lines = useMemo(() => profile.seedLines ?? [], [profile.seedLines]);
 
@@ -62,6 +65,27 @@ export function GoalCreatorForm({
     () => totalGoalStartingBalance(lines, seedOptions, savedPlans, profile),
     [lines, seedOptions, savedPlans, profile],
   );
+
+  const checkpoints = useMemo(
+    () => profile.checkpoints ?? [],
+    [profile.checkpoints],
+  );
+
+  const sortedCheckpointsDisplay = useMemo(() => {
+    return [...checkpoints]
+      .filter((c) => String(c.date).trim())
+      .map((c) => ({
+        ...c,
+        date: String(c.date).trim().split("T")[0],
+        amount: Math.max(0, Math.floor(Number(c.amount) || 0)),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [checkpoints]);
+
+  function applyCheckpoints(next: GoalCheckpoint[]) {
+    onChange({ ...profile, checkpoints: next });
+    onSimulate();
+  }
 
   function applyStartingBalances(seedLines: GoalSeedLine[]) {
     onChange({ ...profile, seedLines });
@@ -71,7 +95,7 @@ export function GoalCreatorForm({
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Card className="p-stack-md">
-        <h3 className="font-headline-md text-headline-md text-on-surface mb-stack-sm border-b border-outline-variant pb-2">
+        <h3 className="text-headline-md text-headline-md text-on-surface mb-stack-sm border-b border-outline-variant pb-2">
           Plan setup
         </h3>
         <form
@@ -120,6 +144,66 @@ export function GoalCreatorForm({
             }}
           />
 
+          <div className="min-w-0 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
+            <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+              <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+                Checkpoints
+              </p>
+              <Button
+                type="button"
+                variant="outline-secondary"
+                size="sm"
+                startIcon={<MaterialIcon name="edit" />}
+                onClick={() => setCheckpointsOpen(true)}
+              >
+                Configure
+              </Button>
+            </div>
+            {sortedCheckpointsDisplay.length === 0 ? (
+              <p className="mb-2 rounded-md border border-dashed border-outline-variant bg-surface-container-low px-2 py-2 text-center text-label-sm text-on-surface-variant">
+                No checkpoints — open Configure
+              </p>
+            ) : (
+              <>
+                <div className="mb-1 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 border-b border-outline-variant/50 px-2 pb-1 text-label-sm font-semibold uppercase tracking-wide text-on-surface-variant sm:gap-x-3 sm:px-3">
+                  <span className="min-w-0">Date</span>
+                  <span className="min-w-0 text-end">Payment</span>
+                  <span className="min-w-0 text-end">Due</span>
+                </div>
+                <ul className="mb-3 min-w-0 divide-y divide-outline-variant/60 overflow-x-auto rounded-md border border-outline-variant bg-surface-container-lowest">
+                  {sortedCheckpointsDisplay.map((cp, idx) => {
+                    const running = sortedCheckpointsDisplay
+                      .slice(0, idx + 1)
+                      .reduce((s, x) => s + x.amount, 0);
+                    return (
+                      <li
+                        key={cp.id}
+                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-2 px-2 py-2.5 sm:gap-x-3 sm:px-3"
+                      >
+                        <span className="min-w-0 font-body-md text-on-surface tabular-nums">
+                          {formatDisplayDate(cp.date)}
+                        </span>
+                        <span className="min-w-0 break-all text-end font-data-tabular text-data-tabular text-secondary">
+                          {formatVnd(cp.amount)}
+                        </span>
+                        <span className="min-w-0 break-all text-end font-data-tabular text-data-tabular text-on-surface">
+                          {formatVnd(running)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </div>
+
+          <CheckpointsModal
+            open={checkpointsOpen}
+            onClose={() => setCheckpointsOpen(false)}
+            profile={profile}
+            onApply={applyCheckpoints}
+          />
+
           <div>
             <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
               <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
@@ -135,15 +219,10 @@ export function GoalCreatorForm({
                 Configure
               </Button>
             </div>
-            <p className="mb-3 text-body-sm font-body-md text-on-surface-variant">
-              Amounts allocated from each asset for this plan (shared pool
-              across all plans). Use the editor to add sources and set how much
-              you take from each.
-            </p>
 
             {lines.length === 0 ? (
-              <p className="mb-3 rounded-md border border-dashed border-outline-variant bg-surface-container-low px-3 py-4 text-center text-body-sm text-on-surface-variant">
-                None configured — open the editor to choose sources and amounts.
+              <p className="mb-2 rounded-md border border-dashed border-outline-variant bg-surface-container-low px-2 py-2 text-center text-label-sm text-on-surface-variant">
+                No sources — open Configure
               </p>
             ) : (
               <ul className="mb-3 divide-y divide-outline-variant/60 rounded-md border border-outline-variant bg-surface-container-lowest">
@@ -248,11 +327,6 @@ export function GoalCreatorForm({
                 }}
               />
             </div>
-            <p className="mt-2 text-body-sm font-body-md text-on-surface-variant">
-              {profile.includeMonthlyIncome === false
-                ? "Off — this plan’s chart and feasibility use only your allocated starting amounts (fixed path until the goal date)."
-                : "On — linear projection adds this total each month on top of starting allocations. Edit amounts under Asset configuration → Income sources."}
-            </p>
           </div>
 
           <div className="pt-2 flex flex-col gap-2">

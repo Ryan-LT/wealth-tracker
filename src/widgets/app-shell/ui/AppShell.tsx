@@ -10,16 +10,14 @@ type AppShellProps = {
 /**
  * Application chrome that wraps every route: fixed desktop sidebar on the left,
  * fixed bottom-nav on mobile, and a content slot pushed past the sidebar.
- *
- * Each view renders its own <TopAppBar> inside the slot — page-specific headers
- * (search field, page title, metric badge) make a single shared topbar
- * untenable while keeping the design pixel-faithful.
  */
 export function AppShell({ children }: AppShellProps) {
   return (
     <>
       <Sidebar />
-      {children}
+      <div className="flex min-h-screen min-w-0 flex-col bg-background md:ml-sidebar-width">
+        {children}
+      </div>
       <BottomNav />
     </>
   );

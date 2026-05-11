@@ -38,8 +38,8 @@ export function SavedProfilesStrip({
       </div>
       <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-1 sm:pb-0">
         {profiles.length === 0 && !isComposingNew ? (
-          <p className="text-body-sm font-body-md text-on-surface-variant">
-            None yet — fill in the form and save, or start with New plan.
+          <p className="text-label-sm text-on-surface-variant">
+            None saved — use New plan, then Save.
           </p>
         ) : null}
         {profiles.map((p) => {

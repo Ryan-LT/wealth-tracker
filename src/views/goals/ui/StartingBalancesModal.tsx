@@ -115,16 +115,12 @@ export function StartingBalancesModal({
         Starting balances
       </DialogTitle>
       <DialogContent className="flex flex-col gap-stack-md pt-4 max-h-[min(70vh,640px)] overflow-y-auto">
-        <p className="text-body-sm font-body-md text-on-surface-variant">
-          Choose how much to take from each asset for this plan. Other plans reserve their own
-          amounts; each line is capped at what is still available. Custom rows are extra cash not
-          tied to an asset.
+        <p className="text-label-sm text-on-surface-variant">
+          Per source; caps respect other plans. Custom = extra cash.
         </p>
 
         {workingLines.length === 0 ? (
-          <p className="text-body-sm text-on-surface-variant italic">
-            No sources yet — add at least one below.
-          </p>
+          <p className="text-label-sm text-on-surface-variant italic">Add at least one source.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {workingLines.map((line) => (

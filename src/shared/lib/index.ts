@@ -18,6 +18,10 @@ export {
 export { formatVnd, formatThousands } from "./formatVnd";
 export { formatDisplayDate } from "./formatDate";
 export {
+  cumulativeDueScheduleFromCheckpoints,
+  normalizeStoredCheckpoints,
+} from "./goalCheckpoints";
+export {
   monthlyIncomeByKind,
   totalAssetValue,
   totalCombinedAssetValue,

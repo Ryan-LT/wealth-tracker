@@ -13,24 +13,21 @@ export const NAV: NavItem[] = [
     icon: "dashboard",
   },
   {
-    href: "/settings",
-    label: "Asset configuration",
-    short: "Configure",
-    icon: "settings",
-  },
-  {
     href: "/goals",
     label: "Goal Plan",
     short: "Plans",
     icon: "insights",
   },
-];
-
-export const SECONDARY_NAV: NavItem[] = [
   {
-    href: "/support",
-    label: "Support",
-    short: "Support",
-    icon: "help_outline",
+    href: "/allocations",
+    label: "Liquidity & commitments",
+    short: "Liquidity",
+    icon: "account_balance",
+  },
+  {
+    href: "/settings",
+    label: "Asset configuration",
+    short: "Configure",
+    icon: "settings",
   },
 ];

@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 
 import {
   buildGoalStartingOptions,
-  formatVnd,
   estimatedMonthlyNetCashflow,
   monthlyIncomeByKind,
   monthToDateNetWorthChangePercent,
@@ -28,10 +27,8 @@ import {
   type AssetsState,
   useTable,
 } from "@/shared/storage";
-import { TopAppBar } from "@/widgets/top-app-bar";
-
-import { MetricGrid } from "./MetricGrid";
 import { FinancialSummaryWidget } from "./FinancialSummaryWidget";
+import { MetricGrid } from "./MetricGrid";
 import { NetWorthCard } from "./NetWorthCard";
 import { PrimaryGoalCard } from "./PrimaryGoalCard";
 
@@ -134,16 +131,7 @@ export function DashboardPage() {
 
   return (
     <>
-      <TopAppBar
-        start={
-          <h2 className="text-headline-md font-headline-md text-primary md:hidden">
-            WealthTracker
-          </h2>
-        }
-        metricLabel="Metric: Net Worth"
-        metricValue={formatVnd(summary.totalNetWorth)}
-      />
-      <main className="mx-auto w-full max-w-container-max flex-1 p-margin-mobile pb-20 md:p-gutter md:pb-gutter">
+      <main className="flex w-full min-w-0 flex-1 flex-col pb-20 max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
         <div className="mb-6 grid grid-cols-1 gap-4 lg:mb-8 lg:grid-cols-12 lg:gap-4">
           <div className="lg:col-span-4">
             <NetWorthCard

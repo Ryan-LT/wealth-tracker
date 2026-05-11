@@ -31,10 +31,9 @@ export {
   fractionalMonthsUntilYearEnd,
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
-  monthlyCashflowFromTransactions,
   projectNetWorthEndOfYear,
-  resolvedMonthlyCashflowDisplay,
   syncNetWorthTracking,
-  transactionsToActivityRows,
 } from "./finance";
+export { computeGoalFeasibility } from "./goalFeasibility";
+export type { GoalFeasibility, GoalFeasibilityTone, GoalFeasibilityInput } from "./goalFeasibility";
 export type { NetWorthMonthSnapshot } from "@/shared/storage/preferences";

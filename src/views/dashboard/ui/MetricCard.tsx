@@ -21,22 +21,22 @@ export function MetricCard({
   highlight = false,
 }: MetricCardProps) {
   return (
-    <Card className="p-4 flex flex-col relative overflow-hidden">
+    <Card className="relative flex flex-col overflow-hidden p-3">
       {highlight ? (
-        <div className="absolute right-0 top-0 w-16 h-16 bg-secondary/10 rounded-bl-full" />
+        <div className="absolute right-0 top-0 h-12 w-12 rounded-bl-full bg-secondary/10" />
       ) : null}
       <div
         className={cn(
-          "flex items-center gap-2 mb-2",
+          "mb-1.5 flex items-center gap-1.5",
           highlight ? "text-secondary" : "text-on-surface-variant",
         )}
       >
-        <MaterialIcon name={icon} size={18} />
+        <MaterialIcon name={icon} size={16} />
         <h4 className="font-label-sm text-label-sm uppercase">{label}</h4>
       </div>
       <div
         className={cn(
-          "font-headline-md text-headline-md",
+          "font-data-tabular text-body-lg font-semibold leading-snug tracking-tight tabular-nums",
           negative ? "text-error" : "text-primary",
         )}
       >

@@ -3,8 +3,9 @@
 import { useEffect, useMemo } from "react";
 
 import {
-  buildNetWorthChartSeries,
+  buildGoalStartingOptions,
   formatVnd,
+  estimatedMonthlyNetCashflow,
   monthlyIncomeByKind,
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
@@ -12,9 +13,9 @@ import {
   totalAssetValue,
   totalCombinedAssetValue,
   totalDebtBalance,
+  totalGoalStartingBalance,
   totalMonthlyIncomeFromSources,
   totalSettingsAssetsValue,
-  transactionsToActivityRows,
 } from "@/shared/lib";
 import {
   ASSETS_SEED,
@@ -24,7 +25,6 @@ import {
   INCOME_SOURCES_SEED,
   PREFERENCES_SEED,
   SETTINGS_ASSETS_SEED,
-  TRANSACTIONS_SEED,
   type AssetsState,
   useTable,
 } from "@/shared/storage";
@@ -34,7 +34,6 @@ import { MetricGrid } from "./MetricGrid";
 import { FinancialSummaryWidget } from "./FinancialSummaryWidget";
 import { NetWorthCard } from "./NetWorthCard";
 import { PrimaryGoalCard } from "./PrimaryGoalCard";
-import { RecentActivityTable } from "./RecentActivityTable";
 
 export function DashboardPage() {
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
@@ -42,7 +41,6 @@ export function DashboardPage() {
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [goals] = useTable("goals", GOALS_SEED);
-  const [transactions] = useTable("transactions", TRANSACTIONS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
   const netWorth = useMemo(() => {
@@ -68,6 +66,7 @@ export function DashboardPage() {
       passiveIncome: monthlyIncomeByKind(sources, "passive"),
       totalDebt: -liabilities,
       eoyProjection: projectNetWorthEndOfYear(nw, prefs, incomeTotal),
+      monthlyNet: estimatedMonthlyNetCashflow(prefs, incomeTotal),
     };
   }, [assets, debts, sources, prefs, settingsAssets]);
 
@@ -84,26 +83,54 @@ export function DashboardPage() {
     };
   }, [assets, settingsAssets, debts]);
 
-  const chartSeries = useMemo(
-    () => buildNetWorthChartSeries(prefs.netWorthMonthlyHistory ?? [], netWorth),
-    [prefs.netWorthMonthlyHistory, netWorth],
-  );
-
-  const activityRows = useMemo(
-    () => transactionsToActivityRows(transactions),
-    [transactions],
+  const seedOptions = useMemo(
+    () => buildGoalStartingOptions(assets, settingsAssets),
+    [assets, settingsAssets],
   );
 
   const primaryProfile = goalProfileForDashboard(goals);
 
-  const primaryTarget =
+  const legacyPrimaryTarget =
     primaryProfile?.targetAmount ?? goals.primary.targetAmount;
-  const primaryName =
+  const legacyPrimaryName =
     (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ?? "Primary Goal";
-  const savedTowardPrimary =
+  const legacySavedTowardPrimary =
     goals.primary.saved > 0
-      ? Math.min(goals.primary.saved, primaryTarget)
-      : Math.min(Math.max(0, netWorth), primaryTarget);
+      ? Math.min(goals.primary.saved, legacyPrimaryTarget)
+      : Math.min(Math.max(0, netWorth), legacyPrimaryTarget);
+
+  const goalPlanCards = useMemo(() => {
+    if (goals.profiles.length > 0) {
+      return goals.profiles.map((plan) => ({
+        key: plan.id,
+        name: plan.name.trim() || "Untitled plan",
+        targetAmount: plan.targetAmount,
+        saved: totalGoalStartingBalance(plan.seedLines, seedOptions, goals.profiles, plan),
+        savedCaption: "Allocated starting" as const,
+        targetDate: plan.targetDate,
+        includeMonthlyIncome: plan.includeMonthlyIncome !== false,
+      }));
+    }
+    return [
+      {
+        key: "legacy-primary",
+        name: legacyPrimaryName,
+        targetAmount: legacyPrimaryTarget,
+        saved: legacySavedTowardPrimary,
+        savedCaption: "Saved" as const,
+        targetDate: primaryProfile?.targetDate ?? "",
+        includeMonthlyIncome: primaryProfile?.includeMonthlyIncome !== false,
+      },
+    ];
+  }, [
+    goals.profiles,
+    legacyPrimaryName,
+    legacyPrimaryTarget,
+    legacySavedTowardPrimary,
+    primaryProfile?.targetDate,
+    primaryProfile?.includeMonthlyIncome,
+    seedOptions,
+  ]);
 
   return (
     <>
@@ -116,26 +143,43 @@ export function DashboardPage() {
         metricLabel="Metric: Net Worth"
         metricValue={formatVnd(summary.totalNetWorth)}
       />
-      <main className="flex-1 p-margin-mobile md:p-gutter max-w-container-max mx-auto w-full pb-24 md:pb-gutter">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-stack-md mb-stack-lg">
-          <NetWorthCard
-            totalNetWorth={summary.totalNetWorth}
-            monthChangePct={summary.monthChangePct}
-            chartLabels={chartSeries.labels}
-            chartValues={chartSeries.values}
-          />
-          <PrimaryGoalCard
-            name={primaryName}
-            targetAmount={primaryTarget}
-            saved={savedTowardPrimary}
-          />
-          <FinancialSummaryWidget
-            totalAssets={financialBreakdown.totalAssets}
-            totalLiabilities={financialBreakdown.totalLiabilities}
-            portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
-            assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
-          />
+      <main className="mx-auto w-full max-w-container-max flex-1 p-margin-mobile pb-20 md:p-gutter md:pb-gutter">
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:mb-8 lg:grid-cols-12 lg:gap-4">
+          <div className="lg:col-span-4">
+            <NetWorthCard
+              totalNetWorth={summary.totalNetWorth}
+              monthChangePct={summary.monthChangePct}
+            />
+          </div>
+          <div className="lg:col-span-8">
+            <FinancialSummaryWidget
+              totalAssets={financialBreakdown.totalAssets}
+              totalLiabilities={financialBreakdown.totalLiabilities}
+              portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
+              assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
+            />
+          </div>
         </div>
+
+        <section className="mb-6 lg:mb-8">
+          <h2 className="mb-3 text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
+            Goal plans
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+            {goalPlanCards.map((g) => (
+              <PrimaryGoalCard
+                key={g.key}
+                name={g.name}
+                targetAmount={g.targetAmount}
+                saved={g.saved}
+                savedCaption={g.savedCaption}
+                targetDate={g.targetDate}
+                includeMonthlyIncome={g.includeMonthlyIncome}
+                estimatedMonthlyNet={summary.monthlyNet}
+              />
+            ))}
+          </div>
+        </section>
 
         <MetricGrid
           totalAssets={summary.totalAssets}
@@ -144,8 +188,6 @@ export function DashboardPage() {
           totalDebt={summary.totalDebt}
           eoyProjection={summary.eoyProjection}
         />
-
-        <RecentActivityTable rows={activityRows} />
       </main>
     </>
   );

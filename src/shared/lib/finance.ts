@@ -1,5 +1,4 @@
 import type { NetWorthMonthSnapshot, Preferences } from "@/shared/storage/preferences";
-import type { ActivityRow, Transaction } from "@/shared/storage/transactions";
 
 export function monthCalendarKey(d: Date): string {
   const y = d.getFullYear();
@@ -121,50 +120,5 @@ export function buildNetWorthChartSeries(
   }
 
   return { labels, values };
-}
-
-export function transactionsToActivityRows(
-  transactions: Transaction[],
-  limit = 12,
-): ActivityRow[] {
-  return [...transactions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, limit)
-    .map((t) => ({
-      id: t.id,
-      date: t.date,
-      asset: t.asset,
-      category: t.category,
-      amount: t.vndAmount,
-    }));
-}
-
-export function monthlyCashflowFromTransactions(
-  transactions: Transaction[],
-  ref: Date = new Date(),
-): { inflow: number; outflow: number } {
-  const ym = monthCalendarKey(ref).slice(0, 7);
-  let inflow = 0;
-  let outflow = 0;
-  for (const t of transactions) {
-    if (!t.date.startsWith(ym)) continue;
-    if (t.vndAmount >= 0) inflow += t.vndAmount;
-    else outflow += -t.vndAmount;
-  }
-  return { inflow, outflow };
-}
-
-/**
- * Prefer summed transactions for the current month when any activity exists;
- * otherwise fall back to manually entered preference totals.
- */
-export function resolvedMonthlyCashflowDisplay(
-  transactions: Transaction[],
-  prefs: Pick<Preferences, "monthInflow" | "monthOutflow">,
-): { inflow: number; outflow: number } {
-  const tx = monthlyCashflowFromTransactions(transactions);
-  const hasTxData = tx.inflow !== 0 || tx.outflow !== 0;
-  if (hasTxData) return tx;
-  return { inflow: prefs.monthInflow, outflow: prefs.monthOutflow };
 }
 

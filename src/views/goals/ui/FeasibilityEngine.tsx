@@ -4,7 +4,10 @@ import { formatVnd } from "@/shared/lib";
 import { Badge, Card, MaterialIcon } from "@/shared/ui";
 
 type FeasibilityEngineProps = {
+  /** Monthly income included in the linear projection for this plan (0 when turned off). */
   monthlyIncome: number;
+  /** Total from Asset configuration — shown when income is off but still configured. */
+  incomeConfiguredTotal?: number;
   startingBalance: number;
   projectedBalanceAtTarget: number;
   targetAmount: number;
@@ -14,6 +17,7 @@ type FeasibilityEngineProps = {
 
 export function FeasibilityEngine({
   monthlyIncome,
+  incomeConfiguredTotal,
   startingBalance,
   projectedBalanceAtTarget,
   targetAmount,
@@ -45,13 +49,22 @@ export function FeasibilityEngine({
           <span className="text-body-md font-body-md text-on-surface-variant">Status</span>
           <Badge tone="active">{targetAmount <= 0 ? "—" : onTrack ? "Feasible" : "Shortfall"}</Badge>
         </div>
-        <div className="flex justify-between items-center gap-2">
-          <span className="text-body-md font-body-md text-on-surface-variant">
-            Monthly income (applied)
-          </span>
-          <span className="text-data-tabular font-data-tabular text-secondary shrink-0">
-            {formatVnd(monthlyIncome)}
-          </span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex justify-between items-center gap-2">
+            <span className="text-body-md font-body-md text-on-surface-variant">
+              Monthly income (in projection)
+            </span>
+            <span className="text-data-tabular font-data-tabular text-secondary shrink-0">
+              {formatVnd(monthlyIncome)}
+            </span>
+          </div>
+          {incomeConfiguredTotal !== undefined &&
+          monthlyIncome === 0 &&
+          incomeConfiguredTotal > 0 ? (
+            <p className="text-label-sm font-label-sm text-on-surface-variant pl-0 pr-8">
+              Off for this plan — settings total is {formatVnd(incomeConfiguredTotal)}/mo.
+            </p>
+          ) : null}
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="text-body-md font-body-md text-on-surface-variant">

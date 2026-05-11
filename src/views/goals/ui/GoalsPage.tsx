@@ -59,6 +59,7 @@ function normalizeGoalProfile(
     ...p,
     seedLines: lines,
     monthlyContribution: typeof p.monthlyContribution === "number" ? p.monthlyContribution : 0,
+    includeMonthlyIncome: p.includeMonthlyIncome !== false,
   };
 }
 
@@ -137,6 +138,7 @@ export function GoalsPage() {
         targetAmount: draft.targetAmount,
         targetDate: draft.targetDate,
         monthlyContribution: incomeMonthly,
+        includeMonthlyIncome: draft.includeMonthlyIncome !== false,
         seedLines: cleanLines,
       };
 
@@ -180,17 +182,24 @@ export function GoalsPage() {
     [draft, goals.profiles, seedOptions],
   );
 
+  const applyMonthlyIncome = draft.includeMonthlyIncome !== false;
+  const effectiveMonthlyIncome = applyMonthlyIncome ? incomeMonthly : 0;
+
   const projectedAtTarget = useMemo(
-    () => startingBalance + incomeMonthly * monthsToTarget,
-    [startingBalance, incomeMonthly, monthsToTarget],
+    () => startingBalance + effectiveMonthlyIncome * monthsToTarget,
+    [startingBalance, effectiveMonthlyIncome, monthsToTarget],
   );
 
   const note = useMemo(() => {
     if (draft.targetAmount <= 0 || !draft.targetDate) {
       return "Enter a plan name, target amount, target date, and one or more starting sources to see a projection.";
     }
-    if (incomeMonthly <= 0 && projectedAtTarget < draft.targetAmount) {
+    if (applyMonthlyIncome && incomeMonthly <= 0 && projectedAtTarget < draft.targetAmount) {
       return "Add monthly income under Asset configuration → Income sources. Without it, only your allocated starting amounts count toward the plan.";
+    }
+    if (!applyMonthlyIncome && projectedAtTarget < draft.targetAmount) {
+      const gap = draft.targetAmount - projectedAtTarget;
+      return `Monthly income is off for this plan — projection stays at your allocated starting total (${formatVnd(startingBalance)}). Short by about ${formatVnd(gap)}. Turn income on, add starting allocations, extend the date, or lower the target.`;
     }
     if (projectedAtTarget >= draft.targetAmount) {
       const surplus = projectedAtTarget - draft.targetAmount;
@@ -200,7 +209,14 @@ export function GoalsPage() {
     }
     const gap = draft.targetAmount - projectedAtTarget;
     return `Short by about ${formatVnd(gap)} at the goal date. Raise income or allocations, extend the date, or lower the target.`;
-  }, [draft.targetAmount, draft.targetDate, incomeMonthly, projectedAtTarget]);
+  }, [
+    applyMonthlyIncome,
+    draft.targetAmount,
+    draft.targetDate,
+    incomeMonthly,
+    projectedAtTarget,
+    startingBalance,
+  ]);
 
   return (
     <>
@@ -213,8 +229,9 @@ export function GoalsPage() {
           <p className="text-body-md font-body-md text-on-surface-variant mt-1">
             Allocate starting amounts from each asset (shared across all plans so totals never
             exceed what you really hold). Other plans reserve their slice; this editor shows how
-            much is left. Income from Asset configuration is applied monthly toward the target.
-            Use New plan for another goal; Load switches plans.
+            much is left. Income from Asset configuration can be applied monthly toward the target,
+            or turned off for a fixed starting-only view. Use New plan for another goal; Load
+            switches plans.
           </p>
         </header>
 
@@ -238,7 +255,8 @@ export function GoalsPage() {
               onSave={saveCurrentSetup}
             />
             <FeasibilityEngine
-              monthlyIncome={incomeMonthly}
+              monthlyIncome={effectiveMonthlyIncome}
+              incomeConfiguredTotal={incomeMonthly}
               startingBalance={startingBalance}
               projectedBalanceAtTarget={projectedAtTarget}
               targetAmount={draft.targetAmount}
@@ -250,7 +268,7 @@ export function GoalsPage() {
             <ProjectionTimelineChart
               targetAmount={draft.targetAmount}
               startingAmount={startingBalance}
-              monthlyIncome={incomeMonthly}
+              monthlyIncome={effectiveMonthlyIncome}
               monthsToTarget={monthsToTarget}
               targetDateIso={draft.targetDate}
             />

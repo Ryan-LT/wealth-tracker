@@ -51,35 +51,25 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto px-4 flex flex-col gap-stack-sm">
-        <button
-          type="button"
-          className="w-full bg-secondary text-on-secondary h-10 rounded flex items-center justify-center gap-stack-sm font-label-sm text-label-sm hover:opacity-90 transition-opacity"
-        >
-          <MaterialIcon name="download" size={18} />
-          Download Report
-        </button>
-
-        <div className="mt-stack-sm flex flex-col gap-stack-xs border-t border-outline-variant/30 pt-stack-sm">
-          {SECONDARY_NAV.map((item) => {
-            const active = isActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-stack-md px-4 py-2 transition-colors font-body-md text-body-md",
-                  active
-                    ? "text-on-tertiary font-bold"
-                    : "text-on-tertiary-container hover:text-on-tertiary",
-                )}
-              >
-                <MaterialIcon name={item.icon} size={20} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+      <div className="mt-auto px-4 flex flex-col gap-stack-xs border-t border-outline-variant/30 pt-stack-sm">
+        {SECONDARY_NAV.map((item) => {
+          const active = isActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-stack-md px-4 py-2 transition-colors font-body-md text-body-md",
+                active
+                  ? "text-on-tertiary font-bold"
+                  : "text-on-tertiary-container hover:text-on-tertiary",
+              )}
+            >
+              <MaterialIcon name={item.icon} size={20} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </div>
     </aside>
   );

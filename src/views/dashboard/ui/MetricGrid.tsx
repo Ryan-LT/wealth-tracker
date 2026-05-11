@@ -18,7 +18,7 @@ export function MetricGrid({
   eoyProjection,
 }: MetricGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-stack-md mb-stack-lg">
+    <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-4 xl:grid-cols-5">
       <MetricCard
         icon="account_balance"
         label="Total Assets"

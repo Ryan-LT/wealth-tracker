@@ -159,8 +159,9 @@ export function ProjectionTimelineChart({
         Projection (linear)
       </h3>
       <p className="text-body-sm font-body-md text-on-surface-variant mb-3">
-        Uses your allocated starting amounts plus total monthly income from Asset configuration
-        each month toward this plan.
+        {monthlyIncome > 0
+          ? "Uses your allocated starting amounts plus the monthly income amount above each month until the goal date."
+          : "Uses only your allocated starting amounts — flat line until the goal date (monthly income is off for this plan)."}
       </p>
       <div className="relative w-full h-64 rounded border border-outline-variant bg-surface-container-low overflow-hidden">
         <span className="absolute top-3 right-3 z-10 text-label-sm font-label-sm text-error bg-surface-container-lowest px-1 rounded">

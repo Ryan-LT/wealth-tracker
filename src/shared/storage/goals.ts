@@ -29,6 +29,11 @@ export type GoalProfile = {
   /** @deprecated Migrated into `seedLines`. */
   seedAmount?: number;
   active?: boolean;
+  /**
+   * When true (default), linear projection adds Asset configuration monthly income each month.
+   * When false, projection uses only allocated starting balances for this plan.
+   */
+  includeMonthlyIncome?: boolean;
 };
 
 /** Goal Plan: compose a new plan before first save (not a persisted plan id). */
@@ -71,6 +76,7 @@ export const EMPTY_GOAL_PROFILE: GoalProfile = {
   targetDate: "",
   monthlyContribution: 0,
   seedLines: [],
+  includeMonthlyIncome: true,
 };
 
 export const GOALS_SEED: GoalsState = {

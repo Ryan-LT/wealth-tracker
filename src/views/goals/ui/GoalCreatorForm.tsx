@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 
 import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -130,12 +132,13 @@ export function GoalCreatorForm({
                 startIcon={<MaterialIcon name="edit" />}
                 onClick={() => setStartingBalancesOpen(true)}
               >
-                Configure…
+                Configure
               </Button>
             </div>
             <p className="mb-3 text-body-sm font-body-md text-on-surface-variant">
-              Amounts allocated from each asset for this plan (shared pool across all plans). Use
-              the editor to add sources and set how much you take from each.
+              Amounts allocated from each asset for this plan (shared pool
+              across all plans). Use the editor to add sources and set how much
+              you take from each.
             </p>
 
             {lines.length === 0 ? (
@@ -145,7 +148,9 @@ export function GoalCreatorForm({
             ) : (
               <ul className="mb-3 divide-y divide-outline-variant/60 rounded-md border border-outline-variant bg-surface-container-lowest">
                 {lines.map((line) => {
-                  const cat = seedOptions.find((o) => o.key === line.sourceKey)?.category;
+                  const cat = seedOptions.find(
+                    (o) => o.key === line.sourceKey,
+                  )?.category;
                   const effective = effectiveGoalSeedLineAmount(
                     line,
                     seedOptions,
@@ -201,18 +206,52 @@ export function GoalCreatorForm({
           />
 
           <div className="rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
-            <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-              Monthly income (applied)
-            </p>
-            <p className="mt-1 font-data-tabular text-data-tabular text-secondary text-lg">
-              {formatVnd(monthlyIncomeTotal)}{" "}
-              <span className="text-body-md text-on-surface-variant">
-                / month
-              </span>
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+                  Monthly income (from settings)
+                </p>
+                <p
+                  className={cn(
+                    "mt-1 font-data-tabular text-data-tabular text-secondary text-lg",
+                    profile.includeMonthlyIncome === false && "opacity-45",
+                  )}
+                >
+                  {formatVnd(monthlyIncomeTotal)}{" "}
+                  <span className="text-body-md text-on-surface-variant">
+                    / month
+                  </span>
+                </p>
+              </div>
+              <FormControlLabel
+                className="m-0 shrink-0"
+                control={
+                  <Switch
+                    size="small"
+                    checked={profile.includeMonthlyIncome !== false}
+                    onChange={(_, checked) =>
+                      onChange({ ...profile, includeMonthlyIncome: checked })
+                    }
+                  />
+                }
+                label="Include in projection"
+                labelPlacement="start"
+                sx={{
+                  marginRight: 0,
+                  marginLeft: 0,
+                  gap: 1,
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: "0.8125rem",
+                    fontWeight: 500,
+                    color: "var(--color-on-surface)",
+                  },
+                }}
+              />
+            </div>
             <p className="mt-2 text-body-sm font-body-md text-on-surface-variant">
-              Total of all entries under Asset configuration → Income sources.
-              Update them there to change this projection.
+              {profile.includeMonthlyIncome === false
+                ? "Off — this plan’s chart and feasibility use only your allocated starting amounts (fixed path until the goal date)."
+                : "On — linear projection adds this total each month on top of starting allocations. Edit amounts under Asset configuration → Income sources."}
             </p>
           </div>
 

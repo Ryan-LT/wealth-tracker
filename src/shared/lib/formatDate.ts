@@ -13,14 +13,14 @@ const MONTHS_SHORT = [
   "Dec",
 ];
 
-/** Format an ISO date string as "Oct 24, 2023" (used in the dashboard activity table). */
+/** Format an ISO date string as "Oct 24, 2023". */
 export function formatShortDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
-/** Format an ISO date as "YYYY-MM-DD" (used in activity tables). */
+/** Format an ISO date as "YYYY-MM-DD". */
 export function formatIsoDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;

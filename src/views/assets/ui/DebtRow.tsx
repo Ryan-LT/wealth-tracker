@@ -3,6 +3,13 @@ import type { ReactNode } from "react";
 import { cn, formatVnd } from "@/shared/lib";
 import type { Debt } from "@/shared/storage";
 
+function formatRatePctVi(ratePct: number): string {
+  return new Intl.NumberFormat("vi-VN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 3,
+  }).format(ratePct);
+}
+
 type DebtRowProps = {
   debt: Debt;
   isLast: boolean;
@@ -34,16 +41,35 @@ export function DebtRow({ debt, isLast, actions }: DebtRowProps) {
               Rate
             </p>
             <p className="font-data-tabular text-data-tabular text-error">
-              {debt.ratePct.toFixed(2)}% {debt.rateKind}
+              {formatRatePctVi(debt.ratePct)}% {debt.rateKind}
             </p>
           </div>
           <div>
             <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-              Next Payment
+              Payment
             </p>
             <p className="font-data-tabular text-data-tabular text-on-surface-variant">
-              {debt.nextPayment}
+              {debt.paymentDayOfMonth != null &&
+              debt.paymentDayOfMonth >= 1 &&
+              debt.paymentDayOfMonth <= 31 ? (
+                <>
+                  <span className="text-primary">Day {debt.paymentDayOfMonth}</span>
+                  <span className="text-on-surface-variant"> each month</span>
+                </>
+              ) : debt.nextPayment.trim() ? (
+                debt.nextPayment
+              ) : (
+                "—"
+              )}
             </p>
+            {debt.paymentDayOfMonth != null &&
+            debt.paymentDayOfMonth >= 1 &&
+            debt.paymentDayOfMonth <= 31 &&
+            debt.nextPayment.trim() ? (
+              <p className="mt-0.5 font-body-sm text-body-sm text-on-surface-variant">
+                {debt.nextPayment}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>

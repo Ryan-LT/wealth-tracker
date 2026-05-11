@@ -7,9 +7,9 @@ export type NetWorthMonthSnapshot = {
 export type Preferences = {
   baseCurrency: "VND";
   dateFormat: "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
-  /** Net income figure shown in the Journal. */
+  /** Net income fallback when month inflow/outflow are unset. */
   netMonthIncome: number;
-  /** Inflow / outflow used by the Monthly Summary card. */
+  /** Inflow / outflow for resolved monthly cash flow when both are set. */
   monthInflow: number;
   monthOutflow: number;
 

@@ -53,7 +53,7 @@ export function RecentActivityTable({ rows }: RecentActivityTableProps) {
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="font-body-md text-body-md text-on-surface-variant py-8">
-                  No transactions yet. Add journal lines to see recent activity on the dashboard.
+                  No transactions yet.
                 </TableCell>
               </TableRow>
             ) : (

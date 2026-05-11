@@ -17,7 +17,7 @@ export function fractionalMonthsUntilYearEnd(now: Date = new Date()): number {
 
 /**
  * Estimated monthly net cash flow for projections.
- * Uses explicit inflow/outflow from preferences when set; otherwise journal net or income − outflow.
+ * Uses explicit inflow/outflow from preferences when set; otherwise stored net or income − outflow.
  */
 export function estimatedMonthlyNetCashflow(
   prefs: Pick<

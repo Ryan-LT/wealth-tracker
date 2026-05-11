@@ -4,7 +4,12 @@ export type Debt = {
   balance: number;
   ratePct: number;
   rateKind: "Fixed" | "Variable";
-  /** Display string for the next payment, e.g. "Oct 01 (₫71.250.000)" */
+  /**
+   * Day of month (1–31) when a payment is typically due; shown as the primary
+   * “monthly payment date” in the UI.
+   */
+  paymentDayOfMonth?: number;
+  /** Optional free-text note (amount reminder, reference, etc.). */
   nextPayment: string;
 };
 

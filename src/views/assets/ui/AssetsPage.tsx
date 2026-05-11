@@ -63,8 +63,18 @@ export function AssetsPage() {
                 setAssets((prev) => ({ ...prev, realEstate }))
               }
             />
-            <CashEquivalentsSection accounts={assets.cashAccounts} />
-            <LendingInvestmentsSection investments={assets.investments} />
+            <CashEquivalentsSection
+              accounts={assets.cashAccounts}
+              onChange={(cashAccounts) =>
+                setAssets((prev) => ({ ...prev, cashAccounts }))
+              }
+            />
+            <LendingInvestmentsSection
+              investments={assets.investments}
+              onChange={(investments) =>
+                setAssets((prev) => ({ ...prev, investments }))
+              }
+            />
             <CatalogAssetsSection items={settingsAssets} />
           </div>
           <div className="lg:col-span-4 space-y-stack-lg">

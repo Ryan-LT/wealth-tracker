@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { formatVnd } from "@/shared/lib";
 import type { CashAccount } from "@/shared/storage";
 import { MaterialIcon } from "@/shared/ui";
@@ -5,9 +7,10 @@ import { MaterialIcon } from "@/shared/ui";
 type CashRowProps = {
   account: CashAccount;
   isLast: boolean;
+  actions?: ReactNode;
 };
 
-export function CashRow({ account, isLast }: CashRowProps) {
+export function CashRow({ account, isLast, actions }: CashRowProps) {
   const yieldClass = account.yieldPct > 0.5 ? "text-secondary" : "text-on-surface-variant";
 
   return (
@@ -34,6 +37,9 @@ export function CashRow({ account, isLast }: CashRowProps) {
       <td className="py-4 font-data-tabular text-data-tabular text-right text-primary font-medium">
         {formatVnd(account.balance)}
       </td>
+      {actions != null ? (
+        <td className="py-4 text-right align-middle">{actions}</td>
+      ) : null}
     </tr>
   );
 }

@@ -19,12 +19,6 @@ export const NAV: NavItem[] = [
     icon: "account_balance",
   },
   {
-    href: "/journal",
-    label: "Journal",
-    short: "Journal",
-    icon: "receipt_long",
-  },
-  {
     href: "/goals",
     label: "Goal Simulator",
     short: "Goals",

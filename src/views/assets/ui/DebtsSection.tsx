@@ -12,7 +12,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 
 import type { Debt } from "@/shared/storage";
-import { Button, Card, MaterialIcon, MoneyInput } from "@/shared/ui";
+import { Button, Card, MaterialIcon, MoneyInput, PercentInput } from "@/shared/ui";
 
 import { DebtRow } from "./DebtRow";
 
@@ -59,13 +59,17 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete }: DebtsSectionP
 
   function saveDialog() {
     if (!draft?.id) return;
+    const day = draft.paymentDayOfMonth;
+    const paymentDayOfMonth =
+      day != null && day >= 1 && day <= 31 ? Math.floor(day) : undefined;
     const next: Debt = {
       ...draft,
       id: draft.id,
       name: draft.name.trim() || "Debt",
       balance: Math.max(0, draft.balance),
-      ratePct: Math.max(0, draft.ratePct),
+      ratePct: Math.min(100, Math.max(0, draft.ratePct)),
       rateKind: draft.rateKind,
+      paymentDayOfMonth,
       nextPayment: draft.nextPayment.trim(),
     };
     if (mode === "create") {
@@ -162,18 +166,14 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete }: DebtsSectionP
             min={0}
             onChange={(balance) => setDraft((d) => (d ? { ...d, balance } : d))}
           />
-          <TextField
+          <PercentInput
             margin="dense"
-            label="Interest rate (%)"
-            type="number"
-            fullWidth
-            slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+            label="Interest rate"
             value={draft?.ratePct ?? 0}
-            onChange={(e) =>
-              setDraft((d) =>
-                d ? { ...d, ratePct: Number.parseFloat(e.target.value) || 0 } : d,
-              )
-            }
+            min={0}
+            max={100}
+            decimalScale={3}
+            onChange={(ratePct) => setDraft((d) => (d ? { ...d, ratePct } : d))}
           />
           <TextField
             select
@@ -196,15 +196,53 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete }: DebtsSectionP
             <MenuItem value="Variable">Variable</MenuItem>
           </TextField>
           <TextField
+            select
             margin="dense"
-            label="Next payment"
-            placeholder="e.g. Nov 01 (₫5.000.000)"
+            label="Monthly payment date"
+            fullWidth
+            value={
+              draft?.paymentDayOfMonth != null &&
+              draft.paymentDayOfMonth >= 1 &&
+              draft.paymentDayOfMonth <= 31
+                ? String(draft.paymentDayOfMonth)
+                : ""
+            }
+            onChange={(e) => {
+              const v = e.target.value;
+              setDraft((d) =>
+                d
+                  ? {
+                      ...d,
+                      paymentDayOfMonth:
+                        v === "" ? undefined : Number.parseInt(v, 10),
+                    }
+                  : d,
+              );
+            }}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+            helperText="Day of the month your payment is due (1–31)."
+          >
+            <MenuItem value="">
+              <em>Not set</em>
+            </MenuItem>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+              <MenuItem key={day} value={String(day)}>
+                {day}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            margin="dense"
+            label="Payment note (optional)"
+            placeholder="e.g. ₫12.500.000 expected"
             fullWidth
             value={draft?.nextPayment ?? ""}
             onChange={(e) =>
               setDraft((d) => (d ? { ...d, nextPayment: e.target.value } : d))
             }
-            helperText="Free text for date and amount reminder."
+            helperText="Extra reminder — amount, bank reference, etc."
           />
         </DialogContent>
         <DialogActions>

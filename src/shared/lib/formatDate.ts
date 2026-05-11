@@ -20,7 +20,7 @@ export function formatShortDate(iso: string): string {
   return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
-/** Format an ISO date as "YYYY-MM-DD" (used in the journal cash flow table). */
+/** Format an ISO date as "YYYY-MM-DD" (used in activity tables). */
 export function formatIsoDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;

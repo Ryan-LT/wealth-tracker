@@ -12,6 +12,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
 
+import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
   appendGoalSeedLine,
   cn,
@@ -194,7 +195,19 @@ export function GoalCreatorForm({
                 >
                   {addableOptions.map((o) => (
                     <MenuItem key={o.key} value={o.key}>
-                      {o.label}
+                      <span className="flex min-w-0 flex-wrap items-center gap-2">
+                        <span className="truncate">{o.label}</span>
+                        {o.category ? (
+                          <span
+                            className={cn(
+                              "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
+                              assetCategoryBadgeClassNames(o.category),
+                            )}
+                          >
+                            {o.category}
+                          </span>
+                        ) : null}
+                      </span>
                     </MenuItem>
                   ))}
                 </Select>
@@ -269,6 +282,8 @@ function SeedLineRow({
 }: SeedLineRowProps) {
   const resolved = resolvedSeedLineAmount(line, seedOptions);
   const title = labelForSeedLine(line, seedOptions);
+  const option = seedOptions.find((o) => o.key === line.sourceKey);
+  const category = option?.category;
 
   return (
     <li
@@ -277,9 +292,19 @@ function SeedLineRow({
       )}
     >
       <div className="min-w-0 flex-1">
-        <p className="font-body-md font-medium text-on-surface truncate">
-          {title}
-        </p>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <p className="min-w-0 truncate font-body-md font-medium text-on-surface">{title}</p>
+          {category ? (
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
+                assetCategoryBadgeClassNames(category),
+              )}
+            >
+              {category}
+            </span>
+          ) : null}
+        </div>
         <p className="mt-0.5 font-data-tabular text-data-tabular text-secondary">
           {formatVnd(resolved)}
           {line.sourceKey !== "custom" ? (

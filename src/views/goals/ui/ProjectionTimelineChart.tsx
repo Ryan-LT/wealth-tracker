@@ -17,7 +17,45 @@ type ProjectionTimelineChartProps = {
   monthlyIncome: number;
   /** Whole months from today to the goal date (minimum 1). */
   monthsToTarget: number;
+  /** Goal date `YYYY-MM-DD`; used for the last axis label when valid. */
+  targetDateIso?: string;
 };
+
+function atLocalDate(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function formatChartAxisDate(d: Date): string {
+  if (Number.isNaN(d.getTime())) return "—";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function parseGoalDateLocal(iso: string): Date | null {
+  const day = iso.trim().split("T")[0];
+  const d = new Date(`${day}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function labelForMonthTick(
+  t: number,
+  monthsToTarget: number,
+  targetDateIso: string | undefined,
+  startAnchor: Date,
+): string {
+  const goal = targetDateIso ? parseGoalDateLocal(targetDateIso) : null;
+  if (t >= monthsToTarget && goal) {
+    return formatChartAxisDate(goal);
+  }
+  const d = new Date(
+    startAnchor.getFullYear(),
+    startAnchor.getMonth() + t,
+    startAnchor.getDate(),
+  );
+  return formatChartAxisDate(d);
+}
 
 function sampleMonthTicks(months: number, maxPoints: number): number[] {
   const m = Math.max(1, months);
@@ -33,11 +71,13 @@ export function ProjectionTimelineChart({
   startingAmount,
   monthlyIncome,
   monthsToTarget,
+  targetDateIso,
 }: ProjectionTimelineChartProps) {
   const { chartData, options } = useMemo(() => {
+    const startAnchor = atLocalDate(new Date());
     const ticks = sampleMonthTicks(monthsToTarget, 6);
-    const labels = ticks.map((t, i) =>
-      i === 0 ? "Start" : t >= monthsToTarget ? "Target" : `M${t}`,
+    const labels = ticks.map((t) =>
+      labelForMonthTick(t, monthsToTarget, targetDateIso, startAnchor),
     );
     const projected = ticks.map((t) => startingAmount + monthlyIncome * t);
 
@@ -93,7 +133,7 @@ export function ProjectionTimelineChart({
       scales: {
         x: {
           grid: { display: false },
-          ticks: { maxRotation: 0, font: { size: 11 } },
+          ticks: { maxRotation: 45, minRotation: 0, font: { size: 11 } },
         },
         y: {
           grid: { color: "rgba(0, 0, 0, 0.06)" },
@@ -105,7 +145,13 @@ export function ProjectionTimelineChart({
     };
 
     return { chartData: data, options: chartOptions };
-  }, [targetAmount, startingAmount, monthlyIncome, monthsToTarget]);
+  }, [
+    targetAmount,
+    startingAmount,
+    monthlyIncome,
+    monthsToTarget,
+    targetDateIso,
+  ]);
 
   return (
     <Card className="p-stack-md grow">

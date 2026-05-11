@@ -13,7 +13,6 @@ function formatRatePctVi(ratePct: number): string {
 type DebtRowProps = {
   debt: Debt;
   isLast: boolean;
-  /** Optional edit/delete controls (Asset & Debt Tracker management mode). */
   actions?: ReactNode;
 };
 

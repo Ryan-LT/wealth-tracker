@@ -22,7 +22,12 @@ export {
   settingsAssetLiquidityLabel,
 } from "./incomeSources";
 
-export { EMPTY_GOAL_PROFILE, GOALS_SEED } from "./goals";
+export {
+  EMPTY_GOAL_PROFILE,
+  GOALS_SEED,
+  GOAL_SIMULATOR_NEW_SENTINEL,
+  goalProfileForDashboard,
+} from "./goals";
 export type { GoalsState, GoalProfile, GoalSeedLine } from "./goals";
 
 export { PREFERENCES_SEED } from "./preferences";

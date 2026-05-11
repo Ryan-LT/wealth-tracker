@@ -13,10 +13,12 @@ import {
 import {
   ASSETS_SEED,
   EMPTY_GOAL_PROFILE,
+  GOAL_SIMULATOR_NEW_SENTINEL,
   GOALS_SEED,
   INCOME_SOURCES_SEED,
   SETTINGS_ASSETS_SEED,
   type GoalProfile,
+  type GoalsState,
   useTable,
 } from "@/shared/storage";
 import { TopAppBar } from "@/widgets/top-app-bar";
@@ -28,6 +30,17 @@ import { SavedProfilesStrip } from "./SavedProfilesStrip";
 
 function profileById(profiles: GoalProfile[], id: string): GoalProfile | undefined {
   return profiles.find((p) => p.id === id);
+}
+
+function resolveSimulatorEditorProfile(goals: GoalsState): GoalProfile {
+  if (goals.activeProfileId === GOAL_SIMULATOR_NEW_SENTINEL) {
+    return EMPTY_GOAL_PROFILE;
+  }
+  return (
+    profileById(goals.profiles, goals.activeProfileId) ??
+    goals.profiles[0] ??
+    EMPTY_GOAL_PROFILE
+  );
 }
 
 function normalizeGoalProfile(p: GoalProfile, seedKeys: Set<string>): GoalProfile {
@@ -55,23 +68,42 @@ export function GoalsPage() {
 
   const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
 
-  const activeProfile =
-    profileById(goals.profiles, goals.activeProfileId) ??
-    goals.profiles[0] ??
-    EMPTY_GOAL_PROFILE;
-
   const [draft, setDraft] = useState<GoalProfile>(() =>
-    normalizeGoalProfile(activeProfile, seedKeySet),
+    normalizeGoalProfile(resolveSimulatorEditorProfile(goals), seedKeySet),
   );
-  const [lastLoadedId, setLastLoadedId] = useState(activeProfile.id);
+  const [lastLoadedKey, setLastLoadedKey] = useState(goals.activeProfileId);
 
-  if (lastLoadedId !== goals.activeProfileId) {
-    setLastLoadedId(goals.activeProfileId);
-    setDraft(normalizeGoalProfile(activeProfile, seedKeySet));
+  if (lastLoadedKey !== goals.activeProfileId) {
+    setLastLoadedKey(goals.activeProfileId);
+    setDraft(normalizeGoalProfile(resolveSimulatorEditorProfile(goals), seedKeySet));
   }
 
   const loadProfile = useCallback(
     (id: string) => setGoals((prev) => ({ ...prev, activeProfileId: id })),
+    [setGoals],
+  );
+
+  const startNewProfile = useCallback(() => {
+    setGoals((prev) => ({ ...prev, activeProfileId: GOAL_SIMULATOR_NEW_SENTINEL }));
+  }, [setGoals]);
+
+  const deleteProfile = useCallback(
+    (id: string) => {
+      setGoals((prev) => {
+        const nextProfiles = prev.profiles.filter((p) => p.id !== id);
+        let nextActive = prev.activeProfileId;
+        if (nextActive === id) {
+          nextActive = nextProfiles[0]?.id ?? GOAL_SIMULATOR_NEW_SENTINEL;
+        } else if (
+          nextActive &&
+          nextActive !== GOAL_SIMULATOR_NEW_SENTINEL &&
+          !nextProfiles.some((p) => p.id === nextActive)
+        ) {
+          nextActive = nextProfiles[0]?.id ?? GOAL_SIMULATOR_NEW_SENTINEL;
+        }
+        return { ...prev, profiles: nextProfiles, activeProfileId: nextActive };
+      });
+    },
     [setGoals],
   );
 
@@ -157,7 +189,7 @@ export function GoalsPage() {
           <p className="text-body-md font-body-md text-on-surface-variant mt-1">
             Stack starting balances from your assets (and custom amounts), then apply total monthly
             income from Asset configuration to see whether you can reach the goal by your target
-            date.
+            date. Use New goal to keep several named scenarios; Load switches between them.
           </p>
         </header>
 
@@ -165,6 +197,8 @@ export function GoalsPage() {
           profiles={goals.profiles}
           activeId={goals.activeProfileId}
           onLoad={loadProfile}
+          onNew={startNewProfile}
+          onDelete={deleteProfile}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-stack-md lg:gap-stack-lg">
@@ -192,6 +226,7 @@ export function GoalsPage() {
               startingAmount={startingBalance}
               monthlyIncome={incomeMonthly}
               monthsToTarget={monthsToTarget}
+              targetDateIso={draft.targetDate}
             />
           </div>
         </div>

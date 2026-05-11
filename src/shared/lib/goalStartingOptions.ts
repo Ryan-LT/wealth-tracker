@@ -6,10 +6,15 @@ export type GoalStartingOption = {
   /** Balance in ₫; ignored when `isCustom` (use the `GoalSeedLine.amount` for that row). */
   amount: number;
   isCustom?: boolean;
+  /**
+   * Settings catalog category — shown as a badge next to the option label in the
+   * Goal Simulator starting-balance list and add-source picker.
+   */
+  category?: string;
 };
 
 /**
- * Build picker rows for "starting balance" toward a goal: tracker holdings,
+ * Build picker rows for "starting balance" toward a goal: portfolio detail lines,
  * settings catalog lines, none, and custom.
  */
 export function buildGoalStartingOptions(
@@ -45,8 +50,9 @@ export function buildGoalStartingOptions(
   for (const a of catalog) {
     rows.push({
       key: `catalog:${a.id}`,
-      label: `Catalog — ${a.name}`,
+      label: a.name,
       amount: a.currentValue,
+      category: a.category?.trim() || undefined,
     });
   }
 

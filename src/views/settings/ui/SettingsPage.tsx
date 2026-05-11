@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import { mergeAssetCategoryOptions } from "@/shared/config";
 import {
+  DEBTS_SEED,
   INCOME_SOURCES_SEED,
   PREFERENCES_SEED,
   SETTINGS_ASSETS_SEED,
@@ -11,11 +12,13 @@ import {
 } from "@/shared/storage";
 
 import { AssetManagementTable } from "./AssetManagementTable";
+import { DebtsSection } from "./DebtsSection";
 import { IncomeSourcesGrid } from "./IncomeSourcesGrid";
 import { PreferencesCard } from "./PreferencesCard";
 
 export function SettingsPage() {
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [debts, setDebts] = useTable("debts", DEBTS_SEED);
   const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
@@ -29,7 +32,7 @@ export function SettingsPage() {
       <div className="mb-stack-lg">
         <h1 className="font-headline-lg text-headline-lg text-primary">Asset configuration</h1>
         <p className="font-body-lg text-body-lg text-on-surface-variant mt-2">
-          Manage catalog assets, income sources, and terminal preferences.
+          Manage catalog assets, debts, income sources, and terminal preferences.
         </p>
       </div>
 
@@ -52,6 +55,14 @@ export function SettingsPage() {
             }
             onAdd={(asset) => setAssets((prev) => [...prev, asset])}
             onReorder={(ordered) => setAssets(() => ordered)}
+          />
+          <DebtsSection
+            debts={debts}
+            onAdd={(debt) => setDebts((prev) => [...prev, debt])}
+            onUpdate={(debt) =>
+              setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
+            }
+            onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
           />
           <IncomeSourcesGrid
             sources={sources}

@@ -12,8 +12,8 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
  * The neutral card surface used everywhere in the design system:
  *   bg-surface-container-lowest + 1px outline-variant border + soft elevation.
  *
- * `variant="section"` matches the slightly-flatter "section" cards on the
- * Asset & Debt Tracker page (rounded-DEFAULT instead of rounded-xl).
+ * `variant="section"` matches the slightly-flatter "section" cards used in
+ * Asset configuration (rounded-DEFAULT instead of rounded-xl).
  */
 export function Card({ className, variant = "default", children, ...rest }: CardProps) {
   return (
@@ -39,7 +39,7 @@ type SectionHeaderProps = {
 };
 
 /**
- * The section card header pattern used across Asset & Debt Tracker and Settings:
+ * The section card header pattern used across Asset configuration and the dashboard:
  *   <h3>title</h3><p>SUBTITLE</p>      ...end
  *   ───────────────────────────────────────────
  */

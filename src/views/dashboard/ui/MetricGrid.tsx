@@ -23,7 +23,7 @@ export function MetricGrid({
         icon="account_balance"
         label="Total Assets"
         value={formatVnd(totalAssets)}
-        hint="Tracker + Settings catalog"
+        hint="Catalog + portfolio detail"
       />
       <MetricCard
         icon="work"

@@ -9,15 +9,18 @@ import {
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
   syncNetWorthTracking,
+  totalAssetValue,
   totalCombinedAssetValue,
   totalDebtBalance,
   totalMonthlyIncomeFromSources,
+  totalSettingsAssetsValue,
   transactionsToActivityRows,
 } from "@/shared/lib";
 import {
   ASSETS_SEED,
   DEBTS_SEED,
   GOALS_SEED,
+  goalProfileForDashboard,
   INCOME_SOURCES_SEED,
   PREFERENCES_SEED,
   SETTINGS_ASSETS_SEED,
@@ -28,6 +31,7 @@ import {
 import { TopAppBar } from "@/widgets/top-app-bar";
 
 import { MetricGrid } from "./MetricGrid";
+import { FinancialSummaryWidget } from "./FinancialSummaryWidget";
 import { NetWorthCard } from "./NetWorthCard";
 import { PrimaryGoalCard } from "./PrimaryGoalCard";
 import { RecentActivityTable } from "./RecentActivityTable";
@@ -67,6 +71,19 @@ export function DashboardPage() {
     };
   }, [assets, debts, sources, prefs, settingsAssets]);
 
+  const financialBreakdown = useMemo(() => {
+    const portfolioDetailTotal = totalAssetValue(assets);
+    const assetConfigurationTotal = totalSettingsAssetsValue(settingsAssets);
+    const gross = totalCombinedAssetValue(assets, settingsAssets);
+    const liabilities = totalDebtBalance(debts);
+    return {
+      portfolioDetailTotal,
+      assetConfigurationTotal,
+      totalAssets: gross,
+      totalLiabilities: liabilities,
+    };
+  }, [assets, settingsAssets, debts]);
+
   const chartSeries = useMemo(
     () => buildNetWorthChartSeries(prefs.netWorthMonthlyHistory ?? [], netWorth),
     [prefs.netWorthMonthlyHistory, netWorth],
@@ -77,9 +94,7 @@ export function DashboardPage() {
     [transactions],
   );
 
-  const primaryProfile =
-    goals.profiles.find((p) => p.id === goals.activeProfileId) ??
-    goals.profiles[0];
+  const primaryProfile = goalProfileForDashboard(goals);
 
   const primaryTarget =
     primaryProfile?.targetAmount ?? goals.primary.targetAmount;
@@ -113,6 +128,12 @@ export function DashboardPage() {
             name={primaryName}
             targetAmount={primaryTarget}
             saved={savedTowardPrimary}
+          />
+          <FinancialSummaryWidget
+            totalAssets={financialBreakdown.totalAssets}
+            totalLiabilities={financialBreakdown.totalLiabilities}
+            portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
+            assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
           />
         </div>
 

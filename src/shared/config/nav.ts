@@ -13,12 +13,6 @@ export const NAV: NavItem[] = [
     icon: "dashboard",
   },
   {
-    href: "/assets",
-    label: "Tracker",
-    short: "Assets",
-    icon: "account_balance",
-  },
-  {
     href: "/settings",
     label: "Asset configuration",
     short: "Configure",

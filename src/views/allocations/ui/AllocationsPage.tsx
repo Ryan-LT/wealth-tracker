@@ -64,7 +64,7 @@ function bandLabel(band: LiquidityBand): string {
 
 function matrixHeaderButtonClass(align: "start" | "end"): string {
   return cn(
-    "-mx-1 flex min-h-10 min-w-0 items-center gap-1 rounded px-1 py-1 font-semibold uppercase tracking-wide text-on-surface-variant transition-colors",
+    "-mx-1 flex min-h-10 w-full min-w-0 items-center gap-1 rounded px-1 py-1 font-semibold uppercase tracking-wide text-on-surface-variant transition-colors",
     align === "start" ? "justify-start text-start" : "justify-end text-end",
     "hover:bg-surface-container-highest/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
   );

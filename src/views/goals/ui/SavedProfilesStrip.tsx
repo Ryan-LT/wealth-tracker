@@ -1,5 +1,5 @@
 import { cn } from "@/shared/lib";
-import { GOAL_SIMULATOR_NEW_SENTINEL, type GoalProfile } from "@/shared/storage";
+import { GOAL_PLAN_NEW_SENTINEL, type GoalProfile } from "@/shared/storage";
 import { Button, MaterialIcon } from "@/shared/ui";
 
 type SavedProfilesStripProps = {
@@ -17,13 +17,13 @@ export function SavedProfilesStrip({
   onNew,
   onDelete,
 }: SavedProfilesStripProps) {
-  const isComposingNew = activeId === GOAL_SIMULATOR_NEW_SENTINEL;
+  const isComposingNew = activeId === GOAL_PLAN_NEW_SENTINEL;
 
   return (
     <div className="mb-stack-lg flex flex-col gap-stack-sm sm:flex-row sm:items-center sm:gap-stack-md">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-label-sm font-label-sm text-on-surface-variant whitespace-nowrap">
-          Saved profiles
+          Saved plans
         </span>
         <Button
           type="button"
@@ -33,13 +33,13 @@ export function SavedProfilesStrip({
           disabled={isComposingNew}
           onClick={onNew}
         >
-          New goal
+          New plan
         </Button>
       </div>
       <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-1 sm:pb-0">
         {profiles.length === 0 && !isComposingNew ? (
           <p className="text-body-sm font-body-md text-on-surface-variant">
-            None yet — fill in the form and save, or start with New goal.
+            None yet — fill in the form and save, or start with New plan.
           </p>
         ) : null}
         {profiles.map((p) => {
@@ -77,7 +77,7 @@ export function SavedProfilesStrip({
         })}
         {isComposingNew ? (
           <span className="rounded-full border border-dashed border-secondary px-3 py-1.5 text-body-sm font-medium text-secondary">
-            New goal (unsaved)
+            New plan (unsaved)
           </span>
         ) : null}
       </div>

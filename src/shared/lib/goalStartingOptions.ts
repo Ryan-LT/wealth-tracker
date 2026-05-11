@@ -8,7 +8,7 @@ export type GoalStartingOption = {
   isCustom?: boolean;
   /**
    * Settings catalog category — shown as a badge next to the option label in the
-   * Goal Simulator starting-balance list and add-source picker.
+   * Goal Plan starting-balance list and add-source picker.
    */
   category?: string;
 };

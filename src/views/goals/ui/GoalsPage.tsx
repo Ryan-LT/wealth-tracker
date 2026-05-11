@@ -4,16 +4,19 @@ import { useCallback, useMemo, useState } from "react";
 
 import {
   buildGoalStartingOptions,
+  clampSeedLinesToAllocationPool,
+  ensureKeyedSeedDefaults,
   formatVnd,
   migrateLegacySeedsToLines,
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
   totalMonthlyIncomeFromSources,
+  type GoalStartingOption,
 } from "@/shared/lib";
 import {
   ASSETS_SEED,
   EMPTY_GOAL_PROFILE,
-  GOAL_SIMULATOR_NEW_SENTINEL,
+  GOAL_PLAN_NEW_SENTINEL,
   GOALS_SEED,
   INCOME_SOURCES_SEED,
   SETTINGS_ASSETS_SEED,
@@ -32,8 +35,8 @@ function profileById(profiles: GoalProfile[], id: string): GoalProfile | undefin
   return profiles.find((p) => p.id === id);
 }
 
-function resolveSimulatorEditorProfile(goals: GoalsState): GoalProfile {
-  if (goals.activeProfileId === GOAL_SIMULATOR_NEW_SENTINEL) {
+function resolvePlanEditorProfile(goals: GoalsState): GoalProfile {
+  if (goals.activeProfileId === GOAL_PLAN_NEW_SENTINEL) {
     return EMPTY_GOAL_PROFILE;
   }
   return (
@@ -43,9 +46,15 @@ function resolveSimulatorEditorProfile(goals: GoalsState): GoalProfile {
   );
 }
 
-function normalizeGoalProfile(p: GoalProfile, seedKeys: Set<string>): GoalProfile {
+function normalizeGoalProfile(
+  p: GoalProfile,
+  seedKeys: Set<string>,
+  seedOptions: GoalStartingOption[],
+  savedPlans: GoalProfile[],
+): GoalProfile {
   const raw = migrateLegacySeedsToLines(p);
-  const lines = sanitizeSeedLinesAgainstOptions(raw, seedKeys);
+  let lines = sanitizeSeedLinesAgainstOptions(raw, seedKeys);
+  lines = ensureKeyedSeedDefaults(lines, seedOptions, savedPlans, { ...p, seedLines: lines });
   return {
     ...p,
     seedLines: lines,
@@ -69,13 +78,20 @@ export function GoalsPage() {
   const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
 
   const [draft, setDraft] = useState<GoalProfile>(() =>
-    normalizeGoalProfile(resolveSimulatorEditorProfile(goals), seedKeySet),
+    normalizeGoalProfile(resolvePlanEditorProfile(goals), seedKeySet, seedOptions, goals.profiles),
   );
   const [lastLoadedKey, setLastLoadedKey] = useState(goals.activeProfileId);
 
   if (lastLoadedKey !== goals.activeProfileId) {
     setLastLoadedKey(goals.activeProfileId);
-    setDraft(normalizeGoalProfile(resolveSimulatorEditorProfile(goals), seedKeySet));
+    setDraft(
+      normalizeGoalProfile(
+        resolvePlanEditorProfile(goals),
+        seedKeySet,
+        seedOptions,
+        goals.profiles,
+      ),
+    );
   }
 
   const loadProfile = useCallback(
@@ -83,23 +99,23 @@ export function GoalsPage() {
     [setGoals],
   );
 
-  const startNewProfile = useCallback(() => {
-    setGoals((prev) => ({ ...prev, activeProfileId: GOAL_SIMULATOR_NEW_SENTINEL }));
+  const startNewPlan = useCallback(() => {
+    setGoals((prev) => ({ ...prev, activeProfileId: GOAL_PLAN_NEW_SENTINEL }));
   }, [setGoals]);
 
-  const deleteProfile = useCallback(
+  const deletePlan = useCallback(
     (id: string) => {
       setGoals((prev) => {
         const nextProfiles = prev.profiles.filter((p) => p.id !== id);
         let nextActive = prev.activeProfileId;
         if (nextActive === id) {
-          nextActive = nextProfiles[0]?.id ?? GOAL_SIMULATOR_NEW_SENTINEL;
+          nextActive = nextProfiles[0]?.id ?? GOAL_PLAN_NEW_SENTINEL;
         } else if (
           nextActive &&
-          nextActive !== GOAL_SIMULATOR_NEW_SENTINEL &&
+          nextActive !== GOAL_PLAN_NEW_SENTINEL &&
           !nextProfiles.some((p) => p.id === nextActive)
         ) {
-          nextActive = nextProfiles[0]?.id ?? GOAL_SIMULATOR_NEW_SENTINEL;
+          nextActive = nextProfiles[0]?.id ?? GOAL_PLAN_NEW_SENTINEL;
         }
         return { ...prev, profiles: nextProfiles, activeProfileId: nextActive };
       });
@@ -114,15 +130,23 @@ export function GoalsPage() {
         draft.id !== "" ? prev.profiles.find((p) => p.id === draft.id) : undefined;
       const id = existingById ? draft.id : `goal-${Date.now()}`;
 
-      const saved: GoalProfile = {
+      const savedBase: GoalProfile = {
         ...(existingById ?? {}),
         id,
-        name: draft.name.trim() || "Untitled goal",
+        name: draft.name.trim() || "Untitled plan",
         targetAmount: draft.targetAmount,
         targetDate: draft.targetDate,
         monthlyContribution: incomeMonthly,
         seedLines: cleanLines,
       };
+
+      const clampedLines = clampSeedLinesToAllocationPool(
+        cleanLines,
+        seedOptions,
+        prev.profiles,
+        savedBase,
+      );
+      const saved: GoalProfile = { ...savedBase, seedLines: clampedLines };
 
       const hasId = prev.profiles.some((p) => p.id === id);
       const profiles = hasId
@@ -152,8 +176,8 @@ export function GoalsPage() {
   }, [draft.targetDate]);
 
   const startingBalance = useMemo(
-    () => totalGoalStartingBalance(draft.seedLines, seedOptions),
-    [draft.seedLines, seedOptions],
+    () => totalGoalStartingBalance(draft.seedLines, seedOptions, goals.profiles, draft),
+    [draft, goals.profiles, seedOptions],
   );
 
   const projectedAtTarget = useMemo(
@@ -163,19 +187,19 @@ export function GoalsPage() {
 
   const note = useMemo(() => {
     if (draft.targetAmount <= 0 || !draft.targetDate) {
-      return "Enter a goal name, target amount, target date, and one or more starting sources to see a projection.";
+      return "Enter a plan name, target amount, target date, and one or more starting sources to see a projection.";
     }
     if (incomeMonthly <= 0 && projectedAtTarget < draft.targetAmount) {
-      return "Add monthly income under Asset configuration → Income sources. Without it, only your combined starting balances count toward the goal.";
+      return "Add monthly income under Asset configuration → Income sources. Without it, only your allocated starting amounts count toward the plan.";
     }
     if (projectedAtTarget >= draft.targetAmount) {
       const surplus = projectedAtTarget - draft.targetAmount;
       return surplus > 0
-        ? `Linear projection exceeds the goal by about ${formatVnd(surplus)} at the target date.`
-        : "Linear projection reaches the goal on time.";
+        ? `Linear projection exceeds the target by about ${formatVnd(surplus)} at the goal date.`
+        : "Linear projection reaches the target on time.";
     }
     const gap = draft.targetAmount - projectedAtTarget;
-    return `Short by about ${formatVnd(gap)} at the target date. Raise income or starting balances, extend the date, or lower the target.`;
+    return `Short by about ${formatVnd(gap)} at the goal date. Raise income or allocations, extend the date, or lower the target.`;
   }, [draft.targetAmount, draft.targetDate, incomeMonthly, projectedAtTarget]);
 
   return (
@@ -184,12 +208,13 @@ export function GoalsPage() {
       <main className="p-margin-mobile md:p-stack-lg max-w-container-max mx-auto pb-24 md:pb-8 w-full">
         <header className="mb-stack-lg">
           <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
-            Goal Simulator
+            Goal Plan
           </h2>
           <p className="text-body-md font-body-md text-on-surface-variant mt-1">
-            Stack starting balances from your assets (and custom amounts), then apply total monthly
-            income from Asset configuration to see whether you can reach the goal by your target
-            date. Use New goal to keep several named scenarios; Load switches between them.
+            Allocate starting amounts from each asset (shared across all plans so totals never
+            exceed what you really hold). Other plans reserve their slice; this editor shows how
+            much is left. Income from Asset configuration is applied monthly toward the target.
+            Use New plan for another goal; Load switches plans.
           </p>
         </header>
 
@@ -197,14 +222,15 @@ export function GoalsPage() {
           profiles={goals.profiles}
           activeId={goals.activeProfileId}
           onLoad={loadProfile}
-          onNew={startNewProfile}
-          onDelete={deleteProfile}
+          onNew={startNewPlan}
+          onDelete={deletePlan}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-stack-md lg:gap-stack-lg">
           <div className="lg:col-span-4 flex flex-col gap-stack-md">
             <GoalCreatorForm
               profile={draft}
+              savedPlans={goals.profiles}
               seedOptions={seedOptions}
               monthlyIncomeTotal={incomeMonthly}
               onChange={setDraft}

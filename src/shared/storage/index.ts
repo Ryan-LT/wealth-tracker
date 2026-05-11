@@ -25,6 +25,7 @@ export {
 export {
   EMPTY_GOAL_PROFILE,
   GOALS_SEED,
+  GOAL_PLAN_NEW_SENTINEL,
   GOAL_SIMULATOR_NEW_SENTINEL,
   goalProfileForDashboard,
 } from "./goals";

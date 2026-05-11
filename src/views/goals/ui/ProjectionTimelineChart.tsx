@@ -159,8 +159,8 @@ export function ProjectionTimelineChart({
         Projection (linear)
       </h3>
       <p className="text-body-sm font-body-md text-on-surface-variant mb-3">
-        Assumes your total monthly income from Asset configuration is allocated toward this goal
-        each month, on top of the combined starting balances you selected.
+        Uses your allocated starting amounts plus total monthly income from Asset configuration
+        each month toward this plan.
       </p>
       <div className="relative w-full h-64 rounded border border-outline-variant bg-surface-container-low overflow-hidden">
         <span className="absolute top-3 right-3 z-10 text-label-sm font-label-sm text-error bg-surface-container-lowest px-1 rounded">

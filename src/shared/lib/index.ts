@@ -3,8 +3,13 @@ export { buildGoalStartingOptions } from "./goalStartingOptions";
 export type { GoalStartingOption } from "./goalStartingOptions";
 export {
   appendGoalSeedLine,
+  clampSeedLinesToAllocationPool,
   dedupeNonCustomSeedLines,
+  effectiveGoalSeedLineAmount,
+  ensureKeyedSeedDefaults,
   labelForSeedLine,
+  liveBalanceForSourceKey,
+  maxAllocationForSourceKey,
   migrateLegacySeedsToLines,
   resolvedSeedLineAmount,
   sanitizeSeedLinesAgainstOptions,

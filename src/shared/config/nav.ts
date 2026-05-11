@@ -20,8 +20,8 @@ export const NAV: NavItem[] = [
   },
   {
     href: "/goals",
-    label: "Goal Simulator",
-    short: "Goals",
+    label: "Goal Plan",
+    short: "Plans",
     icon: "insights",
   },
 ];

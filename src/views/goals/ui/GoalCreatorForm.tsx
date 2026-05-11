@@ -2,10 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -14,19 +10,22 @@ import dayjs from "dayjs";
 
 import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
-  appendGoalSeedLine,
   cn,
+  effectiveGoalSeedLineAmount,
   formatVnd,
   labelForSeedLine,
-  resolvedSeedLineAmount,
   totalGoalStartingBalance,
   type GoalStartingOption,
 } from "@/shared/lib";
 import type { GoalProfile, GoalSeedLine } from "@/shared/storage";
 import { Button, Card, MoneyInput, MaterialIcon } from "@/shared/ui";
 
+import { StartingBalancesModal } from "./StartingBalancesModal";
+
 type GoalCreatorFormProps = {
   profile: GoalProfile;
+  /** All saved plans (excluding this draft's lines, which come from `profile`). */
+  savedPlans: GoalProfile[];
   seedOptions: GoalStartingOption[];
   monthlyIncomeTotal: number;
   onChange: (next: GoalProfile) => void;
@@ -46,66 +45,32 @@ const labelSx = {
 
 export function GoalCreatorForm({
   profile,
+  savedPlans,
   seedOptions,
   monthlyIncomeTotal,
   onChange,
   onSimulate,
   onSave,
 }: GoalCreatorFormProps) {
-  const [pendingKey, setPendingKey] = useState<string>("");
+  const [startingBalancesOpen, setStartingBalancesOpen] = useState(false);
 
   const lines = useMemo(() => profile.seedLines ?? [], [profile.seedLines]);
 
   const combinedStarting = useMemo(
-    () => totalGoalStartingBalance(lines, seedOptions),
-    [lines, seedOptions],
+    () => totalGoalStartingBalance(lines, seedOptions, savedPlans, profile),
+    [lines, seedOptions, savedPlans, profile],
   );
 
-  const usedNonCustom = useMemo(() => {
-    const s = new Set<string>();
-    for (const l of lines) {
-      if (l.sourceKey !== "custom") s.add(l.sourceKey);
-    }
-    return s;
-  }, [lines]);
-
-  const addableOptions = useMemo(
-    () =>
-      seedOptions.filter(
-        (o) => o.key !== "none" && (o.isCustom || !usedNonCustom.has(o.key)),
-      ),
-    [seedOptions, usedNonCustom],
-  );
-
-  function addLine() {
-    const next = appendGoalSeedLine(profile, pendingKey, seedOptions);
-    if (next) {
-      onChange(next);
-      setPendingKey("");
-    }
-  }
-
-  function removeLine(id: string) {
-    onChange({
-      ...profile,
-      seedLines: lines.filter((l) => l.id !== id),
-    });
-  }
-
-  function updateLineAmount(id: string, amount: number) {
-    onChange({
-      ...profile,
-      seedLines: lines.map((l) =>
-        l.id === id && l.sourceKey === "custom" ? { ...l, amount } : l,
-      ),
-    });
+  function applyStartingBalances(seedLines: GoalSeedLine[]) {
+    onChange({ ...profile, seedLines });
+    onSimulate();
   }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Card className="p-stack-md">
         <h3 className="font-headline-md text-headline-md text-on-surface mb-stack-sm border-b border-outline-variant pb-2">
-          Goal Creator
+          Plan setup
         </h3>
         <form
           className="flex flex-col gap-stack-md mt-4"
@@ -116,7 +81,7 @@ export function GoalCreatorForm({
         >
           <TextField
             id="goal-name"
-            label="Goal Name"
+            label="Plan name"
             placeholder="e.g., Vacation Home"
             value={profile.name}
             onChange={(e) => onChange({ ...profile, name: e.target.value })}
@@ -154,83 +119,86 @@ export function GoalCreatorForm({
           />
 
           <div>
-            <p className="mb-2 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-              Starting balances
-            </p>
-            <p className="mb-3 text-body-sm font-body-md text-on-surface-variant">
-              Add one or more asset lines or custom amounts. Values from the
-              tracker and catalog stay live when those balances change.
-            </p>
-
-            {lines.length === 0 ? (
-              <p className="mb-3 text-body-sm text-on-surface-variant italic">
-                No sources yet — add at least one, or projections start from 0
-                ₫.
+            <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+              <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+                Starting balances
               </p>
-            ) : (
-              <ul className="mb-3 flex flex-col gap-2">
-                {lines.map((line) => (
-                  <SeedLineRow
-                    key={line.id}
-                    line={line}
-                    seedOptions={seedOptions}
-                    onRemove={() => removeLine(line.id)}
-                    onCustomAmount={(amount) =>
-                      updateLineAmount(line.id, amount)
-                    }
-                  />
-                ))}
-              </ul>
-            )}
-
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-              <FormControl fullWidth size="small" className="sm:flex-1">
-                <InputLabel id="goal-add-seed-label">Add source</InputLabel>
-                <Select
-                  labelId="goal-add-seed-label"
-                  label="Add source"
-                  value={pendingKey}
-                  displayEmpty
-                  onChange={(e) => setPendingKey(String(e.target.value))}
-                >
-                  {addableOptions.map((o) => (
-                    <MenuItem key={o.key} value={o.key}>
-                      <span className="flex min-w-0 flex-wrap items-center gap-2">
-                        <span className="truncate">{o.label}</span>
-                        {o.category ? (
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
-                              assetCategoryBadgeClassNames(o.category),
-                            )}
-                          >
-                            {o.category}
-                          </span>
-                        ) : null}
-                      </span>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
               <Button
                 type="button"
                 variant="outline-secondary"
-                className="shrink-0"
-                onClick={addLine}
+                size="sm"
+                startIcon={<MaterialIcon name="edit" />}
+                onClick={() => setStartingBalancesOpen(true)}
               >
-                Add
+                Configure…
               </Button>
             </div>
+            <p className="mb-3 text-body-sm font-body-md text-on-surface-variant">
+              Amounts allocated from each asset for this plan (shared pool across all plans). Use
+              the editor to add sources and set how much you take from each.
+            </p>
 
-            <div className="mt-3 rounded-md border border-outline-variant bg-surface-container-low px-3 py-2">
+            {lines.length === 0 ? (
+              <p className="mb-3 rounded-md border border-dashed border-outline-variant bg-surface-container-low px-3 py-4 text-center text-body-sm text-on-surface-variant">
+                None configured — open the editor to choose sources and amounts.
+              </p>
+            ) : (
+              <ul className="mb-3 divide-y divide-outline-variant/60 rounded-md border border-outline-variant bg-surface-container-lowest">
+                {lines.map((line) => {
+                  const cat = seedOptions.find((o) => o.key === line.sourceKey)?.category;
+                  const effective = effectiveGoalSeedLineAmount(
+                    line,
+                    seedOptions,
+                    savedPlans,
+                    profile,
+                  );
+                  return (
+                    <li
+                      key={line.id}
+                      className="flex items-center justify-between gap-3 px-3 py-2.5"
+                    >
+                      <div className="min-w-0 flex flex-wrap items-center gap-2">
+                        <span className="truncate font-body-md font-medium text-on-surface">
+                          {labelForSeedLine(line, seedOptions)}
+                        </span>
+                        {cat ? (
+                          <span
+                            className={cn(
+                              "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
+                              assetCategoryBadgeClassNames(cat),
+                            )}
+                          >
+                            {cat}
+                          </span>
+                        ) : null}
+                      </div>
+                      <span className="shrink-0 font-data-tabular text-data-tabular text-secondary">
+                        {formatVnd(effective)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            <div className="rounded-md border border-outline-variant bg-surface-container-low px-3 py-2">
               <span className="font-label-sm text-label-sm uppercase text-on-surface-variant">
-                Combined starting balance
+                Combined allocated starting
               </span>
               <span className="ml-2 font-data-tabular text-data-tabular text-primary">
                 {formatVnd(combinedStarting)}
               </span>
             </div>
           </div>
+
+          <StartingBalancesModal
+            open={startingBalancesOpen}
+            onClose={() => setStartingBalancesOpen(false)}
+            profile={profile}
+            savedPlans={savedPlans}
+            seedOptions={seedOptions}
+            onApply={applyStartingBalances}
+          />
 
           <div className="rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
             <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
@@ -250,7 +218,7 @@ export function GoalCreatorForm({
 
           <div className="pt-2 flex flex-col gap-2">
             <Button type="submit" block>
-              Run projection
+              Update projection
             </Button>
             <Button
               type="button"
@@ -258,80 +226,11 @@ export function GoalCreatorForm({
               block
               onClick={onSave}
             >
-              Save Current Setup
+              Save plan
             </Button>
           </div>
         </form>
       </Card>
     </LocalizationProvider>
-  );
-}
-
-type SeedLineRowProps = {
-  line: GoalSeedLine;
-  seedOptions: GoalStartingOption[];
-  onRemove: () => void;
-  onCustomAmount: (amount: number) => void;
-};
-
-function SeedLineRow({
-  line,
-  seedOptions,
-  onRemove,
-  onCustomAmount,
-}: SeedLineRowProps) {
-  const resolved = resolvedSeedLineAmount(line, seedOptions);
-  const title = labelForSeedLine(line, seedOptions);
-  const option = seedOptions.find((o) => o.key === line.sourceKey);
-  const category = option?.category;
-
-  return (
-    <li
-      className={cn(
-        "flex flex-col gap-2 rounded-md border border-outline-variant bg-surface-container-lowest p-3 sm:flex-row sm:items-center sm:justify-between",
-      )}
-    >
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <p className="min-w-0 truncate font-body-md font-medium text-on-surface">{title}</p>
-          {category ? (
-            <span
-              className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
-                assetCategoryBadgeClassNames(category),
-              )}
-            >
-              {category}
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-0.5 font-data-tabular text-data-tabular text-secondary">
-          {formatVnd(resolved)}
-          {line.sourceKey !== "custom" ? (
-            <span className="ml-2 text-label-sm font-label-sm text-on-surface-variant">
-              (live)
-            </span>
-          ) : null}
-        </p>
-        {line.sourceKey === "custom" ? (
-          <div className="mt-2 max-w-xs">
-            <MoneyInput
-              label="Amount (₫)"
-              value={line.amount}
-              onChange={onCustomAmount}
-              placeholder="0"
-            />
-          </div>
-        ) : null}
-      </div>
-      <button
-        type="button"
-        aria-label={`Remove ${title}`}
-        onClick={onRemove}
-        className="self-end text-on-surface-variant hover:text-error sm:self-center"
-      >
-        <MaterialIcon name="delete" />
-      </button>
-    </li>
   );
 }

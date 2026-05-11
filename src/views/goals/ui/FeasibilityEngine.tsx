@@ -55,7 +55,7 @@ export function FeasibilityEngine({
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="text-body-md font-body-md text-on-surface-variant">
-            Combined starting balance
+            Allocated starting total
           </span>
           <span className="text-data-tabular font-data-tabular text-on-surface shrink-0">
             {formatVnd(startingBalance)}

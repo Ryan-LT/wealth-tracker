@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 import { formatThousands, totalSettingsAssetsValue } from "@/shared/lib";
-import type { SettingsAsset } from "@/shared/storage";
+import {
+  settingsAssetLiquidityLabel,
+  type SettingsAsset,
+} from "@/shared/storage";
 import { Card, MaterialIcon } from "@/shared/ui";
 
 type CatalogAssetsSectionProps = {
@@ -47,7 +50,7 @@ export function CatalogAssetsSection({ items }: CatalogAssetsSectionProps) {
       ) : (
         <>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] border-collapse text-left">
+            <table className="w-full min-w-[560px] border-collapse text-left">
               <thead>
                 <tr>
                   <th className="border-b border-outline-variant pb-3 font-label-sm text-label-sm uppercase text-on-surface-variant">
@@ -55,6 +58,9 @@ export function CatalogAssetsSection({ items }: CatalogAssetsSectionProps) {
                   </th>
                   <th className="border-b border-outline-variant pb-3 font-label-sm text-label-sm uppercase text-on-surface-variant">
                     Category
+                  </th>
+                  <th className="border-b border-outline-variant pb-3 font-label-sm text-label-sm uppercase text-on-surface-variant">
+                    Access
                   </th>
                   <th className="border-b border-outline-variant pb-3 text-right font-label-sm text-label-sm uppercase text-on-surface-variant">
                     Value (₫)
@@ -74,6 +80,9 @@ export function CatalogAssetsSection({ items }: CatalogAssetsSectionProps) {
                     <td className="py-3 font-body-md text-body-md text-primary">{row.name}</td>
                     <td className="py-3 font-body-md text-body-md text-on-surface-variant">
                       {row.category}
+                    </td>
+                    <td className="py-3 font-body-md text-body-md text-on-surface-variant">
+                      {settingsAssetLiquidityLabel(row.liquidity)}
                     </td>
                     <td className="py-3 text-right font-data-tabular text-data-tabular text-primary">
                       {formatThousands(row.currentValue)}

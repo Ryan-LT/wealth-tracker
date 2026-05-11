@@ -10,7 +10,17 @@ export { TRANSACTIONS_SEED, ACTIVITY_SEED } from "./transactions";
 export type { Transaction, ActivityRow } from "./transactions";
 
 export { INCOME_SOURCES_SEED, SETTINGS_ASSETS_SEED } from "./incomeSources";
-export type { IncomeSource, IncomeSourceKind, SettingsAsset } from "./incomeSources";
+export type {
+  IncomeSource,
+  IncomeSourceKind,
+  SettingsAsset,
+  SettingsAssetLiquidity,
+} from "./incomeSources";
+export {
+  SETTINGS_ASSET_LIQUIDITY_DEFAULT,
+  resolveSettingsAssetLiquidity,
+  settingsAssetLiquidityLabel,
+} from "./incomeSources";
 
 export { EMPTY_GOAL_PROFILE, GOALS_SEED } from "./goals";
 export type { GoalsState, GoalProfile } from "./goals";

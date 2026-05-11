@@ -60,6 +60,7 @@ export function SettingsPage() {
               setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))
             }
             onAdd={(asset) => setAssets((prev) => [...prev, asset])}
+            onReorder={(ordered) => setAssets(() => ordered)}
           />
           <IncomeSourcesGrid
             sources={sources}

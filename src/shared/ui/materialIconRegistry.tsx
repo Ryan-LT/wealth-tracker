@@ -10,6 +10,8 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import AccountCircleOutlined from "@mui/icons-material/AccountCircleOutlined";
 import Add from "@mui/icons-material/Add";
 import Apartment from "@mui/icons-material/Apartment";
+import ArrowDownward from "@mui/icons-material/ArrowDownward";
+import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import CalendarMonth from "@mui/icons-material/CalendarMonth";
 import CalendarMonthOutlined from "@mui/icons-material/CalendarMonthOutlined";
 import CheckCircle from "@mui/icons-material/CheckCircle";
@@ -20,6 +22,8 @@ import Dashboard from "@mui/icons-material/Dashboard";
 import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
 import Delete from "@mui/icons-material/Delete";
 import Download from "@mui/icons-material/Download";
+import DragIndicator from "@mui/icons-material/DragIndicator";
+import DragIndicatorOutlined from "@mui/icons-material/DragIndicatorOutlined";
 import Edit from "@mui/icons-material/Edit";
 import ErrorIcon from "@mui/icons-material/Error";
 import Event from "@mui/icons-material/Event";
@@ -61,6 +65,8 @@ const REGISTRY: Record<string, IconPair> = {
   account_circle: { filled: AccountCircle, outlined: AccountCircleOutlined },
   add: { filled: Add },
   apartment: { filled: Apartment },
+  arrow_downward: { filled: ArrowDownward },
+  arrow_upward: { filled: ArrowUpward },
   calendar_month: {
     filled: CalendarMonth,
     outlined: CalendarMonthOutlined,
@@ -71,6 +77,7 @@ const REGISTRY: Record<string, IconPair> = {
   dashboard: { filled: Dashboard, outlined: DashboardOutlined },
   delete: { filled: Delete },
   download: { filled: Download },
+  drag_indicator: { filled: DragIndicator, outlined: DragIndicatorOutlined },
   edit: { filled: Edit },
   error: { filled: ErrorIcon },
   event: { filled: Event, outlined: EventOutlined },

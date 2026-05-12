@@ -30,10 +30,6 @@ export function SettingsPage() {
     <main className="flex w-full min-w-0 flex-1 flex-col overflow-y-auto bg-background pb-24 pt-stack-lg max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
       <div className="mb-stack-lg">
         <h1 className="font-headline-lg text-headline-lg text-primary">Asset configuration</h1>
-        <p className="mt-2 font-body-lg text-body-lg text-on-surface-variant">
-          Manage catalog assets, debts, and income sources. Amounts are shown in Vietnamese đồng (₫);
-          dates use DD/MM/YYYY.
-        </p>
       </div>
 
       <div className="flex flex-col gap-stack-lg">

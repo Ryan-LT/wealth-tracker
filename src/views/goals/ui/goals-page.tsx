@@ -26,10 +26,10 @@ import {
   useTable,
 } from "@/shared/storage";
 
-import { FeasibilityEngine } from "./FeasibilityEngine";
-import { GoalCreatorForm } from "./GoalCreatorForm";
-import { ProjectionTimelineChart } from "./ProjectionTimelineChart";
-import { SavedProfilesStrip } from "./SavedProfilesStrip";
+import { FeasibilityEngine } from "./feasibility-engine";
+import { GoalCreatorForm } from "./goal-creator-form";
+import { ProjectionTimelineChart } from "./projection-timeline-chart";
+import { SavedProfilesStrip } from "./saved-profiles-strip";
 
 function profileById(profiles: GoalProfile[], id: string): GoalProfile | undefined {
   return profiles.find((p) => p.id === id);

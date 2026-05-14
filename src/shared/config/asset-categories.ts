@@ -1,5 +1,5 @@
 import type { Preferences } from "@/shared/storage/preferences";
-import type { SettingsAsset } from "@/shared/storage/incomeSources";
+import type { SettingsAsset } from "@/shared/storage/income-sources";
 
 /**
  * Built-in asset categories for Settings → Asset Management combobox.

@@ -1,6 +1,6 @@
 import { formatVnd } from "@/shared/lib";
 
-import { MetricCard } from "./MetricCard";
+import { MetricCard } from "./metric-card";
 
 type MetricGridProps = {
   totalAssets: number;

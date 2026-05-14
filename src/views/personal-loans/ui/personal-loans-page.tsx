@@ -18,8 +18,8 @@ import {
 } from "@/shared/storage";
 import { Button, Card, MaterialIcon, SectionHeader } from "@/shared/ui";
 
-import { LoanCard } from "./LoanCard";
-import { LoanDialog } from "./LoanDialog";
+import { LoanCard } from "./loan-card";
+import { LoanDialog } from "./loan-dialog";
 
 type DialogMode = "idle" | "create" | "edit";
 

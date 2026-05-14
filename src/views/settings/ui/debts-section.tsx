@@ -14,7 +14,7 @@ import TextField from "@mui/material/TextField";
 import type { Debt } from "@/shared/storage";
 import { Button, Card, MaterialIcon, MoneyInput, PercentInput } from "@/shared/ui";
 
-import { DebtRow } from "./DebtRow";
+import { DebtRow } from "./debt-row";
 
 type DebtsSectionProps = {
   debts: Debt[];

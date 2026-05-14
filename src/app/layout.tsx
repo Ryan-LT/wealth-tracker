@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-import { MuiAppProvider } from "./MuiAppProvider";
+import { MuiAppProvider } from "./mui-app-provider";
 
 const inter = Inter({
   variable: "--font-inter",

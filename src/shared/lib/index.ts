@@ -1,6 +1,6 @@
 export { cn } from "./cn";
-export { buildGoalStartingOptions } from "./goalStartingOptions";
-export type { GoalStartingOption } from "./goalStartingOptions";
+export { buildGoalStartingOptions } from "./goal-starting-options";
+export type { GoalStartingOption } from "./goal-starting-options";
 export {
   appendGoalSeedLine,
   clampSeedLinesToAllocationPool,
@@ -14,9 +14,9 @@ export {
   resolvedSeedLineAmount,
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
-} from "./goalSeedLines";
-export { formatVnd, formatThousands } from "./formatVnd";
-export { formatUsd } from "./formatUsd";
+} from "./goal-seed-lines";
+export { formatVnd, formatThousands } from "./format-vnd";
+export { formatUsd } from "./format-usd";
 export {
   DEFAULT_MILESTONE_USD,
   evaluateMilestone35Feasibility,
@@ -25,13 +25,13 @@ export {
   monthsBetween,
   parseIsoDateOnly,
   thirtyFifthBirthday,
-} from "./milestone35Projection";
-export type { Milestone35Feasibility } from "./milestone35Projection";
-export { formatDisplayDate } from "./formatDate";
+} from "./milestone-35-projection";
+export type { Milestone35Feasibility } from "./milestone-35-projection";
+export { formatDisplayDate } from "./format-date";
 export {
   cumulativeDueScheduleFromCheckpoints,
   normalizeStoredCheckpoints,
-} from "./goalCheckpoints";
+} from "./goal-checkpoints";
 export {
   monthlyIncomeByKind,
   totalAssetValue,
@@ -39,7 +39,7 @@ export {
   totalDebtBalance,
   totalMonthlyIncomeFromSources,
   totalSettingsAssetsValue,
-} from "./wealthTotals";
+} from "./wealth-totals";
 export {
   buildNetWorthChartSeries,
   estimatedMonthlyNetCashflow,
@@ -49,6 +49,6 @@ export {
   projectNetWorthEndOfYear,
   syncNetWorthTracking,
 } from "./finance";
-export { computeGoalFeasibility } from "./goalFeasibility";
-export type { GoalFeasibility, GoalFeasibilityTone, GoalFeasibilityInput } from "./goalFeasibility";
+export { computeGoalFeasibility } from "./goal-feasibility";
+export type { GoalFeasibility, GoalFeasibilityTone, GoalFeasibilityInput } from "./goal-feasibility";
 export type { NetWorthMonthSnapshot } from "@/shared/storage/preferences";

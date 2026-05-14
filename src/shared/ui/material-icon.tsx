@@ -4,7 +4,7 @@ import { createElement, type CSSProperties } from "react";
 
 import { cn } from "@/shared/lib";
 
-import { resolveSymbolIcon } from "./materialIconRegistry";
+import { resolveSymbolIcon } from "./material-icon-registry";
 
 type MaterialIconProps = {
   name: string;

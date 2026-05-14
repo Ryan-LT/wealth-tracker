@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { resolveUsdVndRate } from "@/lib/usdVndExchangeRate";
+import { resolveUsdVndRate } from "@/lib/usd-vnd-exchange-rate";
 import {
   DEFAULT_MILESTONE_USD,
   parseIsoDateOnly,
   thirtyFifthBirthday,
-} from "@/shared/lib/milestone35Projection";
+} from "@/shared/lib/milestone-35-projection";
 
 export const dynamic = "force-dynamic";
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-import { TABLE_KEYS, type TableKey } from "./tableKeys";
+import { TABLE_KEYS, type TableKey } from "./table-keys";
 
 const tablesUrl = "/api/tables";
 

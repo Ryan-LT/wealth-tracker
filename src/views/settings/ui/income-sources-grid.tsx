@@ -17,7 +17,7 @@ import TextField from "@mui/material/TextField";
 import type { IncomeSource, IncomeSourceKind } from "@/shared/storage";
 import { Button, MaterialIcon, MoneyInput } from "@/shared/ui";
 
-import { IncomeSourceCard } from "./IncomeSourceCard";
+import { IncomeSourceCard } from "./income-source-card";
 
 function newIncomeSourceDraft(): IncomeSource {
   return {

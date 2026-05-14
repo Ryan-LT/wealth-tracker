@@ -1,1 +1,1 @@
-export { AllocationsPage } from "./ui/AllocationsPage";
+export { AllocationsPage } from "./ui/allocations-page";

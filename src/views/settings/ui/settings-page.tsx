@@ -13,9 +13,9 @@ import {
 
 import { SignOutButton } from "@/widgets/auth";
 
-import { AssetManagementTable } from "./AssetManagementTable";
-import { DebtsSection } from "./DebtsSection";
-import { IncomeSourcesGrid } from "./IncomeSourcesGrid";
+import { AssetManagementTable } from "./asset-management-table";
+import { DebtsSection } from "./debts-section";
+import { IncomeSourcesGrid } from "./income-sources-grid";
 
 export function SettingsPage() {
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);

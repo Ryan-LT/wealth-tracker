@@ -1,6 +1,6 @@
 import type { AssetsState } from "@/shared/storage/assets";
 import type { Debt } from "@/shared/storage/debts";
-import type { IncomeSource, SettingsAsset } from "@/shared/storage/incomeSources";
+import type { IncomeSource, SettingsAsset } from "@/shared/storage/income-sources";
 
 export function totalAssetValue(assets: AssetsState): number {
   const realEstate = assets.realEstate.reduce((s, p) => s + p.estValue, 0);

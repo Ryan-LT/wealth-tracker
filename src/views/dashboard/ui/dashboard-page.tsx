@@ -26,10 +26,10 @@ import {
   type AssetsState,
   useTable,
 } from "@/shared/storage";
-import { FinancialSummaryWidget } from "./FinancialSummaryWidget";
-import { MetricGrid } from "./MetricGrid";
-import { MillionBy35Card } from "./MillionBy35Card";
-import { PrimaryGoalCard } from "./PrimaryGoalCard";
+import { FinancialSummaryWidget } from "./financial-summary-widget";
+import { MetricGrid } from "./metric-grid";
+import { MillionBy35Card } from "./million-by-35-card";
+import { PrimaryGoalCard } from "./primary-goal-card";
 
 export function DashboardPage() {
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);

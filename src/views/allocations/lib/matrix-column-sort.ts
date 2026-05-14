@@ -1,4 +1,4 @@
-import type { AllocationSourceRow, LiquidityBand } from "./computeCrossGoalAllocations";
+import type { AllocationSourceRow, LiquidityBand } from "./compute-cross-goal-allocations";
 
 /** Column-driven sort; `null` = instant access first, then A–Z within band. */
 export type MatrixColumnSort =

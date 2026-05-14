@@ -1,6 +1,6 @@
 import type { GoalProfile, GoalSeedLine } from "@/shared/storage/goals";
 
-import type { GoalStartingOption } from "./goalStartingOptions";
+import type { GoalStartingOption } from "./goal-starting-options";
 
 /** Convert legacy single-seed fields or normalize stored `seedLines`. */
 export function migrateLegacySeedsToLines(profile: GoalProfile): GoalSeedLine[] {

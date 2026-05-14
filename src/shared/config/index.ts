@@ -3,8 +3,8 @@ export {
   assetCategoryBadgeClassNames,
   isDefaultAssetCategory,
   mergeAssetCategoryOptions,
-} from "./assetCategories";
-export type { DefaultAssetCategory } from "./assetCategories";
+} from "./asset-categories";
+export type { DefaultAssetCategory } from "./asset-categories";
 
 export { NAV } from "./nav";
 export type { NavItem } from "./nav";

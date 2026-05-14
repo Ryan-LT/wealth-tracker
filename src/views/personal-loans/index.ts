@@ -1,1 +1,1 @@
-export { PersonalLoansPage } from "./ui/PersonalLoansPage";
+export { PersonalLoansPage } from "./ui/personal-loans-page";

@@ -6,7 +6,7 @@ import MuiIconButton from "@mui/material/IconButton";
 
 import { cn } from "@/shared/lib";
 
-import { MaterialIcon } from "./MaterialIcon";
+import { MaterialIcon } from "./material-icon";
 
 type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "color"> & {
   icon: string;

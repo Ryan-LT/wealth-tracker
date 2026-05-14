@@ -9,7 +9,7 @@ import {
   formatThousands,
   formatVnd,
 } from "@/shared/lib";
-import { registerChartJs } from "@/shared/lib/chart/registerChartJs";
+import { registerChartJs } from "@/shared/lib/chart/register-chart-js";
 import type { GoalCheckpoint } from "@/shared/storage";
 import { Card } from "@/shared/ui";
 

@@ -1,4 +1,4 @@
-import { isTableKey } from "@/shared/storage/tableKeys";
+import { isTableKey } from "@/shared/storage/table-keys";
 import { getSql } from "@/lib/db";
 
 export const dynamic = "force-dynamic";

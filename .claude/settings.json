@@ -1,7 +1,25 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pnpm exec *)"
+      "Bash(pnpm exec *)",
+      "Bash(ls -la /Users/ryanle/Desktop/source_code/dcg/breeze 2>&1 | head -50)",
+      "Read(//Users/ryanle/Desktop/source_code/dcg/**)",
+      "Bash(awk -F/ '{print $NF}')",
+      "Bash(grep -vE '^[a-z0-9._-]+$')",
+      "Bash(grep -vE '^[a-z0-9._\\\\[\\\\]@-]+$')",
+      "Bash(grep -vE '^[a-z0-9._\\\\[\\\\]@\\(\\)-]+$')",
+      "Bash(awk -F/ '{name=$NF; if \\(name !~ /^[a-z0-9._-]+$/\\) print}')",
+      "Bash(git config *)",
+      "Bash(python3 /tmp/rename_plan.py)",
+      "Bash(python3 /tmp/do_rename.py)",
+      "Bash(pnpm lint *)",
+      "Bash(npx tsc *)",
+      "Bash(xargs sed -i '' 's|@mui/material/button|@mui/material/Button|g')",
+      "Bash(xargs sed -i '' 's|@mui/material/icon-button|@mui/material/IconButton|g')"
+    ],
+    "additionalDirectories": [
+      "/tmp",
+      "/private/tmp"
     ]
   }
 }

@@ -25,7 +25,7 @@ import {
   buildAllocationReport,
   type AllocationSourceRow,
   type LiquidityBand,
-} from "../lib/computeCrossGoalAllocations";
+} from "../lib/compute-cross-goal-allocations";
 import {
   cycleMatrixColumnSort,
   readStoredMatrixColumnSort,
@@ -34,7 +34,7 @@ import {
   writeStoredMatrixColumnSort,
   type MatrixColumnClick,
   type MatrixColumnSort,
-} from "../lib/matrixColumnSort";
+} from "../lib/matrix-column-sort";
 
 function bandBadgeClass(band: LiquidityBand): string {
   switch (band) {

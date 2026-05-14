@@ -23,8 +23,8 @@ import {
 import type { GoalCheckpoint, GoalProfile, GoalSeedLine } from "@/shared/storage";
 import { Button, Card, MoneyInput, MaterialIcon } from "@/shared/ui";
 
-import { CheckpointsModal } from "./CheckpointsModal";
-import { StartingBalancesModal } from "./StartingBalancesModal";
+import { CheckpointsModal } from "./checkpoints-modal";
+import { StartingBalancesModal } from "./starting-balances-modal";
 
 type GoalCreatorFormProps = {
   profile: GoalProfile;

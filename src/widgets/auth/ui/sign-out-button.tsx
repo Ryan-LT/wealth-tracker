@@ -1,20 +1,24 @@
 "use client";
 
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { Button } from "@/shared/ui";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type SignOutButtonProps = {
-  variant?: "primary" | "secondary" | "ghost" | "outline-secondary";
+  variant?: "default" | "secondary" | "ghost" | "outline" | "destructive" | "link";
   className?: string;
   label?: string;
+  showIcon?: boolean;
 };
 
 export function SignOutButton({
-  variant = "secondary",
+  variant = "outline",
   className,
   label = "Sign out",
+  showIcon = true,
 }: SignOutButtonProps) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -34,10 +38,11 @@ export function SignOutButton({
     <Button
       type="button"
       variant={variant}
-      className={className}
+      className={cn(className)}
       disabled={busy}
       onClick={() => void onSignOut()}
     >
+      {showIcon && <LogOut className="size-4" />}
       {busy ? "Signing out…" : label}
     </Button>
   );

@@ -2,10 +2,23 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { ProfileDropdown } from "@/components/layout/profile-dropdown";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
   buildGoalStartingOptions,
-  cn,
   formatVnd,
   migrateLegacySeedsToLines,
   sanitizeSeedLinesAgainstOptions,
@@ -39,13 +52,13 @@ import {
 function bandBadgeClass(band: LiquidityBand): string {
   switch (band) {
     case "instant":
-      return "bg-secondary-container/80 text-on-background ring-1 ring-inset ring-secondary/45";
+      return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/30";
     case "not_instant":
-      return "bg-tertiary-fixed-dim/80 text-on-background ring-1 ring-inset ring-on-tertiary-fixed-variant/35";
+      return "bg-amber-500/15 text-amber-800 dark:text-amber-300 ring-1 ring-inset ring-amber-500/30";
     case "custom":
-      return "bg-surface-container-highest text-on-surface ring-1 ring-inset ring-outline-variant";
+      return "bg-muted text-muted-foreground ring-1 ring-inset ring-border";
     default:
-      return "bg-surface-container-high text-on-surface ring-1 ring-inset ring-outline-variant";
+      return "bg-muted text-muted-foreground ring-1 ring-inset ring-border";
   }
 }
 
@@ -60,14 +73,6 @@ function bandLabel(band: LiquidityBand): string {
     default:
       return "—";
   }
-}
-
-function matrixHeaderButtonClass(align: "start" | "end"): string {
-  return cn(
-    "-mx-1 flex min-h-10 w-full min-w-0 items-center gap-1 rounded px-1 py-1 font-semibold uppercase tracking-wide text-on-surface-variant transition-colors",
-    align === "start" ? "justify-start text-start" : "justify-end text-end",
-    "hover:bg-surface-container-highest/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
-  );
 }
 
 function MatrixSortTh({
@@ -88,35 +93,34 @@ function MatrixSortTh({
   const ind = sortIndicator(sort, click);
   const ariaSort = ind === "asc" ? "ascending" : ind === "desc" ? "descending" : "none";
   return (
-    <th
-      scope="col"
+    <TableHead
       aria-sort={ariaSort}
       className={cn(
-        "px-2 py-2 align-bottom",
+        "align-bottom",
         align === "end" && "text-end",
-        sticky && "sticky left-0 z-10 min-w-[10rem] border-r border-outline-variant/30 bg-surface-container-low shadow-[2px_0_6px_-2px_rgba(0,0,0,0.06)]",
+        sticky && "sticky left-0 z-10 min-w-[10rem] bg-card",
       )}
     >
-      <button type="button" className={matrixHeaderButtonClass(align)} onClick={onSort}>
-        <span className={cn("min-w-0", align === "end" && "line-clamp-2")}>{children}</span>
+      <button
+        type="button"
+        onClick={onSort}
+        className={cn(
+          "-mx-1 flex w-full min-w-0 items-center gap-1 rounded px-1 py-1 font-medium text-muted-foreground transition-colors hover:text-foreground",
+          align === "end" ? "justify-end text-end" : "justify-start text-start",
+        )}
+      >
+        <span className="min-w-0">{children}</span>
         {ind ? (
-          <span className="shrink-0 font-data-tabular text-data-tabular text-secondary" aria-hidden>
+          <span className="shrink-0 text-primary" aria-hidden>
             {ind === "asc" ? "↑" : "↓"}
           </span>
-        ) : (
-          <span className="shrink-0 font-data-tabular text-data-tabular opacity-0" aria-hidden>
-            ↑
-          </span>
-        )}
+        ) : null}
       </button>
-    </th>
+    </TableHead>
   );
 }
 
-function normalizeForReport(
-  profiles: GoalProfile[],
-  seedKeys: Set<string>,
-): GoalProfile[] {
+function normalizeForReport(profiles: GoalProfile[], seedKeys: Set<string>): GoalProfile[] {
   return profiles
     .filter((p) => p.id)
     .map((p) => ({
@@ -133,50 +137,50 @@ function SourceCard({
   plans: { id: string; name: string }[];
 }) {
   return (
-    <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-3 sm:p-4">
-      <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-body-md text-body-md text-on-surface">{row.label}</p>
-          <span
-            className={cn(
-              "mt-1 inline-block rounded-full px-2 py-0.5 text-label-sm font-label-sm",
-              bandBadgeClass(row.band),
-            )}
-          >
-            {bandLabel(row.band)}
-          </span>
+    <Card>
+      <CardContent className="p-3 sm:p-4">
+        <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm">{row.label}</p>
+            <span
+              className={cn(
+                "mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                bandBadgeClass(row.band),
+              )}
+            >
+              {bandLabel(row.band)}
+            </span>
+          </div>
+          <div className="shrink-0 text-end text-xs text-muted-foreground">
+            <div>
+              Live <span className="font-data-tabular tabular-nums">{formatVnd(row.liveBalance)}</span>
+            </div>
+            <div>
+              Reserved{" "}
+              <span className="font-data-tabular tabular-nums">{formatVnd(row.totalReservedStored)}</span>
+            </div>
+            <div className="text-emerald-600 dark:text-emerald-400">
+              Uncommitted pool{" "}
+              <span className="font-data-tabular tabular-nums">{formatVnd(row.remainingPool)}</span>
+            </div>
+          </div>
         </div>
-        <div className="shrink-0 text-end text-label-sm text-on-surface-variant">
-          <div>
-            Live <span className="font-data-tabular text-data-tabular">{formatVnd(row.liveBalance)}</span>
-          </div>
-          <div>
-            Reserved{" "}
-            <span className="font-data-tabular text-data-tabular">{formatVnd(row.totalReservedStored)}</span>
-          </div>
-          <div className="text-secondary">
-            Uncommitted pool{" "}
-            <span className="font-data-tabular text-data-tabular">{formatVnd(row.remainingPool)}</span>
-          </div>
-        </div>
-      </div>
-      {plans.length > 0 ? (
-        <ul className="mt-2 divide-y divide-outline-variant/50 border-t border-outline-variant/40 pt-2">
-          {plans.map((p) => {
-            const v = row.perPlanStored[p.id] ?? 0;
-            if (v <= 0) return null;
-            return (
-              <li key={p.id} className="flex justify-between gap-2 py-1.5 text-label-sm">
-                <span className="min-w-0 truncate text-on-surface-variant">{p.name}</span>
-                <span className="shrink-0 font-data-tabular text-data-tabular text-on-surface">
-                  {formatVnd(v)}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
-    </div>
+        {plans.length > 0 ? (
+          <ul className="mt-2 divide-y divide-border/50 border-t pt-2">
+            {plans.map((p) => {
+              const v = row.perPlanStored[p.id] ?? 0;
+              if (v <= 0) return null;
+              return (
+                <li key={p.id} className="flex justify-between gap-2 py-1.5 text-xs">
+                  <span className="min-w-0 truncate text-muted-foreground">{p.name}</span>
+                  <span className="shrink-0 font-data-tabular tabular-nums">{formatVnd(v)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -191,7 +195,7 @@ export function AllocationsPage() {
   useEffect(() => {
     const stored = readStoredMatrixColumnSort();
     if (stored) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot hydrate from sessionStorage after mount
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMatrixColSort(stored);
     }
   }, []);
@@ -208,265 +212,271 @@ export function AllocationsPage() {
     () => buildGoalStartingOptions(assets, settingsAssets),
     [assets, settingsAssets],
   );
-
   const seedKeySet = useMemo(() => new Set(seedOptions.map((o) => o.key)), [seedOptions]);
-
   const normalizedProfiles = useMemo(
     () => normalizeForReport(goals.profiles, seedKeySet),
     [goals.profiles, seedKeySet],
   );
-
   const report = useMemo(
     () => buildAllocationReport(normalizedProfiles, seedOptions, settingsAssets),
     [normalizedProfiles, seedOptions, settingsAssets],
   );
-
   const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
-
   const plansForCards = useMemo(
     () => report.plans.map((p) => ({ id: p.id, name: p.name })),
     [report.plans],
   );
-
   const sortedMatrixSources = useMemo(
     () => sortMatrixByColumn(report.sources, matrixColSort),
     [report.sources, matrixColSort],
   );
 
   return (
-    <main className="flex w-full min-w-0 flex-col py-10 max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
-      <header className="mb-stack-md">
-        <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
-          Liquidity &amp; commitments
-        </h2>
-        <p className="mt-2 max-w-3xl text-body-md text-on-surface-variant">
-          See how starting-balance lines from{" "}
-          <strong className="text-on-surface">Asset configuration</strong> are reserved across your{" "}
-          <strong className="text-on-surface">Goal Plan</strong> profiles.{" "}
-          <strong className="text-on-surface">Uncommitted pool</strong> is how much more you can still assign from
-          that source before you hit the live balance minus other plans&apos; claims. Instant vs not instant follows
-          catalog liquidity for settings assets; portfolio cash counts as instant; real estate and listed investments
-          are treated as not instant for spendable headroom.
-        </p>
-      </header>
+    <>
+      <Header fixed>
+        <h1 className="text-base font-medium">Liquidity & commitments</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
 
-      <div className="mb-stack-md rounded-lg border border-outline-variant bg-surface-container-low p-4 sm:p-5">
-        <p className="text-label-sm font-semibold uppercase tracking-wide text-on-surface-variant">
-          Monthly income (settings)
-        </p>
-        <p className="mt-1 font-data-tabular text-data-tabular text-2xl text-on-surface">
-          {formatVnd(incomeMonthly)}
-        </p>
-        <p className="mt-2 text-label-sm text-on-surface-variant">
-          Income is not split by source here; each plan can include or exclude it in Goal Plan. Below lists which plans
-          currently include monthly income in their projection.
-        </p>
-      </div>
-
-      {report.plans.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-low px-4 py-8 text-center">
-          <p className="font-body-md text-on-surface">No saved goal plans yet.</p>
-          <p className="mt-2 text-label-sm text-on-surface-variant">
-            Save a plan under Goal Plan to see cross-goal reservations here.
+      <Main>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold tracking-tight">Liquidity & commitments</h1>
+          <p className="text-sm text-muted-foreground max-w-3xl">
+            Starting-balance lines from Asset configuration reserved across Goal Plan profiles.
+            Uncommitted pool = live balance minus other plans&apos; claims.
           </p>
         </div>
-      ) : (
-        <div className="mb-stack-md overflow-x-auto rounded-lg border border-outline-variant">
-          <table className="w-full min-w-[520px] border-collapse text-left text-label-sm">
-            <thead>
-              <tr className="border-b border-outline-variant bg-surface-container-low">
-                <th className="px-3 py-2 font-semibold uppercase tracking-wide text-on-surface-variant sm:px-4">
-                  Plan
-                </th>
-                <th className="px-3 py-2 font-semibold uppercase tracking-wide text-on-surface-variant sm:px-4">
-                  Starting (capped)
-                </th>
-                <th className="px-3 py-2 font-semibold uppercase tracking-wide text-on-surface-variant sm:px-4">
-                  Monthly income in projection
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {report.plans.map((p) => (
-                <tr key={p.id} className="border-b border-outline-variant/60 odd:bg-surface-container-lowest/40">
-                  <td className="px-3 py-2.5 font-body-md text-on-surface sm:px-4">{p.name}</td>
-                  <td className="px-3 py-2.5 font-data-tabular text-data-tabular text-on-surface sm:px-4">
-                    {formatVnd(p.effectiveStartingTotal)}
-                  </td>
-                  <td className="px-3 py-2.5 sm:px-4">
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full px-2 py-0.5 text-label-sm font-label-sm",
-                        p.usesMonthlyIncome
-                          ? assetCategoryBadgeClassNames("Cash")
-                          : "bg-surface-container-high text-on-surface-variant ring-1 ring-inset ring-outline-variant",
-                      )}
-                    >
-                      {p.usesMonthlyIncome ? `On — ${formatVnd(incomeMonthly)}/mo` : "Off for this plan"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
 
-      <section className="mb-stack-md">
-        <h3 className="mb-3 text-headline-md font-headline-md text-on-surface">Spendable headroom (keyed sources)</h3>
-        <div className="grid grid-cols-1 gap-stack-sm sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg border border-outline-variant bg-surface-container-low p-4">
-            <p className="text-label-sm font-semibold uppercase tracking-wide text-on-surface-variant">
-              Instant pool left
+        <Card className="mb-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Monthly income (settings)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight">
+              {formatVnd(incomeMonthly)}
             </p>
-            <p className="mt-2 font-data-tabular text-data-tabular text-2xl text-secondary">
-              {formatVnd(report.totals.instantRemainingPool)}
+            <p className="mt-2 text-xs text-muted-foreground">
+              Plans can include or exclude this in their projection.
             </p>
-            <p className="mt-2 text-label-sm text-on-surface-variant">
-              Sum of uncommitted capacity on sources tagged instant (cash + instant catalog lines).
-            </p>
-          </div>
-          <div className="rounded-lg border border-outline-variant bg-surface-container-low p-4">
-            <p className="text-label-sm font-semibold uppercase tracking-wide text-on-surface-variant">
-              Not-instant pool left
-            </p>
-            <p className="mt-2 font-data-tabular text-data-tabular text-2xl text-on-surface">
-              {formatVnd(report.totals.notInstantRemainingPool)}
-            </p>
-            <p className="mt-2 text-label-sm text-on-surface-variant">
-              Capacity still assignable on real estate, investments, and catalog rows marked not instant.
-            </p>
-          </div>
-          <div className="rounded-lg border border-outline-variant bg-surface-container-low p-4 sm:col-span-2 lg:col-span-1">
-            <p className="text-label-sm font-semibold uppercase tracking-wide text-on-surface-variant">
-              Custom amounts (modelled)
-            </p>
-            <p className="mt-2 font-data-tabular text-data-tabular text-2xl text-on-surface">
-              {formatVnd(report.totals.customReservedStored)}
-            </p>
-            <p className="mt-2 text-label-sm text-on-surface-variant">
-              Total custom starting lines across plans (not tied to a live catalog balance).
-            </p>
-          </div>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
 
-      <section>
-        <h3 className="text-headline-md font-headline-md text-on-surface">Source × plan matrix</h3>
-
-        {report.sources.length === 0 ? (
-          <p className="mt-2 rounded-md border border-dashed border-outline-variant bg-surface-container-low px-3 py-4 text-center text-label-sm text-on-surface-variant">
-            No keyed starting sources with balances or reservations.
-          </p>
+        {report.plans.length === 0 ? (
+          <Card className="mb-4">
+            <CardContent className="px-4 py-8 text-center">
+              <p className="text-sm">No saved goal plans yet.</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Save a plan under Goal Plan to see cross-goal reservations here.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
-          <>
-            <p className="mt-2 mb-4 max-w-3xl text-label-sm text-on-surface-variant">
-              Cells show <strong className="text-on-surface">stored</strong> amounts on each plan. Caps used in
-              simulations match Goal Plan (live balance minus overlapping allocations).{" "}
-              <strong className="text-on-surface">Click a column header</strong> to sort: first click applies the
-              primary order (A–Z for Source, high→low for amounts), second click reverses, third restores instant-access
-              default order.
-            </p>
-            <div className="hidden md:block">
-              <div className="overflow-x-auto rounded-lg border border-outline-variant">
-                <table className="w-full min-w-[640px] border-collapse text-left text-label-sm">
-                  <thead>
-                    <tr className="border-b border-outline-variant bg-surface-container-low">
-                      <MatrixSortTh
-                        sort={matrixColSort}
-                        click={{ type: "source" }}
-                        onSort={() => bumpMatrixSort({ type: "source" })}
-                        align="start"
-                        sticky
+          <Card className="mb-4 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Starting (capped)</TableHead>
+                  <TableHead>Monthly income in projection</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {report.plans.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="font-data-tabular tabular-nums">
+                      {formatVnd(p.effectiveStartingTotal)}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                          p.usesMonthlyIncome
+                            ? assetCategoryBadgeClassNames("Cash")
+                            : "bg-muted text-muted-foreground ring-1 ring-inset ring-border",
+                        )}
                       >
-                        Source
-                      </MatrixSortTh>
-                      {report.plans.map((p) => (
-                        <MatrixSortTh
-                          key={p.id}
-                          sort={matrixColSort}
-                          click={{ type: "plan", planId: p.id }}
-                          onSort={() => bumpMatrixSort({ type: "plan", planId: p.id })}
-                          align="end"
-                        >
-                          {p.name}
-                        </MatrixSortTh>
-                      ))}
-                      <MatrixSortTh
-                        sort={matrixColSort}
-                        click={{ type: "reserved" }}
-                        onSort={() => bumpMatrixSort({ type: "reserved" })}
-                        align="end"
-                      >
-                        Reserved
-                      </MatrixSortTh>
-                      <MatrixSortTh
-                        sort={matrixColSort}
-                        click={{ type: "live" }}
-                        onSort={() => bumpMatrixSort({ type: "live" })}
-                        align="end"
-                      >
-                        Live
-                      </MatrixSortTh>
-                      <MatrixSortTh
-                        sort={matrixColSort}
-                        click={{ type: "pool" }}
-                        onSort={() => bumpMatrixSort({ type: "pool" })}
-                        align="end"
-                      >
-                        Pool left
-                      </MatrixSortTh>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedMatrixSources.map((row) => (
-                      <tr
-                        key={row.sourceKey}
-                        className="border-b border-outline-variant/60 bg-surface-container-lowest/30"
-                      >
-                        <td className="sticky left-0 z-10 min-w-0 border-r border-outline-variant/30 bg-surface-container-low px-3 py-2.5 align-top shadow-[2px_0_6px_-2px_rgba(0,0,0,0.08)]">
-                          <div className="font-body-md text-on-surface">{row.label}</div>
-                          <span
-                            className={cn(
-                              "mt-1 inline-block rounded-full px-2 py-0.5 text-label-sm font-label-sm",
-                              bandBadgeClass(row.band),
-                            )}
-                          >
-                            {bandLabel(row.band)}
-                          </span>
-                        </td>
-                        {report.plans.map((p) => (
-                          <td
-                            key={p.id}
-                            className="min-w-0 break-all px-2 py-2.5 text-end font-data-tabular text-data-tabular text-on-surface"
-                          >
-                            {formatVnd(row.perPlanStored[p.id] ?? 0)}
-                          </td>
-                        ))}
-                        <td className="min-w-0 break-all px-2 py-2.5 text-end font-data-tabular text-data-tabular text-secondary">
-                          {formatVnd(row.totalReservedStored)}
-                        </td>
-                        <td className="min-w-0 break-all px-2 py-2.5 text-end font-data-tabular text-data-tabular text-on-surface">
-                          {formatVnd(row.liveBalance)}
-                        </td>
-                        <td className="min-w-0 break-all px-3 py-2.5 text-end font-data-tabular text-data-tabular text-on-surface">
-                          {formatVnd(row.remainingPool)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-stack-sm md:hidden">
-              {sortedMatrixSources.map((row) => (
-                <SourceCard key={row.sourceKey} row={row} plans={plansForCards} />
-              ))}
-            </div>
-          </>
+                        {p.usesMonthlyIncome ? `On — ${formatVnd(incomeMonthly)}/mo` : "Off for this plan"}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
         )}
-      </section>
-    </main>
+
+        <section className="mb-4">
+          <h3 className="mb-3 text-base font-semibold">Spendable headroom (keyed sources)</h3>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Instant pool left
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
+                  {formatVnd(report.totals.instantRemainingPool)}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Uncommitted capacity on instant-tagged sources.
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Not-instant pool left
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold font-data-tabular tabular-nums">
+                  {formatVnd(report.totals.notInstantRemainingPool)}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Real estate, investments, and not-instant catalog rows.
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Custom amounts (modelled)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold font-data-tabular tabular-nums">
+                  {formatVnd(report.totals.customReservedStored)}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Total custom starting lines (no live balance).
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="mb-2 text-base font-semibold">Source × plan matrix</h3>
+          {report.sources.length === 0 ? (
+            <Card>
+              <CardContent className="py-4 text-center">
+                <p className="text-xs text-muted-foreground">
+                  No keyed starting sources with balances or reservations.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <p className="mb-3 max-w-3xl text-xs text-muted-foreground">
+                Click a column header to sort.
+              </p>
+              <div className="hidden md:block">
+                <Card className="overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <MatrixSortTh
+                            sort={matrixColSort}
+                            click={{ type: "source" }}
+                            onSort={() => bumpMatrixSort({ type: "source" })}
+                            align="start"
+                            sticky
+                          >
+                            Source
+                          </MatrixSortTh>
+                          {report.plans.map((p) => (
+                            <MatrixSortTh
+                              key={p.id}
+                              sort={matrixColSort}
+                              click={{ type: "plan", planId: p.id }}
+                              onSort={() => bumpMatrixSort({ type: "plan", planId: p.id })}
+                              align="end"
+                            >
+                              {p.name}
+                            </MatrixSortTh>
+                          ))}
+                          <MatrixSortTh
+                            sort={matrixColSort}
+                            click={{ type: "reserved" }}
+                            onSort={() => bumpMatrixSort({ type: "reserved" })}
+                            align="end"
+                          >
+                            Reserved
+                          </MatrixSortTh>
+                          <MatrixSortTh
+                            sort={matrixColSort}
+                            click={{ type: "live" }}
+                            onSort={() => bumpMatrixSort({ type: "live" })}
+                            align="end"
+                          >
+                            Live
+                          </MatrixSortTh>
+                          <MatrixSortTh
+                            sort={matrixColSort}
+                            click={{ type: "pool" }}
+                            onSort={() => bumpMatrixSort({ type: "pool" })}
+                            align="end"
+                          >
+                            Pool left
+                          </MatrixSortTh>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {sortedMatrixSources.map((row) => (
+                          <TableRow key={row.sourceKey}>
+                            <TableCell className="sticky left-0 z-10 bg-card align-top">
+                              <div className="text-sm">{row.label}</div>
+                              <span
+                                className={cn(
+                                  "mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                                  bandBadgeClass(row.band),
+                                )}
+                              >
+                                {bandLabel(row.band)}
+                              </span>
+                            </TableCell>
+                            {report.plans.map((p) => (
+                              <TableCell
+                                key={p.id}
+                                className="text-end font-data-tabular tabular-nums"
+                              >
+                                {formatVnd(row.perPlanStored[p.id] ?? 0)}
+                              </TableCell>
+                            ))}
+                            <TableCell className="text-end font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
+                              {formatVnd(row.totalReservedStored)}
+                            </TableCell>
+                            <TableCell className="text-end font-data-tabular tabular-nums">
+                              {formatVnd(row.liveBalance)}
+                            </TableCell>
+                            <TableCell className="text-end font-data-tabular tabular-nums">
+                              {formatVnd(row.remainingPool)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:hidden">
+                {sortedMatrixSources.map((row) => (
+                  <SourceCard key={row.sourceKey} row={row} plans={plansForCards} />
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      </Main>
+    </>
   );
 }

@@ -1,12 +1,19 @@
 "use client";
 
-import Alert from "@mui/material/Alert";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { Button } from "@/shared/ui";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { WealthTrackerLogo } from "@/shared/ui";
 
 export function LoginForm() {
@@ -34,7 +41,9 @@ export function LoginForm() {
           return;
         }
         const dest = searchParams.get("from");
-        router.replace(dest && dest.startsWith("/") && !dest.startsWith("//") && dest !== "/login" ? dest : "/");
+        router.replace(
+          dest && dest.startsWith("/") && !dest.startsWith("//") && dest !== "/login" ? dest : "/",
+        );
         router.refresh();
       } finally {
         setBusy(false);
@@ -44,49 +53,54 @@ export function LoginForm() {
   );
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-12 bg-background">
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-12">
       <div className="flex flex-col items-center gap-2 text-center">
         <WealthTrackerLogo size={48} decorative />
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
-          WealthTracker
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Sign in to continue
-        </Typography>
+        <h1 className="text-xl font-semibold tracking-tight">WealthTracker</h1>
+        <p className="text-sm text-muted-foreground">Private Terminal</p>
       </div>
 
-      <form
-        onSubmit={(e) => void onSubmit(e)}
-        className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-6 shadow-sm"
-      >
-        {error ? (
-          <Alert severity="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        ) : null}
-        <TextField
-          label="Username"
-          name="username"
-          autoComplete="username"
-          value={username}
-          onChange={(ev) => setUsername(ev.target.value)}
-          fullWidth
-          required
-        />
-        <TextField
-          label="Password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(ev) => setPassword(ev.target.value)}
-          fullWidth
-          required
-        />
-        <Button type="submit" block disabled={busy}>
-          {busy ? "Signing in…" : "Sign in"}
-        </Button>
-      </form>
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>Sign in</CardTitle>
+          <CardDescription>Enter your credentials to continue.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
+            {error ? (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="login-username">Username</Label>
+              <Input
+                id="login-username"
+                name="username"
+                autoComplete="username"
+                value={username}
+                onChange={(ev) => setUsername(ev.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="login-password">Password</Label>
+              <Input
+                id="login-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(ev) => setPassword(ev.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={busy}>
+              {busy ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import InputAdornment from "@mui/material/InputAdornment";
-import TextField from "@mui/material/TextField";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
-import { cn } from "@/shared/lib";
+import { Input as ShadcnInput } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "color"> & {
   label?: string;
@@ -16,48 +16,43 @@ type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "color"> 
 
 export function Input({
   label,
-  inputSize = "md",
+  inputSize: _inputSize = "md",
   startAdornment,
   containerClassName,
   className,
   alignRight = false,
+  id,
   ...rest
 }: InputProps) {
-  return (
-    <TextField
-      label={label}
-      size={inputSize === "sm" ? "small" : "medium"}
-      fullWidth
-      variant="outlined"
-      className={cn(containerClassName)}
-      slotProps={{
-        input: {
-          startAdornment: startAdornment ? (
-            <InputAdornment position="start">
-              <span className="font-data-tabular text-data-tabular text-on-surface-variant">
-                {startAdornment}
-              </span>
-            </InputAdornment>
-          ) : undefined,
-          className: cn(className),
-        },
-      }}
-      sx={{
-        "& .MuiInputLabel-root": {
-          fontSize: "0.75rem",
-          fontWeight: 600,
-          letterSpacing: "0.05em",
-          textTransform: "uppercase",
-          color: "var(--color-on-surface-variant)",
-        },
-        ...(alignRight && {
-          "& input": {
-            textAlign: "right",
-            fontVariantNumeric: "tabular-nums",
-          },
-        }),
-      }}
+  const inputElement = startAdornment ? (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-data-tabular">
+        {startAdornment}
+      </span>
+      <ShadcnInput
+        id={id}
+        className={cn("pl-7", alignRight && "text-right font-data-tabular", className)}
+        {...rest}
+      />
+    </div>
+  ) : (
+    <ShadcnInput
+      id={id}
+      className={cn(alignRight && "text-right font-data-tabular", className)}
       {...rest}
     />
+  );
+
+  if (!label) {
+    return <div className={cn(containerClassName)}>{inputElement}</div>;
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-1.5", containerClassName)}>
+      <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </Label>
+      {inputElement}
+    </div>
   );
 }

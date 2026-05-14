@@ -1,14 +1,13 @@
-import { cn } from "@/shared/lib";
-import { Card, MaterialIcon } from "@/shared/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { MaterialIcon } from "@/shared/ui";
 
 type MetricCardProps = {
   icon: string;
   label: string;
   value: string;
   hint?: string;
-  /** Highlight value with the error color (used for "Total Debt"). */
   negative?: boolean;
-  /** Render the corner secondary tint (used on the EOY Projection card). */
   highlight?: boolean;
 };
 
@@ -21,32 +20,33 @@ export function MetricCard({
   highlight = false,
 }: MetricCardProps) {
   return (
-    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden p-3">
-      {highlight ? (
-        <div className="absolute right-0 top-0 h-12 w-12 rounded-bl-full bg-secondary/10" />
-      ) : null}
-      <div
-        className={cn(
-          "mb-1.5 flex items-center gap-1.5",
-          highlight ? "text-secondary" : "text-on-surface-variant",
-        )}
-      >
-        <MaterialIcon name={icon} size={16} />
-        <h4 className="font-label-sm text-label-sm uppercase">{label}</h4>
-      </div>
-      <div
-        className={cn(
-          "font-data-tabular text-body-lg font-semibold leading-snug tracking-tight tabular-nums",
-          negative ? "text-error" : "text-primary",
-        )}
-      >
-        {value}
-      </div>
-      {hint ? (
-        <div className="font-data-tabular text-data-tabular text-on-surface-variant text-xs mt-1">
-          {hint}
+    <Card className="gap-0 py-0">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 p-4 pb-2">
+        <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </CardTitle>
+        <MaterialIcon
+          name={icon}
+          size={16}
+          className={cn(
+            "text-muted-foreground",
+            highlight && "text-chart-2",
+          )}
+        />
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <div
+          className={cn(
+            "text-2xl font-bold font-data-tabular tabular-nums tracking-tight",
+            negative && "text-destructive",
+          )}
+        >
+          {value}
         </div>
-      ) : null}
+        {hint ? (
+          <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+        ) : null}
+      </CardContent>
     </Card>
   );
 }

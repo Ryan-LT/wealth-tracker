@@ -1,32 +1,34 @@
 "use client";
 
-import type { ChartData, ChartOptions, Plugin } from "chart.js";
 import { useMemo } from "react";
-import { Line } from "react-chartjs-2";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   cumulativeDueScheduleFromCheckpoints,
   formatThousands,
   formatVnd,
 } from "@/shared/lib";
-import { registerChartJs } from "@/shared/lib/chart/register-chart-js";
 import type { GoalCheckpoint } from "@/shared/storage";
-import { Card } from "@/shared/ui";
-
-registerChartJs();
 
 const MS_PER_AVG_MONTH = (1000 * 60 * 60 * 24 * 365.25) / 12;
 
 type ProjectionTimelineChartProps = {
   targetAmount: number;
   startingAmount: number;
-  /** Total monthly income applied toward the goal each month (₫). */
   monthlyIncome: number;
-  /** Whole months from today to the goal date (minimum 1). */
   monthsToTarget: number;
-  /** Goal date `YYYY-MM-DD`; used for the last axis label when valid. */
   targetDateIso?: string;
-  /** Installment checkpoints; chart cumulates `amount` by date. */
   checkpoints?: GoalCheckpoint[];
 };
 
@@ -48,7 +50,6 @@ function parseGoalDateLocal(iso: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** Local calendar day at midnight (for keys and comparisons). */
 function localDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -65,7 +66,6 @@ function isFirstOfMonthLocal(d: Date): boolean {
   return d.getDate() === 1;
 }
 
-/** Month-start ticks show short month + year; specific days show DD/MM/YYYY. */
 function formatXAxisLabel(d: Date): string {
   if (Number.isNaN(d.getTime())) return "—";
   if (isFirstOfMonthLocal(d)) {
@@ -89,11 +89,6 @@ function cumulativeDueAtOrBefore(
   return v;
 }
 
-/**
- * X columns: start of **this** month, then each following month start through the goal month,
- * plus the **exact target date**, plus every **checkpoint** date (deduped, sorted).
- * When there is no goal date, uses `monthsToTarget` month starts from “this month”.
- */
 function buildAxisColumnDates(
   today: Date,
   targetDateIso: string | undefined,
@@ -155,6 +150,14 @@ function buildAxisColumnDates(
   return out;
 }
 
+type ChartRow = {
+  x: number;
+  label: string;
+  projected: number;
+  due: number | null;
+  target: number;
+};
+
 export function ProjectionTimelineChart({
   targetAmount,
   startingAmount,
@@ -163,12 +166,10 @@ export function ProjectionTimelineChart({
   targetDateIso,
   checkpoints = [],
 }: ProjectionTimelineChartProps) {
-  const { chartData, options, plugins } = useMemo(() => {
+  const { rows, hasSchedule } = useMemo(() => {
     const today = atLocalDate(new Date());
     const schedule = cumulativeDueScheduleFromCheckpoints(checkpoints);
-    const hasSchedule = schedule.length > 0;
-    const parsedGoal = targetDateIso ? parseGoalDateLocal(targetDateIso) : null;
-    const goalDay = parsedGoal ? localDay(parsedGoal) : null;
+    const hasSched = schedule.length > 0;
 
     const axisDates = buildAxisColumnDates(
       today,
@@ -177,215 +178,106 @@ export function ProjectionTimelineChart({
       monthsToTarget,
     );
 
-    const checkpointOnlyKeys = new Set(
-      checkpoints
-        .map((c) => parseGoalDateLocal(c.date))
-        .filter((d): d is Date => d != null)
-        .map((d) => dayKey(localDay(d))),
-    );
-    const milestoneDayKeys = new Set(checkpointOnlyKeys);
-    if (goalDay) milestoneDayKeys.add(dayKey(goalDay));
-
-    const labels = axisDates.map((d) => {
-      const k = dayKey(d);
-      if (goalDay && k === dayKey(goalDay)) return formatChartAxisDate(d);
-      if (checkpointOnlyKeys.has(k)) return formatChartAxisDate(d);
-      return formatXAxisLabel(d);
-    });
-
-    const projected = axisDates.map((d) => {
+    const data: ChartRow[] = axisDates.map((d) => {
       const months = fractionalMonthsBetween(today, d);
-      return startingAmount + monthlyIncome * months;
+      const projected = startingAmount + monthlyIncome * months;
+      const endOfDay = new Date(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate(),
+        23,
+        59,
+        59,
+        999,
+      );
+      const due = hasSched ? cumulativeDueAtOrBefore(endOfDay, schedule) : null;
+      return {
+        x: d.getTime(),
+        label: formatXAxisLabel(d),
+        projected,
+        due,
+        target: targetAmount,
+      };
     });
 
-    const dueSeries = hasSchedule
-      ? axisDates.map((d) => {
-          const endOfDay = new Date(
-            d.getFullYear(),
-            d.getMonth(),
-            d.getDate(),
-            23,
-            59,
-            59,
-            999,
-          );
-          return cumulativeDueAtOrBefore(endOfDay, schedule);
-        })
-      : axisDates.map(() => 0);
-
-    const xMs = axisDates.map((d) => d.getTime());
-    const xTickLabel = new Map<number, string>(
-      axisDates.map((d, i) => [d.getTime(), labels[i]!]),
-    );
-
-    const toXY = (ys: number[]) =>
-      axisDates.map((d, i) => ({
-        x: d.getTime(),
-        y: ys[i]!,
-      }));
-
-    const xTickPlugin: Plugin<"line"> = {
-      id: "projectionTimelineXAxisTicks",
-      afterBuildTicks(_chart, args) {
-        const scale = args.scale;
-        if (scale.id !== "x") return;
-        scale.ticks = xMs.map((value) => ({ value }));
-      },
-    };
-
-    const pointRadiusForIndex = (i: number) => {
-      const k = dayKey(axisDates[i]!);
-      const isMilestone = milestoneDayKeys.has(k);
-      const sparse = axisDates.length > 36;
-      if (isMilestone) return 6;
-      return sparse ? 0 : 2;
-    };
-
-    const projectedXY = toXY(projected);
-    const dueXY = toXY(dueSeries);
-    const targetXY = toXY(projected.map(() => targetAmount));
-
-    const datasets = [
-      {
-        label: "Projected balance",
-        data: projectedXY,
-        fill: true,
-        borderColor: "#006c49",
-        backgroundColor: "rgba(108, 248, 187, 0.35)",
-        tension: 0.15,
-        borderWidth: 2,
-        pointRadius: axisDates.map((_, i) => pointRadiusForIndex(i)),
-        pointHoverRadius: 7,
-      },
-      ...(hasSchedule
-        ? [
-            {
-              label: "Cumulative due by date",
-              data: dueXY,
-              fill: false,
-              borderColor: "rgba(180, 83, 9, 0.95)",
-              backgroundColor: "transparent",
-              stepped: "after" as const,
-              tension: 0,
-              borderWidth: 2,
-              pointRadius: axisDates.map((_, i) => pointRadiusForIndex(i)),
-              pointHoverRadius: 7,
-              pointBackgroundColor: "rgba(180, 83, 9, 1)",
-            },
-          ]
-        : []),
-      {
-        label: "Target",
-        data: targetXY,
-        borderColor: "rgba(176, 42, 42, 0.75)",
-        borderDash: [6, 6],
-        fill: false,
-        pointRadius: 0,
-        tension: 0,
-      },
-    ];
-
-    const data: ChartData<"line", { x: number; y: number }[]> = {
-      datasets,
-    };
-
-    const chartOptions: ChartOptions<"line"> = {
-      responsive: true,
-      maintainAspectRatio: false,
-      parsing: false,
-      interaction: { intersect: false, mode: "index" },
-      plugins: {
-        legend: {
-          display: true,
-          position: "top",
-          labels: { boxWidth: 12, font: { size: 11 } },
-        },
-        tooltip: {
-          callbacks: {
-            title: (items) => {
-              const x = items[0]?.parsed.x;
-              if (x == null || typeof x !== "number") return "";
-              return formatChartAxisDate(new Date(x));
-            },
-            label: (ctx) => {
-              const y = ctx.parsed.y;
-              if (y == null) return "";
-              const label = ctx.chart.data.datasets[ctx.datasetIndex]?.label;
-              if (label === "Target") {
-                return `Target: ${formatVnd(targetAmount)}`;
-              }
-              if (label === "Cumulative due by date") {
-                return `Due by then (cumulative): ${formatVnd(y)}`;
-              }
-              const i = ctx.dataIndex;
-              const proj = projected[i] ?? 0;
-              let s = `Projected: ${formatVnd(proj)}`;
-              if (hasSchedule) {
-                const due = dueSeries[i] ?? 0;
-                if (due > 0) {
-                  const gap = proj - due;
-                  s +=
-                    gap >= 0
-                      ? ` — ${formatVnd(gap)} above due`
-                      : ` — ${formatVnd(-gap)} below due`;
-                }
-              }
-              return s;
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          type: "linear",
-          min: xMs[0],
-          max: xMs[xMs.length - 1],
-          grid: { display: false },
-          ticks: {
-            maxRotation: 45,
-            minRotation: 0,
-            font: { size: 11 },
-            autoSkip: false,
-            callback: (raw) => {
-              const v = typeof raw === "number" ? raw : Number(raw);
-              return xTickLabel.get(v) ?? "";
-            },
-          },
-        },
-        y: {
-          grid: { color: "rgba(0, 0, 0, 0.06)" },
-          ticks: {
-            callback: (value) => formatThousands(Number(value)),
-          },
-        },
-      },
-    };
-
-    return { chartData: data, options: chartOptions, plugins: [xTickPlugin] };
-  }, [
-    targetAmount,
-    startingAmount,
-    monthlyIncome,
-    monthsToTarget,
-    targetDateIso,
-    checkpoints,
-  ]);
+    return { rows: data, hasSchedule: hasSched };
+  }, [targetAmount, startingAmount, monthlyIncome, monthsToTarget, targetDateIso, checkpoints]);
 
   return (
-    <Card className="flex w-full flex-col p-stack-md">
-      <h3 className="text-headline-md font-headline-md text-on-surface border-b border-outline-variant pb-2 mb-3">
-        Projection (linear)
-      </h3>
-      <p className="mb-2 text-label-sm text-on-surface-variant">
-        X: month starts from this month, checkpoint / goal days when needed;
-        hover for full date.
-      </p>
-      <div className="relative h-64 w-full rounded border border-outline-variant bg-surface-container-low overflow-hidden sm:h-72">
-        <span className="absolute top-3 right-3 z-10 text-label-sm font-label-sm text-error bg-surface-container-lowest px-1 rounded">
-          Target: {formatVnd(targetAmount)}
-        </span>
-        <Line data={chartData} options={options} plugins={plugins} />
-      </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-semibold">Projection (linear)</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          X: month starts; checkpoint / goal days when needed.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="relative h-72 w-full">
+          <span className="absolute right-2 top-2 z-10 rounded bg-card px-1.5 py-0.5 text-xs font-medium text-destructive border border-border">
+            Target: {formatVnd(targetAmount)}
+          </span>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={rows} margin={{ top: 12, right: 16, bottom: 0, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis
+                dataKey="label"
+                stroke="var(--muted-foreground)"
+                fontSize={11}
+                interval="preserveStartEnd"
+                tickMargin={6}
+              />
+              <YAxis
+                stroke="var(--muted-foreground)"
+                fontSize={11}
+                tickFormatter={(v) => formatThousands(Number(v))}
+                width={64}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--popover)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  color: "var(--popover-foreground)",
+                }}
+                formatter={(value: number, name) => {
+                  if (name === "Target") return [formatVnd(targetAmount), name];
+                  if (name === "Cumulative due") return [formatVnd(value), name];
+                  return [formatVnd(value), name];
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Line
+                type="monotone"
+                dataKey="projected"
+                name="Projected"
+                stroke="var(--chart-2)"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+              {hasSchedule && (
+                <Line
+                  type="stepAfter"
+                  dataKey="due"
+                  name="Cumulative due"
+                  stroke="var(--chart-4)"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              )}
+              <ReferenceLine
+                y={targetAmount}
+                stroke="var(--destructive)"
+                strokeDasharray="6 6"
+                ifOverflow="extendDomain"
+                label={{ value: "Target", position: "insideTopRight", fontSize: 11, fill: "var(--destructive)" }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
     </Card>
   );
 }

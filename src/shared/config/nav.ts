@@ -1,8 +1,17 @@
+import {
+  HandCoins,
+  LayoutDashboard,
+  PieChart,
+  Settings,
+  Target,
+  type LucideIcon,
+} from "lucide-react";
+
 export type NavItem = {
   href: string;
   label: string;
   short: string;
-  icon: string;
+  icon: LucideIcon;
 };
 
 export const NAV: NavItem[] = [
@@ -10,30 +19,30 @@ export const NAV: NavItem[] = [
     href: "/",
     label: "Dashboard",
     short: "Home",
-    icon: "dashboard",
+    icon: LayoutDashboard,
   },
   {
     href: "/goals",
     label: "Goal Plan",
     short: "Plans",
-    icon: "insights",
+    icon: Target,
   },
   {
     href: "/allocations",
     label: "Liquidity & commitments",
     short: "Liquidity",
-    icon: "account_balance",
+    icon: PieChart,
   },
   {
     href: "/loans",
     label: "Personal loans",
     short: "Loans",
-    icon: "handshake",
+    icon: HandCoins,
   },
   {
     href: "/settings",
     label: "Asset configuration",
     short: "Configure",
-    icon: "settings",
+    icon: Settings,
   },
 ];

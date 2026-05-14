@@ -1,21 +1,38 @@
 "use client";
 
+import { Receipt } from "lucide-react";
 import { useState } from "react";
 
-import MuiButton from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import TextField from "@mui/material/TextField";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { IncomeSource, IncomeSourceKind } from "@/shared/storage";
-import { Button, MaterialIcon, MoneyInput } from "@/shared/ui";
+import { MoneyInput } from "@/shared/ui";
 
 import { IncomeSourceCard } from "./income-source-card";
 
@@ -97,36 +114,32 @@ export function IncomeSourcesGrid({
     setDeleteOpen(true);
   }
 
-  function closeDeleteDialog() {
-    setDeleteOpen(false);
-    setPendingDelete(null);
-  }
-
   function confirmDelete() {
     if (pendingDelete) {
       onDelete(pendingDelete.id);
     }
-    closeDeleteDialog();
+    setDeleteOpen(false);
+    setPendingDelete(null);
   }
 
   return (
-    <section className="bg-surface-container-lowest border border-outline-variant rounded-lg">
-      <div className="p-stack-md border-b border-outline-variant bg-surface flex justify-between items-center rounded-t-lg">
-        <div className="flex items-center gap-stack-sm">
-          <MaterialIcon name="receipt_long" filled className="text-primary" />
-          <h2 className="font-headline-md text-headline-md text-primary">Income Sources</h2>
-        </div>
-        <Button variant="secondary" onClick={openCreate}>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+          <Receipt className="size-4 text-primary" />
+          Income Sources
+        </CardTitle>
+        <Button variant="outline" size="sm" onClick={openCreate}>
           Add Source
         </Button>
-      </div>
-      <div className="p-stack-md">
+      </CardHeader>
+      <CardContent className="pt-4">
         {sources.length === 0 ? (
-          <p className="font-body-md text-body-md text-on-surface-variant py-4 text-center">
+          <p className="py-4 text-center text-sm text-muted-foreground">
             No income sources yet. Click &quot;Add Source&quot; to create one.
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {sources.map((source) => (
               <IncomeSourceCard
                 key={source.id}
@@ -137,120 +150,134 @@ export function IncomeSourcesGrid({
             ))}
           </div>
         )}
-      </div>
+      </CardContent>
 
-      <Dialog open={formOpen} onClose={closeForm} fullWidth maxWidth="sm">
-        <DialogTitle>{isCreate ? "Add income source" : "Edit income source"}</DialogTitle>
-        <DialogContent className="flex flex-col gap-3 pt-1">
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="income-kind-label">Type</InputLabel>
-            <Select
-              labelId="income-kind-label"
-              label="Type"
-              value={draft?.kind ?? "active"}
-              onChange={(e) =>
-                setDraft((d) =>
-                  d ? { ...d, kind: e.target.value as IncomeSourceKind } : d,
-                )
-              }
+      <Dialog open={formOpen} onOpenChange={(o) => !o && closeForm()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{isCreate ? "Add income source" : "Edit income source"}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label>Type</Label>
+              <Select
+                value={draft?.kind ?? "active"}
+                onValueChange={(v) =>
+                  setDraft((d) => (d ? { ...d, kind: v as IncomeSourceKind } : d))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="passive">Passive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="income-name">Name</Label>
+              <Input
+                id="income-name"
+                autoFocus
+                required
+                value={draft?.name ?? ""}
+                onChange={(e) => setDraft((d) => (d ? { ...d, name: e.target.value } : d))}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="income-details">Details</Label>
+              <Input
+                id="income-details"
+                value={draft?.details ?? ""}
+                onChange={(e) => setDraft((d) => (d ? { ...d, details: e.target.value } : d))}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="income-icon">Icon name</Label>
+              <Input
+                id="income-icon"
+                value={draft?.icon ?? ""}
+                onChange={(e) => setDraft((d) => (d ? { ...d, icon: e.target.value } : d))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Registry key (e.g. work, apartment, savings).
+              </p>
+            </div>
+            <MoneyInput
+              label="Monthly amount (₫)"
+              value={draft?.monthly ?? 0}
+              min={0}
+              onChange={(v) => setDraft((d) => (d ? { ...d, monthly: Math.max(0, v) } : d))}
+            />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="income-payment-entity">Payment entity (optional)</Label>
+              <Input
+                id="income-payment-entity"
+                value={draft?.paymentEntity ?? ""}
+                onChange={(e) =>
+                  setDraft((d) => (d ? { ...d, paymentEntity: e.target.value } : d))
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="income-payment-day">Payment day of month (optional)</Label>
+              <Input
+                id="income-payment-day"
+                type="number"
+                min={1}
+                max={31}
+                step={1}
+                value={draft?.paymentDay ?? ""}
+                onChange={(e) => {
+                  const raw = e.target.value === "" ? undefined : Number(e.target.value);
+                  setDraft((d) =>
+                    d
+                      ? {
+                          ...d,
+                          paymentDay:
+                            raw === undefined || !Number.isFinite(raw)
+                              ? undefined
+                              : Math.min(31, Math.max(1, Math.round(raw))),
+                        }
+                      : d,
+                  );
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeForm}>
+              Cancel
+            </Button>
+            <Button onClick={saveForm} disabled={!draft?.name.trim()}>
+              {isCreate ? "Add" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete income source?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete
+                ? `Remove "${pendingDelete.name}" from your income sources? This cannot be undone.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="passive">Passive</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Name"
-            required
-            fullWidth
-            value={draft?.name ?? ""}
-            onChange={(e) => setDraft((d) => (d ? { ...d, name: e.target.value } : d))}
-          />
-          <TextField
-            margin="dense"
-            label="Details"
-            fullWidth
-            value={draft?.details ?? ""}
-            onChange={(e) => setDraft((d) => (d ? { ...d, details: e.target.value } : d))}
-          />
-          <TextField
-            margin="dense"
-            label="Icon name"
-            fullWidth
-            helperText="Snake_case key matching materialIconRegistry (e.g. work, apartment, savings)."
-            value={draft?.icon ?? ""}
-            onChange={(e) => setDraft((d) => (d ? { ...d, icon: e.target.value } : d))}
-          />
-          <MoneyInput
-            margin="dense"
-            label="Monthly amount (₫)"
-            value={draft?.monthly ?? 0}
-            min={0}
-            onChange={(v) =>
-              setDraft((d) => (d ? { ...d, monthly: Math.max(0, v) } : d))
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Payment entity (optional)"
-            fullWidth
-            value={draft?.paymentEntity ?? ""}
-            onChange={(e) =>
-              setDraft((d) => (d ? { ...d, paymentEntity: e.target.value } : d))
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Payment day of month (optional)"
-            type="number"
-            fullWidth
-            slotProps={{ htmlInput: { min: 1, max: 31, step: 1 } }}
-            value={draft?.paymentDay ?? ""}
-            onChange={(e) => {
-              const raw = e.target.value === "" ? undefined : Number(e.target.value);
-              setDraft((d) =>
-                d
-                  ? {
-                      ...d,
-                      paymentDay:
-                        raw === undefined || !Number.isFinite(raw)
-                          ? undefined
-                          : Math.min(31, Math.max(1, Math.round(raw))),
-                    }
-                  : d,
-              );
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <MuiButton onClick={closeForm}>Cancel</MuiButton>
-          <MuiButton
-            onClick={saveForm}
-            variant="contained"
-            disabled={!draft?.name.trim()}
-          >
-            {isCreate ? "Add" : "Save"}
-          </MuiButton>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={deleteOpen} onClose={closeDeleteDialog}>
-        <DialogTitle>Delete income source?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {pendingDelete
-              ? `Remove “${pendingDelete.name}” from your income sources? This cannot be undone.`
-              : null}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <MuiButton onClick={closeDeleteDialog}>Cancel</MuiButton>
-          <MuiButton onClick={confirmDelete} color="error" variant="contained">
-            Delete
-          </MuiButton>
-        </DialogActions>
-      </Dialog>
-    </section>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 }

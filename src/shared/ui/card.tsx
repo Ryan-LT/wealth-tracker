@@ -1,60 +1,40 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-import { cn } from "@/shared/lib";
+import { Card as ShadcnCard } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type CardProps = HTMLAttributes<HTMLDivElement> & {
-  /** Use rounded-xl by default; pass `rounded-DEFAULT` etc. via className to override. */
   variant?: "default" | "section";
   children?: ReactNode;
 };
 
-/**
- * The neutral card surface used everywhere in the design system:
- *   bg-surface-container-lowest + 1px outline-variant border + soft elevation.
- *
- * `variant="section"` matches the slightly-flatter "section" cards used in
- * Asset configuration (rounded-DEFAULT instead of rounded-xl).
- */
-export function Card({ className, variant = "default", children, ...rest }: CardProps) {
+export function Card({ className, variant: _variant, children, ...rest }: CardProps) {
   return (
-    <div
-      className={cn(
-        "bg-surface-container-lowest border border-outline-variant card-elevation",
-        variant === "default" ? "rounded-xl" : "rounded-DEFAULT",
-        className,
-      )}
-      {...rest}
-    >
+    <ShadcnCard className={cn("gap-0 py-0", className)} {...rest}>
       {children}
-    </div>
+    </ShadcnCard>
   );
 }
 
 type SectionHeaderProps = {
   title: string;
   subtitle?: string;
-  /** Right-side block — typically a "Total Value" or filter dropdown. */
   end?: ReactNode;
   className?: string;
 };
 
-/**
- * The section card header pattern used across Asset configuration and the dashboard:
- *   <h3>title</h3><p>SUBTITLE</p>      ...end
- *   ───────────────────────────────────────────
- */
 export function SectionHeader({ title, subtitle, end, className }: SectionHeaderProps) {
   return (
     <div
       className={cn(
-        "flex justify-between items-end border-b border-surface-container-high pb-4 mb-6 gap-4",
+        "mb-6 flex items-end justify-between gap-4 border-b border-border pb-4",
         className,
       )}
     >
       <div>
-        <h3 className="text-headline-md font-headline-md text-primary tracking-tight">{title}</h3>
+        <h3 className="text-xl font-semibold tracking-tight text-foreground">{title}</h3>
         {subtitle ? (
-          <p className="font-label-sm text-label-sm text-on-surface-variant mt-1 uppercase tracking-wider">
+          <p className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {subtitle}
           </p>
         ) : null}

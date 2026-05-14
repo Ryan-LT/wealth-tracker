@@ -1,11 +1,10 @@
 "use client";
 
-import InputAdornment from "@mui/material/InputAdornment";
-import TextField from "@mui/material/TextField";
-import type { TextFieldProps } from "@mui/material/TextField";
 import { NumericFormat, type NumberFormatValues } from "react-number-format";
 
-import { cn } from "@/shared/lib";
+import { Input as ShadcnInput } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export type MoneyInputProps = {
   label?: string;
@@ -13,20 +12,16 @@ export type MoneyInputProps = {
   onChange: (next: number) => void;
   placeholder?: string;
   className?: string;
-  /** Currency glyph before the value (empty string = no adornment). */
   symbol?: string;
-  /** Fraction digits; `0` = whole VND amounts. */
   decimals?: number;
   allowNegative?: boolean;
   min?: number;
   max?: number;
-  size?: TextFieldProps["size"];
-  margin?: TextFieldProps["margin"];
-  variant?: TextFieldProps["variant"];
-  fullWidth?: TextFieldProps["fullWidth"];
+  size?: "small" | "medium";
   autoFocus?: boolean;
   disabled?: boolean;
-  sx?: TextFieldProps["sx"];
+  fullWidth?: boolean;
+  id?: string;
 };
 
 function allowValues(
@@ -41,10 +36,6 @@ function allowValues(
   return true;
 }
 
-/**
- * VND-style amount field with thousand separators while typing.
- * Uses `react-number-format` so the caret behaves correctly during edits.
- */
 export function MoneyInput({
   label,
   value,
@@ -56,67 +47,50 @@ export function MoneyInput({
   allowNegative = false,
   min,
   max,
-  size = "small",
-  margin,
-  variant = "outlined",
-  fullWidth = true,
   autoFocus,
   disabled,
-  sx,
+  id,
 }: MoneyInputProps) {
   const safeValue = Number.isFinite(value) ? value : 0;
 
+  const input = (
+    <div className="relative">
+      {symbol && (
+        <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-data-tabular">
+          {symbol}
+        </span>
+      )}
+      <NumericFormat
+        id={id}
+        customInput={ShadcnInput}
+        thousandSeparator=","
+        decimalScale={decimals}
+        fixedDecimalScale={decimals > 0}
+        allowNegative={allowNegative}
+        value={safeValue}
+        onValueChange={(vals) => onChange(vals.floatValue ?? 0)}
+        isAllowed={(vals) => allowValues(vals, { allowNegative, min, max })}
+        placeholder={placeholder}
+        autoFocus={autoFocus}
+        disabled={disabled}
+        inputMode="decimal"
+        className={cn(
+          "text-right font-data-tabular",
+          symbol ? "pl-7" : "",
+          className,
+        )}
+      />
+    </div>
+  );
+
+  if (!label) return input;
+
   return (
-    <NumericFormat
-      customInput={TextField}
-      thousandSeparator=","
-      decimalScale={decimals}
-      fixedDecimalScale={decimals > 0}
-      allowNegative={allowNegative}
-      value={safeValue}
-      onValueChange={(vals) => {
-        onChange(vals.floatValue ?? 0);
-      }}
-      isAllowed={(vals) => allowValues(vals, { allowNegative, min, max })}
-      label={label}
-      placeholder={placeholder}
-      size={size}
-      margin={margin}
-      variant={variant}
-      fullWidth={fullWidth}
-      autoFocus={autoFocus}
-      disabled={disabled}
-      className={cn(className)}
-      inputMode="decimal"
-      slotProps={{
-        input: {
-          startAdornment: symbol ? (
-            <InputAdornment position="start">
-              <span className="font-data-tabular text-data-tabular text-on-surface-variant pointer-events-none">
-                {symbol}
-              </span>
-            </InputAdornment>
-          ) : undefined,
-        },
-      }}
-      sx={{
-        ...(label
-          ? {
-              "& .MuiInputLabel-root": {
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                color: "var(--color-on-surface-variant)",
-              },
-            }
-          : {}),
-        "& input": {
-          fontVariantNumeric: "tabular-nums",
-          textAlign: "right",
-        },
-        ...sx,
-      }}
-    />
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </Label>
+      {input}
+    </div>
   );
 }

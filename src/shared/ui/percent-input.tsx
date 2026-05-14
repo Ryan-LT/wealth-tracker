@@ -1,10 +1,10 @@
 "use client";
 
-import TextField from "@mui/material/TextField";
-import type { TextFieldProps } from "@mui/material/TextField";
 import { NumericFormat, type NumberFormatValues } from "react-number-format";
 
-import { cn } from "@/shared/lib";
+import { Input as ShadcnInput } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export type PercentInputProps = {
   label?: string;
@@ -12,17 +12,14 @@ export type PercentInputProps = {
   onChange: (next: number) => void;
   placeholder?: string;
   className?: string;
-  /** Fraction digits after the decimal (comma in vi-style display). */
   decimalScale?: number;
   min?: number;
   max?: number;
-  size?: TextFieldProps["size"];
-  margin?: TextFieldProps["margin"];
-  variant?: TextFieldProps["variant"];
-  fullWidth?: TextFieldProps["fullWidth"];
+  size?: "small" | "medium";
   autoFocus?: boolean;
   disabled?: boolean;
-  sx?: TextFieldProps["sx"];
+  fullWidth?: boolean;
+  id?: string;
 };
 
 function allowValues(
@@ -36,10 +33,6 @@ function allowValues(
   return true;
 }
 
-/**
- * Percent field with Vietnamese-style decimal comma (e.g. `5,5 %`).
- * Accepts both comma and period while typing.
- */
 export function PercentInput({
   label,
   value,
@@ -49,19 +42,16 @@ export function PercentInput({
   decimalScale = 3,
   min = 0,
   max = 100,
-  size = "small",
-  margin,
-  variant = "outlined",
-  fullWidth = true,
   autoFocus,
   disabled,
-  sx,
+  id,
 }: PercentInputProps) {
   const safeValue = Number.isFinite(value) ? value : 0;
 
-  return (
+  const input = (
     <NumericFormat
-      customInput={TextField}
+      id={id}
+      customInput={ShadcnInput}
       thousandSeparator={false}
       decimalSeparator=","
       allowedDecimalSeparators={[",", "."]}
@@ -69,38 +59,24 @@ export function PercentInput({
       fixedDecimalScale={false}
       suffix=" %"
       value={safeValue}
-      onValueChange={(vals) => {
-        onChange(vals.floatValue ?? 0);
-      }}
+      onValueChange={(vals) => onChange(vals.floatValue ?? 0)}
       isAllowed={(vals) => allowValues(vals, { min, max })}
-      label={label}
       placeholder={placeholder}
-      size={size}
-      margin={margin}
-      variant={variant}
-      fullWidth={fullWidth}
       autoFocus={autoFocus}
       disabled={disabled}
-      className={cn(className)}
       inputMode="decimal"
-      sx={{
-        ...(label
-          ? {
-              "& .MuiInputLabel-root": {
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                color: "var(--color-on-surface-variant)",
-              },
-            }
-          : {}),
-        "& input": {
-          fontVariantNumeric: "tabular-nums",
-          textAlign: "right",
-        },
-        ...sx,
-      }}
+      className={cn("text-right font-data-tabular", className)}
     />
+  );
+
+  if (!label) return input;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </Label>
+      {input}
+    </div>
   );
 }

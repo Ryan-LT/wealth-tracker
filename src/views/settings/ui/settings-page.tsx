@@ -2,6 +2,11 @@
 
 import { useMemo } from "react";
 
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { ProfileDropdown } from "@/components/layout/profile-dropdown";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { Separator } from "@/components/ui/separator";
 import { mergeAssetCategoryOptions } from "@/shared/config";
 import {
   DEBTS_SEED,
@@ -10,8 +15,6 @@ import {
   SETTINGS_ASSETS_SEED,
   useTable,
 } from "@/shared/storage";
-
-import { SignOutButton } from "@/widgets/auth";
 
 import { AssetManagementTable } from "./asset-management-table";
 import { DebtsSection } from "./debts-section";
@@ -29,52 +32,62 @@ export function SettingsPage() {
   );
 
   return (
-    <main className="flex w-full min-w-0 flex-1 flex-col overflow-y-auto bg-background pb-24 pt-stack-lg max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
-      <div className="mb-stack-lg flex flex-col gap-stack-sm max-md:flex-col md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-headline-lg text-headline-lg text-primary">Asset configuration</h1>
+    <>
+      <Header fixed>
+        <h1 className="text-base font-medium">Asset configuration</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeSwitch />
+          <ProfileDropdown />
         </div>
-        <div className="md:shrink-0">
-          <SignOutButton variant="outline-secondary" className="max-md:w-full" />
-        </div>
-      </div>
+      </Header>
 
-      <div className="flex flex-col gap-stack-lg">
-        <AssetManagementTable
-          assets={assets}
-          categoryOptions={assetCategoryOptions}
-          onRegisterCustomCategory={(category) =>
-            setPrefs((p) => ({
-              ...p,
-              extraAssetCategories: [
-                ...new Set([...(p.extraAssetCategories ?? []), category.trim()]),
-              ],
-            }))
-          }
-          onDelete={(id) => setAssets((prev) => prev.filter((a) => a.id !== id))}
-          onUpdate={(next) =>
-            setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))
-          }
-          onAdd={(asset) => setAssets((prev) => [...prev, asset])}
-          onReorder={(ordered) => setAssets(() => ordered)}
-        />
-        <DebtsSection
-          debts={debts}
-          onAdd={(debt) => setDebts((prev) => [...prev, debt])}
-          onUpdate={(debt) =>
-            setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
-          }
-          onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
-        />
-        <IncomeSourcesGrid
-          sources={sources}
-          onCreate={(source) => setSources((prev) => [...prev, source])}
-          onUpdate={(source) =>
-            setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))
-          }
-          onDelete={(id) => setSources((prev) => prev.filter((s) => s.id !== id))}
-        />
-      </div>
-    </main>
+      <Main>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold tracking-tight">Asset configuration</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage assets, debts, and income sources used across the app.
+          </p>
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="flex flex-col gap-6">
+          <AssetManagementTable
+            assets={assets}
+            categoryOptions={assetCategoryOptions}
+            onRegisterCustomCategory={(category) =>
+              setPrefs((p) => ({
+                ...p,
+                extraAssetCategories: [
+                  ...new Set([...(p.extraAssetCategories ?? []), category.trim()]),
+                ],
+              }))
+            }
+            onDelete={(id) => setAssets((prev) => prev.filter((a) => a.id !== id))}
+            onUpdate={(next) =>
+              setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))
+            }
+            onAdd={(asset) => setAssets((prev) => [...prev, asset])}
+            onReorder={(ordered) => setAssets(() => ordered)}
+          />
+          <DebtsSection
+            debts={debts}
+            onAdd={(debt) => setDebts((prev) => [...prev, debt])}
+            onUpdate={(debt) =>
+              setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
+            }
+            onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
+          />
+          <IncomeSourcesGrid
+            sources={sources}
+            onCreate={(source) => setSources((prev) => [...prev, source])}
+            onUpdate={(source) =>
+              setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))
+            }
+            onDelete={(id) => setSources((prev) => prev.filter((s) => s.id !== id))}
+          />
+        </div>
+      </Main>
+    </>
   );
 }

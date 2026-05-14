@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo } from "react";
 
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { ProfileDropdown } from "@/components/layout/profile-dropdown";
+import { ThemeSwitch } from "@/components/theme-switch";
 import {
   buildGoalStartingOptions,
   estimatedMonthlyNetCashflow,
@@ -26,6 +30,7 @@ import {
   type AssetsState,
   useTable,
 } from "@/shared/storage";
+
 import { FinancialSummaryWidget } from "./financial-summary-widget";
 import { MetricGrid } from "./metric-grid";
 import { MillionBy35Card } from "./million-by-35-card";
@@ -88,8 +93,7 @@ export function DashboardPage() {
   const legacyPrimaryTarget =
     primaryProfile?.targetAmount ?? goals.primary.targetAmount;
   const legacyPrimaryName =
-    (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ??
-    "Primary Goal";
+    (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ?? "Primary Goal";
   const legacySavedTowardPrimary =
     goals.primary.saved > 0
       ? Math.min(goals.primary.saved, legacyPrimaryTarget)
@@ -101,12 +105,7 @@ export function DashboardPage() {
         key: plan.id,
         name: plan.name.trim() || "Untitled plan",
         targetAmount: plan.targetAmount,
-        saved: totalGoalStartingBalance(
-          plan.seedLines,
-          seedOptions,
-          goals.profiles,
-          plan,
-        ),
+        saved: totalGoalStartingBalance(plan.seedLines, seedOptions, goals.profiles, plan),
         savedCaption: "Allocated starting" as const,
         targetDate: plan.targetDate,
         includeMonthlyIncome: plan.includeMonthlyIncome !== false,
@@ -135,31 +134,42 @@ export function DashboardPage() {
 
   return (
     <>
-      <main className="flex w-full min-w-0 flex-1 flex-col py-10 max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
-        <div className="mb-6 grid grid-cols-1 gap-4 lg:mb-8 lg:grid-cols-2 lg:items-stretch lg:gap-4">
-          <div className="min-h-0 h-full">
-            <FinancialSummaryWidget
-              totalAssets={financialBreakdown.totalAssets}
-              totalLiabilities={financialBreakdown.totalLiabilities}
-              portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
-              assetConfigurationTotal={
-                financialBreakdown.assetConfigurationTotal
-              }
-            />
-          </div>
-          <div className="min-h-0 h-full">
-            <MillionBy35Card
-              currentNetWorth={summary.totalNetWorth}
-              monthlyNetContribution={summary.monthlyNet}
-            />
+      <Header fixed>
+        <h1 className="text-base font-medium">Dashboard</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
+
+      <Main>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
+            <p className="text-sm text-muted-foreground">
+              Your net worth, goal plans, and monthly trajectory.
+            </p>
           </div>
         </div>
 
-        <section className="mb-6 lg:mb-8">
-          <h2 className="mb-3 text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <FinancialSummaryWidget
+            totalAssets={financialBreakdown.totalAssets}
+            totalLiabilities={financialBreakdown.totalLiabilities}
+            portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
+            assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
+          />
+          <MillionBy35Card
+            currentNetWorth={summary.totalNetWorth}
+            monthlyNetContribution={summary.monthlyNet}
+          />
+        </div>
+
+        <section className="mt-6">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Goal plans
           </h2>
-          <div className="grid grid-cols-1 gap-3 items-stretch sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {goalPlanCards.map((g) => (
               <PrimaryGoalCard
                 key={g.key}
@@ -175,14 +185,16 @@ export function DashboardPage() {
           </div>
         </section>
 
-        <MetricGrid
-          totalAssets={summary.totalAssets}
-          activeIncome={summary.activeIncome}
-          passiveIncome={summary.passiveIncome}
-          totalDebt={summary.totalDebt}
-          eoyProjection={summary.eoyProjection}
-        />
-      </main>
+        <section className="mt-6">
+          <MetricGrid
+            totalAssets={summary.totalAssets}
+            activeIncome={summary.activeIncome}
+            passiveIncome={summary.passiveIncome}
+            totalDebt={summary.totalDebt}
+            eoyProjection={summary.eoyProjection}
+          />
+        </section>
+      </Main>
     </>
   );
 }

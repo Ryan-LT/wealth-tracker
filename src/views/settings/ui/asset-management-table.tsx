@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
 import {
   closestCenter,
   DndContext,
@@ -20,20 +18,55 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Autocomplete from "@mui/material/Autocomplete";
-import MuiButton from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import FormHelperText from "@mui/material/FormHelperText";
-import TextField from "@mui/material/TextField";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import {
+  ArrowDown,
+  ArrowUp,
+  Building2,
+  GripVertical,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { assetCategoryBadgeClassNames, isDefaultAssetCategory } from "@/shared/config";
-import { cn, formatThousands } from "@/shared/lib";
+import { formatThousands } from "@/shared/lib";
 import {
   SETTINGS_ASSET_LIQUIDITY_DEFAULT,
   type SettingsAsset,
@@ -41,7 +74,7 @@ import {
   resolveSettingsAssetLiquidity,
   settingsAssetLiquidityLabel,
 } from "@/shared/storage";
-import { Button, MaterialIcon, MoneyInput } from "@/shared/ui";
+import { MoneyInput } from "@/shared/ui";
 
 type AssetSortKey = "name" | "category" | "liquidity" | "value";
 type AssetSortDir = "asc" | "desc";
@@ -101,64 +134,48 @@ function SortColumnHeader({
 }: SortColumnHeaderProps) {
   const active = sortState?.key === sortKey;
   return (
-    <th
-      scope="col"
-      aria-sort={
-        active ? (sortState.dir === "asc" ? "ascending" : "descending") : "none"
-      }
-      className={cn(
-        "border-b border-outline-variant pb-3 font-label-sm text-label-sm uppercase text-on-surface-variant",
-        align === "right" && "text-right",
-      )}
+    <TableHead
+      aria-sort={active ? (sortState.dir === "asc" ? "ascending" : "descending") : "none"}
+      className={cn(align === "right" && "text-right")}
     >
       <button
         type="button"
         onClick={() => onToggleSort(sortKey)}
         className={cn(
-          "inline-flex max-w-full items-center gap-1 rounded border-0 bg-transparent p-0 font-inherit uppercase tracking-wider transition-colors hover:text-primary",
+          "inline-flex max-w-full items-center gap-1 rounded font-medium text-muted-foreground transition-colors hover:text-foreground",
           align === "right" && "w-full justify-end",
         )}
       >
         <span className="truncate">{label}</span>
         {active ? (
-          <MaterialIcon
-            name={sortState.dir === "asc" ? "arrow_upward" : "arrow_downward"}
-            filled
-            size={16}
-            className="shrink-0 text-secondary"
-          />
+          sortState.dir === "asc" ? (
+            <ArrowUp className="size-3.5 shrink-0 text-primary" />
+          ) : (
+            <ArrowDown className="size-3.5 shrink-0 text-primary" />
+          )
         ) : null}
       </button>
-    </th>
+    </TableHead>
   );
 }
 
 type AssetManagementTableProps = {
   assets: SettingsAsset[];
-  /** Category combobox options (defaults + saved customs + in-use labels). */
   categoryOptions: string[];
-  /** Persist a user-typed category so it appears in the list next time. */
   onRegisterCustomCategory?: (category: string) => void;
   onDelete: (id: string) => void;
   onUpdate: (asset: SettingsAsset) => void;
   onAdd: (asset: SettingsAsset) => void;
-  /** Called with the full list in new order (persisted by parent, e.g. `settingsAssets`). */
   onReorder: (ordered: SettingsAsset[]) => void;
 };
 
 type SortableAssetRowProps = {
   asset: SettingsAsset;
-  isLast: boolean;
   onEdit: (asset: SettingsAsset) => void;
   onDeleteRequest: (asset: SettingsAsset) => void;
 };
 
-function SortableAssetRow({
-  asset,
-  isLast,
-  onEdit,
-  onDeleteRequest,
-}: SortableAssetRowProps) {
+function SortableAssetRow({ asset, onEdit, onDeleteRequest }: SortableAssetRowProps) {
   const {
     attributes,
     listeners,
@@ -175,73 +192,70 @@ function SortableAssetRow({
   };
 
   return (
-    <tr
+    <TableRow
       ref={setNodeRef}
       style={style}
-      className={cn(
-        isLast
-          ? "hover:bg-surface-container-low transition-colors"
-          : "border-b border-surface-variant hover:bg-surface-container-low transition-colors",
-        isDragging && "relative z-10 bg-surface-container-lowest shadow-md ring-1 ring-outline-variant",
-      )}
+      className={cn(isDragging && "relative z-10 bg-muted shadow-md")}
     >
-      <td className="py-4 pr-0 align-middle">
+      <TableCell className="w-10 pr-0">
         <button
           type="button"
           ref={setActivatorNodeRef}
           {...listeners}
           {...attributes}
           aria-label={`Drag to reorder ${asset.name}`}
-          className="inline-flex cursor-grab touch-none rounded-sm border-0 bg-transparent p-0.5 text-on-surface-variant hover:bg-surface-container-high hover:text-primary active:cursor-grabbing"
+          className="inline-flex cursor-grab touch-none rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground active:cursor-grabbing"
         >
-          <MaterialIcon name="drag_indicator" />
+          <GripVertical className="size-4" />
         </button>
-      </td>
-      <td className="py-4 font-body-md text-body-md text-primary">{asset.name}</td>
-      <td className="py-4 font-body-md text-body-md text-on-surface-variant">
+      </TableCell>
+      <TableCell className="text-sm font-medium">{asset.name}</TableCell>
+      <TableCell>
         <span
           className={cn(
-            "inline-flex max-w-[14rem] truncate rounded-full px-2.5 py-0.5 font-label-sm text-label-sm",
+            "inline-flex max-w-[14rem] truncate rounded-full px-2 py-0.5 text-[10px] font-semibold",
             assetCategoryBadgeClassNames(asset.category),
           )}
         >
           {asset.category}
         </span>
-      </td>
-      <td className="py-4 font-body-md text-body-md text-on-surface-variant">
+      </TableCell>
+      <TableCell>
         <span
           className={cn(
-            "inline-flex max-w-[11rem] rounded-full px-2.5 py-0.5 font-label-sm text-label-sm",
+            "inline-flex max-w-[11rem] rounded-full px-2 py-0.5 text-[10px] font-semibold",
             resolveSettingsAssetLiquidity(asset.liquidity) === "instant"
-              ? "bg-secondary-container/35 text-secondary"
-              : "bg-surface-container-high text-on-surface-variant",
+              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+              : "bg-muted text-muted-foreground",
           )}
         >
           {settingsAssetLiquidityLabel(asset.liquidity)}
         </span>
-      </td>
-      <td className="py-4 font-data-tabular text-data-tabular text-primary text-right">
+      </TableCell>
+      <TableCell className="text-right font-data-tabular tabular-nums">
         {formatThousands(asset.currentValue)}
-      </td>
-      <td className="py-4 text-right">
-        <button
-          type="button"
+      </TableCell>
+      <TableCell className="text-right">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8"
           aria-label={`Edit ${asset.name}`}
           onClick={() => onEdit(asset)}
-          className="text-on-surface-variant hover:text-secondary transition-colors mr-2"
         >
-          <MaterialIcon name="edit" />
-        </button>
-        <button
-          type="button"
+          <Pencil className="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 text-muted-foreground hover:text-destructive"
           aria-label={`Delete ${asset.name}`}
           onClick={() => onDeleteRequest(asset)}
-          className="text-on-surface-variant hover:text-error transition-colors"
         >
-          <MaterialIcon name="delete" />
-        </button>
-      </td>
-    </tr>
+          <Trash2 className="size-4" />
+        </Button>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -275,12 +289,8 @@ export function AssetManagementTable({
   }
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   function handleDragEnd(event: DragEndEvent) {
@@ -341,41 +351,36 @@ export function AssetManagementTable({
     setDeleteOpen(true);
   }
 
-  function closeDeleteDialog() {
-    setDeleteOpen(false);
-    setPendingDelete(null);
-  }
-
   function confirmDelete() {
     if (pendingDelete) {
       onDelete(pendingDelete.id);
     }
-    closeDeleteDialog();
+    setDeleteOpen(false);
+    setPendingDelete(null);
   }
 
   return (
-    <section className="bg-surface-container-lowest border border-outline-variant rounded-lg">
-      <div className="p-stack-md border-b border-outline-variant bg-surface flex justify-between items-center rounded-t-lg">
-        <div className="flex items-center gap-stack-sm">
-          <MaterialIcon name="account_balance" filled className="text-primary" />
-          <h2 className="font-headline-md text-headline-md text-primary">Asset Management</h2>
+    <Card>
+      <div className="flex items-center justify-between border-b p-4">
+        <div className="flex items-center gap-2">
+          <Building2 className="size-5 text-primary" />
+          <h2 className="text-base font-semibold">Asset Management</h2>
         </div>
-        <Button onClick={openCreate}>Add Asset</Button>
+        <Button onClick={openCreate} size="sm">
+          Add Asset
+        </Button>
       </div>
-      <div className="p-stack-md overflow-x-auto">
+      <div className="overflow-x-auto">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}
           onDragEnd={handleDragEnd}
         >
-          <table className="w-full text-left border-collapse min-w-[720px]">
-            <thead>
-              <tr>
-                <th
-                  className="pb-3 w-10 font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-outline-variant"
-                  aria-label="Reorder"
-                />
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10" aria-label="Reorder" />
                 <SortColumnHeader
                   label="Asset Name"
                   sortKey="name"
@@ -401,125 +406,121 @@ export function AssetManagementTable({
                   sort={sort}
                   onToggleSort={toggleSortColumn}
                 />
-                <th
-                  scope="col"
-                  className="pb-3 font-label-sm text-label-sm text-on-surface-variant uppercase border-b border-outline-variant text-right"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
             <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-              <tbody>
-                {displayAssets.map((asset, idx) => (
+              <TableBody>
+                {displayAssets.map((asset) => (
                   <SortableAssetRow
                     key={asset.id}
                     asset={asset}
-                    isLast={idx === displayAssets.length - 1}
                     onEdit={openEdit}
                     onDeleteRequest={requestDelete}
                   />
                 ))}
-              </tbody>
+              </TableBody>
             </SortableContext>
-          </table>
+          </Table>
         </DndContext>
       </div>
 
-      <Dialog open={assetDialogOpen} onClose={closeAssetDialog} fullWidth maxWidth="sm">
-        <DialogTitle>
-          {assetDialogMode === "create" ? "Add asset" : "Edit asset"}
-        </DialogTitle>
-        <DialogContent className="flex flex-col gap-3 pt-1">
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Asset name"
-            fullWidth
-            value={assetDraft?.name ?? ""}
-            onChange={(e) =>
-              setAssetDraft((d) => (d ? { ...d, name: e.target.value } : d))
-            }
-          />
-          <Autocomplete
-            freeSolo
-            options={categoryOptions}
-            value={assetDraft?.category ?? ""}
-            onChange={(_, newValue) => {
-              const v = typeof newValue === "string" ? newValue : "";
-              setAssetDraft((d) => (d ? { ...d, category: v } : d));
-            }}
-            onInputChange={(_, inputValue, reason) => {
-              if (reason === "input" || reason === "clear") {
-                setAssetDraft((d) => (d ? { ...d, category: inputValue } : d));
-              }
-            }}
-            renderInput={(params) => (
-              <TextField {...params} margin="dense" label="Category" fullWidth />
-            )}
-          />
-          <div className="mt-1">
-            <p className="mb-1.5 font-body-sm text-body-sm text-on-surface-variant">
-              How quickly can you access this value?
-            </p>
-            <ToggleButtonGroup
-              exclusive
-              fullWidth
-              color="primary"
-              value={resolveSettingsAssetLiquidity(assetDraft?.liquidity)}
-              onChange={(_, v: SettingsAssetLiquidity | null) => {
-                if (v !== null) {
-                  setAssetDraft((d) => (d ? { ...d, liquidity: v } : d));
+      <Dialog open={assetDialogOpen} onOpenChange={(o) => !o && closeAssetDialog()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {assetDialogMode === "create" ? "Add asset" : "Edit asset"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="asset-name">Asset name</Label>
+              <Input
+                id="asset-name"
+                autoFocus
+                value={assetDraft?.name ?? ""}
+                onChange={(e) => setAssetDraft((d) => (d ? { ...d, name: e.target.value } : d))}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="asset-category">Category</Label>
+              <Input
+                id="asset-category"
+                list="asset-category-options"
+                value={assetDraft?.category ?? ""}
+                onChange={(e) =>
+                  setAssetDraft((d) => (d ? { ...d, category: e.target.value } : d))
                 }
-              }}
-              aria-label="Asset liquidity"
-            >
-              <ToggleButton value="instant" className="font-body-sm normal-case">
-                Instant
-              </ToggleButton>
-              <ToggleButton value="not_instant" className="font-body-sm normal-case">
-                Not instant
-              </ToggleButton>
-            </ToggleButtonGroup>
-            <FormHelperText className="mx-0">
-              Instant: cash or equivalents you can withdraw or spend right away. Not instant: term
-              deposits, locked products, or anything with a meaningful delay or penalty.
-            </FormHelperText>
+              />
+              <datalist id="asset-category-options">
+                {categoryOptions.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Access</Label>
+              <Select
+                value={resolveSettingsAssetLiquidity(assetDraft?.liquidity)}
+                onValueChange={(v) =>
+                  setAssetDraft((d) =>
+                    d ? { ...d, liquidity: v as SettingsAssetLiquidity } : d,
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="instant">Instant</SelectItem>
+                  <SelectItem value="not_instant">Not instant</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Instant: cash or equivalents. Not instant: locked, term deposits, etc.
+              </p>
+            </div>
+            <MoneyInput
+              label="Current value (₫)"
+              value={assetDraft?.currentValue ?? 0}
+              min={0}
+              onChange={(v) =>
+                setAssetDraft((d) => (d ? { ...d, currentValue: Math.max(0, v) } : d))
+              }
+            />
           </div>
-          <MoneyInput
-            margin="dense"
-            label="Current value (₫)"
-            value={assetDraft?.currentValue ?? 0}
-            min={0}
-            onChange={(v) =>
-              setAssetDraft((d) => (d ? { ...d, currentValue: Math.max(0, v) } : d))
-            }
-          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeAssetDialog}>
+              Cancel
+            </Button>
+            <Button onClick={saveAssetDialog}>
+              {assetDialogMode === "create" ? "Add" : "Save"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <MuiButton onClick={closeAssetDialog}>Cancel</MuiButton>
-          <MuiButton onClick={saveAssetDialog} variant="contained">
-            {assetDialogMode === "create" ? "Add" : "Save"}
-          </MuiButton>
-        </DialogActions>
       </Dialog>
 
-      <Dialog open={deleteOpen} onClose={closeDeleteDialog}>
-        <DialogTitle>Delete asset?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {pendingDelete
-              ? `This will remove “${pendingDelete.name}” from your list. This cannot be undone.`
-              : null}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <MuiButton onClick={closeDeleteDialog}>Cancel</MuiButton>
-          <MuiButton onClick={confirmDelete} color="error" variant="contained">
-            Delete
-          </MuiButton>
-        </DialogActions>
-      </Dialog>
-    </section>
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete asset?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete
+                ? `This will remove "${pendingDelete.name}" from your list. This cannot be undone.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 }

@@ -2,9 +2,8 @@
 
 import type { ButtonHTMLAttributes } from "react";
 
-import MuiIconButton from "@mui/material/IconButton";
-
-import { cn } from "@/shared/lib";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { MaterialIcon } from "./material-icon";
 
@@ -15,32 +14,24 @@ type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "color"> & 
   size?: number;
 };
 
-/**
- * Round icon button used for top bar actions and inline row controls.
- */
 export function IconButton({
   icon,
   label,
-  filled,
+  filled: _filled,
   size,
   className,
   ...rest
 }: IconButtonProps) {
   return (
-    <MuiIconButton
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       aria-label={label}
-      className={cn(
-        "text-on-surface-variant hover:bg-surface-container-low transition-colors",
-        className,
-      )}
-      sx={{
-        width: 40,
-        height: 40,
-      }}
+      className={cn("rounded-full", className)}
       {...rest}
     >
-      <MaterialIcon name={icon} filled={filled} size={size ?? 24} />
-    </MuiIconButton>
+      <MaterialIcon name={icon} size={size ?? 18} />
+    </Button>
   );
 }

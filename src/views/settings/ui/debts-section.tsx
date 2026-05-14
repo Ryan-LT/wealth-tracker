@@ -1,18 +1,38 @@
 "use client";
 
+import { CreditCard, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import MenuItem from "@mui/material/MenuItem";
-import MuiButton from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Debt } from "@/shared/storage";
-import { Button, Card, MaterialIcon, MoneyInput, PercentInput } from "@/shared/ui";
+import { MoneyInput, PercentInput } from "@/shared/ui";
 
 import { DebtRow } from "./debt-row";
 
@@ -60,8 +80,7 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete }: DebtsSectionP
   function saveDialog() {
     if (!draft?.id) return;
     const day = draft.paymentDayOfMonth;
-    const paymentDayOfMonth =
-      day != null && day >= 1 && day <= 31 ? Math.floor(day) : undefined;
+    const paymentDayOfMonth = day != null && day >= 1 && day <= 31 ? Math.floor(day) : undefined;
     const next: Debt = {
       ...draft,
       id: draft.id,
@@ -94,181 +113,185 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete }: DebtsSectionP
   }
 
   return (
-    <Card variant="section" className="p-6">
-      <div className="mb-6 flex items-end justify-between gap-4 border-b border-surface-container-high pb-4">
+    <Card>
+      <CardHeader className="flex flex-row items-end justify-between gap-4 space-y-0 border-b">
         <div className="min-w-0">
-          <h3 className="flex items-center gap-2 text-headline-md font-headline-md tracking-tight text-primary">
-            <MaterialIcon name="money_off" className="text-error" />
-            Debts &amp; Liabilities
-          </h3>
-          <p className="mt-1 font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
-            Obligations Overview
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <CreditCard className="size-4 text-destructive" />
+            Debts & Liabilities
+          </CardTitle>
+          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Obligations overview
           </p>
         </div>
-        <Button type="button" onClick={openCreate}>
+        <Button type="button" size="sm" onClick={openCreate}>
           Add Debt
         </Button>
-      </div>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="space-y-4">
+          {debts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No debts recorded. Use &quot;Add Debt&quot; to track loans, credit cards, etc.
+            </p>
+          ) : (
+            debts.map((debt, idx) => (
+              <DebtRow
+                key={debt.id}
+                debt={debt}
+                isLast={idx === debts.length - 1}
+                actions={
+                  <span className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8"
+                      aria-label={`Edit ${debt.name}`}
+                      onClick={() => openEdit(debt)}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted-foreground hover:text-destructive"
+                      aria-label={`Delete ${debt.name}`}
+                      onClick={() => requestDelete(debt)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </span>
+                }
+              />
+            ))
+          )}
+        </div>
+      </CardContent>
 
-      <div className="space-y-4">
-        {debts.length === 0 ? (
-          <p className="font-body-md text-body-md text-on-surface-variant py-2">
-            No debts recorded. Use &quot;Add Debt&quot; to track loans, credit cards, and other
-            liabilities.
-          </p>
-        ) : (
-          debts.map((debt, idx) => (
-            <DebtRow
-              key={debt.id}
-              debt={debt}
-              isLast={idx === debts.length - 1}
-              actions={
-                <span className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    aria-label={`Edit ${debt.name}`}
-                    onClick={() => openEdit(debt)}
-                    className="text-on-surface-variant transition-colors hover:text-secondary"
-                  >
-                    <MaterialIcon name="edit" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Delete ${debt.name}`}
-                    onClick={() => requestDelete(debt)}
-                    className="text-on-surface-variant transition-colors hover:text-error"
-                  >
-                    <MaterialIcon name="delete" />
-                  </button>
-                </span>
-              }
+      <Dialog open={dialogOpen} onOpenChange={(o) => !o && closeDialog()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{mode === "create" ? "Add debt" : "Edit debt"}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="debt-name">Debt name</Label>
+              <Input
+                id="debt-name"
+                autoFocus
+                placeholder="e.g. Mortgage, Credit card"
+                value={draft?.name ?? ""}
+                onChange={(e) => setDraft((d) => (d ? { ...d, name: e.target.value } : d))}
+              />
+            </div>
+            <MoneyInput
+              label="Outstanding balance (₫)"
+              value={draft?.balance ?? 0}
+              min={0}
+              onChange={(balance) => setDraft((d) => (d ? { ...d, balance } : d))}
             />
-          ))
-        )}
-      </div>
-
-      <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
-        <DialogTitle>{mode === "create" ? "Add debt" : "Edit debt"}</DialogTitle>
-        <DialogContent className="flex flex-col gap-3 pt-1">
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Debt name"
-            placeholder="e.g. Mortgage, Credit card"
-            fullWidth
-            value={draft?.name ?? ""}
-            onChange={(e) => setDraft((d) => (d ? { ...d, name: e.target.value } : d))}
-          />
-          <MoneyInput
-            margin="dense"
-            label="Outstanding balance (₫)"
-            value={draft?.balance ?? 0}
-            min={0}
-            onChange={(balance) => setDraft((d) => (d ? { ...d, balance } : d))}
-          />
-          <PercentInput
-            margin="dense"
-            label="Interest rate"
-            value={draft?.ratePct ?? 0}
-            min={0}
-            max={100}
-            decimalScale={3}
-            onChange={(ratePct) => setDraft((d) => (d ? { ...d, ratePct } : d))}
-          />
-          <TextField
-            select
-            margin="dense"
-            label="Rate type"
-            fullWidth
-            value={draft?.rateKind ?? "Fixed"}
-            onChange={(e) =>
-              setDraft((d) =>
-                d
-                  ? {
-                      ...d,
-                      rateKind: e.target.value as Debt["rateKind"],
-                    }
-                  : d,
-              )
-            }
-          >
-            <MenuItem value="Fixed">Fixed</MenuItem>
-            <MenuItem value="Variable">Variable</MenuItem>
-          </TextField>
-          <TextField
-            select
-            margin="dense"
-            label="Monthly payment date"
-            fullWidth
-            value={
-              draft?.paymentDayOfMonth != null &&
-              draft.paymentDayOfMonth >= 1 &&
-              draft.paymentDayOfMonth <= 31
-                ? String(draft.paymentDayOfMonth)
-                : ""
-            }
-            onChange={(e) => {
-              const v = e.target.value;
-              setDraft((d) =>
-                d
-                  ? {
-                      ...d,
-                      paymentDayOfMonth:
-                        v === "" ? undefined : Number.parseInt(v, 10),
-                    }
-                  : d,
-              );
-            }}
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-            helperText="Day of the month your payment is due (1–31)."
-          >
-            <MenuItem value="">
-              <em>Not set</em>
-            </MenuItem>
-            {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-              <MenuItem key={day} value={String(day)}>
-                {day}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            margin="dense"
-            label="Payment note (optional)"
-            placeholder="e.g. ₫12.500.000 expected"
-            fullWidth
-            value={draft?.nextPayment ?? ""}
-            onChange={(e) =>
-              setDraft((d) => (d ? { ...d, nextPayment: e.target.value } : d))
-            }
-            helperText="Extra reminder — amount, bank reference, etc."
-          />
+            <PercentInput
+              label="Interest rate"
+              value={draft?.ratePct ?? 0}
+              min={0}
+              max={100}
+              decimalScale={3}
+              onChange={(ratePct) => setDraft((d) => (d ? { ...d, ratePct } : d))}
+            />
+            <div className="flex flex-col gap-1.5">
+              <Label>Rate type</Label>
+              <Select
+                value={draft?.rateKind ?? "Fixed"}
+                onValueChange={(v) =>
+                  setDraft((d) => (d ? { ...d, rateKind: v as Debt["rateKind"] } : d))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Fixed">Fixed</SelectItem>
+                  <SelectItem value="Variable">Variable</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Monthly payment date</Label>
+              <Select
+                value={
+                  draft?.paymentDayOfMonth != null &&
+                  draft.paymentDayOfMonth >= 1 &&
+                  draft.paymentDayOfMonth <= 31
+                    ? String(draft.paymentDayOfMonth)
+                    : "_unset"
+                }
+                onValueChange={(v) =>
+                  setDraft((d) =>
+                    d
+                      ? {
+                          ...d,
+                          paymentDayOfMonth:
+                            v === "_unset" ? undefined : Number.parseInt(v, 10),
+                        }
+                      : d,
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="_unset">Not set</SelectItem>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                    <SelectItem key={day} value={String(day)}>
+                      {day}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Day of the month (1–31).</p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="debt-note">Payment note (optional)</Label>
+              <Input
+                id="debt-note"
+                placeholder="e.g. ₫12.500.000 expected"
+                value={draft?.nextPayment ?? ""}
+                onChange={(e) => setDraft((d) => (d ? { ...d, nextPayment: e.target.value } : d))}
+              />
+              <p className="text-xs text-muted-foreground">Extra reminder — amount, bank, etc.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={closeDialog}>
+              Cancel
+            </Button>
+            <Button onClick={saveDialog}>{mode === "create" ? "Add" : "Save"}</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <MuiButton onClick={closeDialog}>Cancel</MuiButton>
-          <MuiButton onClick={saveDialog} variant="contained">
-            {mode === "create" ? "Add" : "Save"}
-          </MuiButton>
-        </DialogActions>
       </Dialog>
 
-      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
-        <DialogTitle>Delete debt?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {pendingDelete
-              ? `Remove “${pendingDelete.name}” from your liabilities list?`
-              : null}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <MuiButton onClick={() => setDeleteOpen(false)}>Cancel</MuiButton>
-          <MuiButton onClick={confirmDelete} color="error" variant="contained">
-            Delete
-          </MuiButton>
-        </DialogActions>
-      </Dialog>
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete debt?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete
+                ? `Remove "${pendingDelete.name}" from your liabilities list?`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

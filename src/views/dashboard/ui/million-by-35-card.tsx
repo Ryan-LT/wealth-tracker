@@ -2,16 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import {
-  cn,
   DEFAULT_MILESTONE_USD,
   evaluateMilestone35Feasibility,
   formatUsd,
   formatVnd,
   MILESTONE_TARGET_AGE,
+  type GoalFeasibilityTone,
 } from "@/shared/lib";
-import type { GoalFeasibilityTone } from "@/shared/lib";
-import { Card, MaterialIcon } from "@/shared/ui";
+import { MaterialIcon } from "@/shared/ui";
 
 type MilestoneConfigOk = {
   ok: true;
@@ -69,43 +71,33 @@ function feasibilityIcon(tone: GoalFeasibilityTone): string {
 function feasibilityChipClass(tone: GoalFeasibilityTone): string {
   switch (tone) {
     case "achieved":
-      return "border-secondary/45 bg-secondary/12 text-secondary";
     case "on_track":
-      return "border-secondary/35 bg-secondary/[0.07] text-secondary";
+      return "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
     case "steady":
-      return "border-outline-variant bg-surface-container text-on-surface-variant";
+      return "border-border bg-muted text-muted-foreground";
     case "watch":
-      return "border-amber-600/35 bg-amber-500/[0.09] text-amber-950";
+      return "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300";
     case "tight":
-      return "border-orange-600/40 bg-orange-500/[0.1] text-orange-950";
+      return "border-orange-600/40 bg-orange-500/10 text-orange-700 dark:text-orange-300";
     case "at_risk":
-      return "border-error/45 bg-error-container/50 text-error";
+      return "border-destructive/40 bg-destructive/10 text-destructive";
     default:
-      return "border-outline-variant bg-surface-container-high text-on-surface-variant";
+      return "border-border bg-muted text-muted-foreground";
   }
 }
 
-function GoalProgressLinear({ percent }: { percent: number }) {
-  const clamped = Math.min(100, Math.max(0, percent));
+function Chip({ tone, label, title }: { tone: GoalFeasibilityTone; label: string; title?: string }) {
   return (
-    <div
-      className="flex min-w-0 items-center gap-2"
-      role="progressbar"
-      aria-valuenow={clamped}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label={`Progress toward milestone: ${clamped}%`}
+    <span
+      title={title}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+        feasibilityChipClass(tone),
+      )}
     >
-      <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-surface-container-highest">
-        <div
-          className="h-full rounded-full bg-secondary transition-[width] duration-300 ease-out"
-          style={{ width: `${clamped}%` }}
-        />
-      </div>
-      <span className="shrink-0 text-label-sm font-semibold tabular-nums text-primary">
-        {clamped}%
-      </span>
-    </div>
+      <MaterialIcon name={feasibilityIcon(tone)} size={12} />
+      <span className="truncate">{label}</span>
+    </span>
   );
 }
 
@@ -195,16 +187,16 @@ export function MillionBy35Card({
     if (feasible && monthsRemaining > 1) {
       tone = "on_track";
       label = "On track";
-      hint = `Projected ${formatVnd(projectedEndingNetWorth)} at age ${MILESTONE_TARGET_AGE} meets the ${formatUsd(config.targetUsd)} goal (≈ ${formatVnd(targetVnd)}) using this real return and monthly net.`;
+      hint = `Projected ${formatVnd(projectedEndingNetWorth)} at age ${MILESTONE_TARGET_AGE} meets the ${formatUsd(config.targetUsd)} goal (≈ ${formatVnd(targetVnd)}).`;
     } else if (feasible) {
       tone = "steady";
       label = "Tight but possible";
-      hint = "Very little runway left; the math still clears the target at the assumed real return.";
+      hint = "Very little runway left.";
     } else {
       tone = "at_risk";
       const gap = targetVnd - projectedEndingNetWorth;
       label = "Below projection";
-      hint = `At ${(config.annualRealRate * 100).toFixed(2)}% real and today’s monthly net, trajectory lands near ${formatVnd(projectedEndingNetWorth)} — about ${formatVnd(gap)} shy of ${formatVnd(targetVnd)}.`;
+      hint = `Trajectory lands near ${formatVnd(projectedEndingNetWorth)} — about ${formatVnd(gap)} shy.`;
     }
 
     return {
@@ -224,22 +216,30 @@ export function MillionBy35Card({
 
   if (loadError) {
     return (
-      <Card className="h-full border border-outline-variant/60 p-4">
-        <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-          {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
-        </h3>
-        <p className="mt-2 text-label-sm text-error">Could not load milestone settings ({loadError}).</p>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-destructive">Could not load milestone settings ({loadError}).</p>
+        </CardContent>
       </Card>
     );
   }
 
   if (!config || !analysis) {
     return (
-      <Card className="h-full border border-outline-variant/60 p-4">
-        <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-          Milestone
-        </h3>
-        <p className="mt-2 animate-pulse text-label-sm text-on-surface-variant">Loading…</p>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Milestone
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="animate-pulse text-sm text-muted-foreground">Loading…</p>
+        </CardContent>
       </Card>
     );
   }
@@ -248,75 +248,58 @@ export function MillionBy35Card({
 
   if (analysis.kind === "incomplete") {
     return (
-      <Card className="h-full border border-outline-variant/60 p-4">
-        <div className="flex h-full min-h-0 flex-col justify-between gap-3">
-          <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
-          </h3>
-          <p className="text-label-sm text-on-surface-variant">
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
             {analysis.missing === "USER_DATE_OF_BIRTH" &&
-              "Add USER_DATE_OF_BIRTH=YYYY-MM-DD to .env.local for your age‑35 deadline and progress."}
+              "Add USER_DATE_OF_BIRTH=YYYY-MM-DD to .env.local for your age-35 deadline."}
             {analysis.missing === "FX_RATE" &&
-              "Add EXCHANGERATE_API_KEY (https://www.exchangerate-api.com/docs/standard-requests). Rates are cached in Postgres for 24h—run db/schema.sql and set DATABASE_URL. Or set USD_VND_RATE for a manual VND-per-USD override."}
+              "Add EXCHANGERATE_API_KEY for FX rates. Rates are cached in Postgres for 24h."}
           </p>
-        </div>
+        </CardContent>
       </Card>
     );
   }
 
   if (analysis.kind === "achieved") {
     return (
-      <Card className="h-full border border-outline-variant/60 p-4">
-        <div className="flex h-full min-h-0 flex-col justify-between gap-2">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-              {goalTitle} by age {MILESTONE_TARGET_AGE}
-            </h3>
-            <span
-              className={cn(
-                "inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
-                feasibilityChipClass("achieved"),
-              )}
-              title="Net worth already meets the converted target."
-            >
-              <MaterialIcon name={feasibilityIcon("achieved")} size={14} className="shrink-0" />
-              <span className="min-w-0 truncate">Target met</span>
-            </span>
-          </div>
-          <p className="text-headline-md font-headline-md leading-tight tracking-tight text-primary tabular-nums">
+      <Card className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {goalTitle} by age {MILESTONE_TARGET_AGE}
+          </CardTitle>
+          <Chip tone="achieved" label="Target met" />
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight">
             {formatVnd(currentNetWorth)}
           </p>
-          <GoalProgressLinear percent={analysis.pct} />
-        </div>
+          <Progress value={analysis.pct} />
+        </CardContent>
       </Card>
     );
   }
 
   if (analysis.kind === "past_deadline") {
     return (
-      <Card className="h-full border border-outline-variant/60 p-4">
-        <div className="flex h-full min-h-0 flex-col justify-between gap-2">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-              {goalTitle} by age {MILESTONE_TARGET_AGE}
-            </h3>
-            <span
-              className={cn(
-                "inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
-                feasibilityChipClass("at_risk"),
-              )}
-              title="The age 35 deadline from your birth date has passed."
-            >
-              <MaterialIcon name={feasibilityIcon("at_risk")} size={14} className="shrink-0" />
-              <span className="min-w-0 truncate">Past milestone</span>
-            </span>
-          </div>
-          <GoalProgressLinear percent={analysis.pct} />
-          <p className="text-label-sm text-on-surface-variant">
-            At deadline you were tracking {analysis.pct}% of {formatVnd(analysis.targetVnd)} (≈ {goalTitle}
-            ).
+      <Card className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {goalTitle} by age {MILESTONE_TARGET_AGE}
+          </CardTitle>
+          <Chip tone="at_risk" label="Past milestone" title="Age 35 deadline passed." />
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <Progress value={analysis.pct} />
+          <p className="text-xs text-muted-foreground">
+            At deadline you were tracking {analysis.pct}% of {formatVnd(analysis.targetVnd)} (≈ {goalTitle}).
           </p>
-        </div>
+        </CardContent>
       </Card>
     );
   }
@@ -324,38 +307,29 @@ export function MillionBy35Card({
   const { tone, label, hint, pct, projectedEndingNetWorth, monthsRemaining } = analysis;
 
   return (
-    <Card className="h-full border border-outline-variant/60 p-4">
-      <div className="flex h-full min-h-0 flex-col justify-between gap-2">
-        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-outline-variant/40 pb-2">
-          <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
-            {goalTitle} by age {MILESTONE_TARGET_AGE}
-          </h3>
-          <span
-            className={cn(
-              "inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
-              feasibilityChipClass(tone),
-            )}
-            title={hint}
-          >
-            <MaterialIcon name={feasibilityIcon(tone)} size={14} className="shrink-0" />
-            <span className="min-w-0 truncate">{label}</span>
-          </span>
-        </div>
-        <p className="text-headline-md font-headline-md leading-tight tracking-tight text-primary tabular-nums">
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+        <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {goalTitle} by age {MILESTONE_TARGET_AGE}
+        </CardTitle>
+        <Chip tone={tone} label={label} title={hint} />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight">
           {formatVnd(currentNetWorth)}
         </p>
-        <p className="text-label-sm text-on-surface-variant tabular-nums">
+        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums">
           Target ≈ {formatVnd(analysis.targetVnd)} ({goalTitle})
         </p>
-        <GoalProgressLinear percent={pct} />
-        <p className="text-label-sm text-on-surface-variant">
+        <Progress value={pct} />
+        <p className="text-xs text-muted-foreground">
           Projected at {MILESTONE_TARGET_AGE}:{" "}
-          <span className="font-data-tabular font-semibold text-primary tabular-nums">
+          <span className="font-semibold text-foreground font-data-tabular tabular-nums">
             {formatVnd(projectedEndingNetWorth)}
-          </span>
-          <span className="text-on-surface-variant"> · {monthsRemaining.toFixed(1)} mo left</span>
+          </span>{" "}
+          · {monthsRemaining.toFixed(1)} mo left
         </p>
-      </div>
+      </CardContent>
     </Card>
   );
 }

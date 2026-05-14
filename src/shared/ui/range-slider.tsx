@@ -1,12 +1,9 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Slider from "@mui/material/Slider";
-import Typography from "@mui/material/Typography";
-import type { ReactNode } from "react";
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 
-import { cn } from "@/shared/lib";
+import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 
 type RangeSliderProps = {
   label: string;
@@ -34,39 +31,31 @@ export function RangeSlider({
   className,
 }: RangeSliderProps) {
   const labelId = useId();
-  const sliderId = useId();
 
   return (
-    <Box className={cn("flex flex-col gap-2", className)}>
-      <div className="flex justify-between items-center gap-2">
-        <Typography
-          id={labelId}
-          component="span"
-          className="text-label-sm font-label-sm text-on-surface-variant"
-        >
+    <div className={cn("flex flex-col gap-2", className)}>
+      <div className="flex items-center justify-between gap-2">
+        <span id={labelId} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
-        </Typography>
-        <span className="text-data-tabular font-data-tabular text-on-surface font-bold">
+        </span>
+        <span className="text-sm font-semibold font-data-tabular text-foreground">
           {format ? format(value) : value}
         </span>
       </div>
       <Slider
-        id={sliderId}
         aria-labelledby={labelId}
-        value={value}
+        value={[value]}
         min={min}
         max={max}
         step={step}
-        onChange={(_, v) => onChange(v as number)}
-        color="secondary"
-        size="medium"
+        onValueChange={(v) => onChange(v[0] ?? min)}
       />
       {(minLabel || maxLabel) && (
-        <div className="flex justify-between text-xs text-on-surface-variant font-data-tabular">
+        <div className="flex justify-between text-xs text-muted-foreground font-data-tabular">
           <span>{minLabel}</span>
           <span>{maxLabel}</span>
         </div>
       )}
-    </Box>
+    </div>
   );
 }

@@ -1,6 +1,10 @@
-import { cn } from "@/shared/lib";
+"use client";
+
+import { Plus, Trash2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { GOAL_PLAN_NEW_SENTINEL, type GoalProfile } from "@/shared/storage";
-import { Button, MaterialIcon } from "@/shared/ui";
 
 type SavedProfilesStripProps = {
   profiles: GoalProfile[];
@@ -20,27 +24,25 @@ export function SavedProfilesStrip({
   const isComposingNew = activeId === GOAL_PLAN_NEW_SENTINEL;
 
   return (
-    <div className="mb-stack-lg flex flex-col gap-stack-sm sm:flex-row sm:items-center sm:gap-stack-md">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-label-sm font-label-sm text-on-surface-variant whitespace-nowrap">
+        <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Saved plans
         </span>
         <Button
           type="button"
-          variant="outline-secondary"
+          variant="outline"
           size="sm"
-          startIcon={<MaterialIcon name="add" />}
           disabled={isComposingNew}
           onClick={onNew}
         >
+          <Plus className="size-4" />
           New plan
         </Button>
       </div>
-      <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-hide sm:flex-1 sm:pb-0">
+      <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-1 sm:pb-0">
         {profiles.length === 0 && !isComposingNew ? (
-          <p className="text-label-sm text-on-surface-variant">
-            None saved — use New plan, then Save.
-          </p>
+          <p className="text-xs text-muted-foreground">None saved — use New plan, then Save.</p>
         ) : null}
         {profiles.map((p) => {
           const isActive = p.id === activeId;
@@ -48,19 +50,17 @@ export function SavedProfilesStrip({
             <div
               key={p.id}
               className={cn(
-                "flex max-w-full items-center gap-1.5 rounded-full border border-outline-variant px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5",
+                "flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5",
                 isActive
-                  ? "bg-surface-container-high"
-                  : "bg-surface-container opacity-70",
+                  ? "bg-accent border-border"
+                  : "bg-muted/30 border-border/60 opacity-70",
               )}
             >
-              <span className="min-w-0 truncate text-body-md font-medium text-on-surface">
-                {p.name}
-              </span>
+              <span className="min-w-0 truncate text-sm font-medium">{p.name}</span>
               <button
                 type="button"
                 onClick={() => onLoad(p.id)}
-                className="shrink-0 text-secondary font-label-sm text-label-sm hover:underline"
+                className="shrink-0 text-xs font-semibold text-primary hover:underline"
               >
                 Load
               </button>
@@ -68,15 +68,15 @@ export function SavedProfilesStrip({
                 type="button"
                 aria-label={`Delete ${p.name}`}
                 onClick={() => onDelete(p.id)}
-                className="shrink-0 rounded p-0.5 text-on-surface-variant hover:bg-surface-container-high hover:text-error"
+                className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-destructive"
               >
-                <MaterialIcon name="delete" />
+                <Trash2 className="size-3.5" />
               </button>
             </div>
           );
         })}
         {isComposingNew ? (
-          <span className="rounded-full border border-dashed border-secondary px-3 py-1.5 text-body-sm font-medium text-secondary">
+          <span className="rounded-full border border-dashed border-primary px-3 py-1.5 text-xs font-medium text-primary">
             New plan (unsaved)
           </span>
         ) : null}

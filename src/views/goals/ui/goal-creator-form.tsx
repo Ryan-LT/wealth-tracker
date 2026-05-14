@@ -1,18 +1,16 @@
 "use client";
 
+import { Pencil } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs from "dayjs";
-
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
-  cn,
   effectiveGoalSeedLineAmount,
   formatDisplayDate,
   formatVnd,
@@ -21,30 +19,19 @@ import {
   type GoalStartingOption,
 } from "@/shared/lib";
 import type { GoalCheckpoint, GoalProfile, GoalSeedLine } from "@/shared/storage";
-import { Button, Card, MoneyInput, MaterialIcon } from "@/shared/ui";
+import { MoneyInput } from "@/shared/ui";
 
 import { CheckpointsModal } from "./checkpoints-modal";
 import { StartingBalancesModal } from "./starting-balances-modal";
 
 type GoalCreatorFormProps = {
   profile: GoalProfile;
-  /** All saved plans (excluding this draft's lines, which come from `profile`). */
   savedPlans: GoalProfile[];
   seedOptions: GoalStartingOption[];
   monthlyIncomeTotal: number;
   onChange: (next: GoalProfile) => void;
   onSimulate: () => void;
   onSave: () => void;
-};
-
-const labelSx = {
-  "& .MuiInputLabel-root": {
-    fontSize: "0.75rem",
-    fontWeight: 600,
-    letterSpacing: "0.05em",
-    textTransform: "uppercase" as const,
-    color: "var(--color-on-surface-variant)",
-  },
 };
 
 export function GoalCreatorForm({
@@ -66,10 +53,7 @@ export function GoalCreatorForm({
     [lines, seedOptions, savedPlans, profile],
   );
 
-  const checkpoints = useMemo(
-    () => profile.checkpoints ?? [],
-    [profile.checkpoints],
-  );
+  const checkpoints = useMemo(() => profile.checkpoints ?? [], [profile.checkpoints]);
 
   const sortedCheckpointsDisplay = useMemo(() => {
     return [...checkpoints]
@@ -93,28 +77,29 @@ export function GoalCreatorForm({
   }
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Card className="p-stack-md">
-        <h3 className="text-headline-md text-headline-md text-on-surface mb-stack-sm border-b border-outline-variant pb-2">
-          Plan setup
-        </h3>
+    <Card>
+      <CardHeader className="border-b pb-3">
+        <CardTitle className="text-base font-semibold">Plan setup</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4">
         <form
-          className="flex flex-col gap-stack-md mt-4"
+          className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
             onSimulate();
           }}
         >
-          <TextField
-            id="goal-name"
-            label="Plan name"
-            placeholder="e.g., Vacation Home"
-            value={profile.name}
-            onChange={(e) => onChange({ ...profile, name: e.target.value })}
-            size="small"
-            fullWidth
-            sx={labelSx}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="goal-name" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Plan name
+            </Label>
+            <Input
+              id="goal-name"
+              placeholder="e.g., Vacation Home"
+              value={profile.name}
+              onChange={(e) => onChange({ ...profile, name: e.target.value })}
+            />
+          </div>
 
           <MoneyInput
             label="Target Amount (₫)"
@@ -123,54 +108,50 @@ export function GoalCreatorForm({
             placeholder="0"
           />
 
-          <DatePicker
-            label="Target Date"
-            value={profile.targetDate ? dayjs(profile.targetDate) : null}
-            onChange={(next) =>
-              onChange({
-                ...profile,
-                targetDate:
-                  next && next.isValid() ? next.format("YYYY-MM-DD") : "",
-              })
-            }
-            format="DD/MM/YYYY"
-            slotProps={{
-              textField: {
-                id: "goal-target-date",
-                size: "small",
-                fullWidth: true,
-                sx: labelSx,
-              },
-            }}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="goal-target-date" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Target Date
+            </Label>
+            <Input
+              id="goal-target-date"
+              type="date"
+              value={profile.targetDate || ""}
+              onChange={(e) =>
+                onChange({
+                  ...profile,
+                  targetDate: e.target.value,
+                })
+              }
+            />
+          </div>
 
-          <div className="min-w-0 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
+          <div className="min-w-0 rounded-lg border bg-muted/30 px-3 py-3">
             <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
-              <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Checkpoints
               </p>
               <Button
                 type="button"
-                variant="outline-secondary"
+                variant="outline"
                 size="sm"
-                startIcon={<MaterialIcon name="edit" />}
                 onClick={() => setCheckpointsOpen(true)}
               >
+                <Pencil className="size-3.5" />
                 Configure
               </Button>
             </div>
             {sortedCheckpointsDisplay.length === 0 ? (
-              <p className="mb-2 rounded-md border border-dashed border-outline-variant bg-surface-container-low px-2 py-2 text-center text-label-sm text-on-surface-variant">
+              <p className="mb-2 rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
                 No checkpoints — open Configure
               </p>
             ) : (
               <>
-                <div className="mb-1 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 border-b border-outline-variant/50 px-2 pb-1 text-label-sm font-semibold uppercase tracking-wide text-on-surface-variant sm:gap-x-3 sm:px-3">
+                <div className="mb-1 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 border-b border-border/50 px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:gap-x-3 sm:px-3">
                   <span className="min-w-0">Date</span>
                   <span className="min-w-0 text-end">Payment</span>
                   <span className="min-w-0 text-end">Due</span>
                 </div>
-                <ul className="mb-3 min-w-0 divide-y divide-outline-variant/60 overflow-x-auto rounded-md border border-outline-variant bg-surface-container-lowest">
+                <ul className="mb-3 min-w-0 divide-y divide-border/60 overflow-x-auto rounded-md border bg-card">
                   {sortedCheckpointsDisplay.map((cp, idx) => {
                     const running = sortedCheckpointsDisplay
                       .slice(0, idx + 1)
@@ -178,15 +159,15 @@ export function GoalCreatorForm({
                     return (
                       <li
                         key={cp.id}
-                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-2 px-2 py-2.5 sm:gap-x-3 sm:px-3"
+                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-2 px-2 py-2 sm:gap-x-3 sm:px-3 text-sm"
                       >
-                        <span className="min-w-0 font-body-md text-on-surface tabular-nums">
+                        <span className="min-w-0 font-data-tabular tabular-nums">
                           {formatDisplayDate(cp.date)}
                         </span>
-                        <span className="min-w-0 break-all text-end font-data-tabular text-data-tabular text-secondary">
+                        <span className="min-w-0 break-all text-end font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
                           {formatVnd(cp.amount)}
                         </span>
-                        <span className="min-w-0 break-all text-end font-data-tabular text-data-tabular text-on-surface">
+                        <span className="min-w-0 break-all text-end font-data-tabular tabular-nums">
                           {formatVnd(running)}
                         </span>
                       </li>
@@ -206,30 +187,28 @@ export function GoalCreatorForm({
 
           <div>
             <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
-              <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Starting balances
               </p>
               <Button
                 type="button"
-                variant="outline-secondary"
+                variant="outline"
                 size="sm"
-                startIcon={<MaterialIcon name="edit" />}
                 onClick={() => setStartingBalancesOpen(true)}
               >
+                <Pencil className="size-3.5" />
                 Configure
               </Button>
             </div>
 
             {lines.length === 0 ? (
-              <p className="mb-2 rounded-md border border-dashed border-outline-variant bg-surface-container-low px-2 py-2 text-center text-label-sm text-on-surface-variant">
+              <p className="mb-2 rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
                 No sources — open Configure
               </p>
             ) : (
-              <ul className="mb-3 divide-y divide-outline-variant/60 rounded-md border border-outline-variant bg-surface-container-lowest">
+              <ul className="mb-3 divide-y divide-border/60 rounded-md border bg-card">
                 {lines.map((line) => {
-                  const cat = seedOptions.find(
-                    (o) => o.key === line.sourceKey,
-                  )?.category;
+                  const cat = seedOptions.find((o) => o.key === line.sourceKey)?.category;
                   const effective = effectiveGoalSeedLineAmount(
                     line,
                     seedOptions,
@@ -241,14 +220,14 @@ export function GoalCreatorForm({
                       key={line.id}
                       className="flex items-center justify-between gap-3 px-3 py-2.5"
                     >
-                      <div className="min-w-0 flex flex-wrap items-center gap-2">
-                        <span className="truncate font-body-md font-medium text-on-surface">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <span className="truncate text-sm font-medium">
                           {labelForSeedLine(line, seedOptions)}
                         </span>
                         {cat ? (
                           <span
                             className={cn(
-                              "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
+                              "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
                               assetCategoryBadgeClassNames(cat),
                             )}
                           >
@@ -256,7 +235,7 @@ export function GoalCreatorForm({
                           </span>
                         ) : null}
                       </div>
-                      <span className="shrink-0 font-data-tabular text-data-tabular text-secondary">
+                      <span className="shrink-0 text-sm font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
                         {formatVnd(effective)}
                       </span>
                     </li>
@@ -265,11 +244,11 @@ export function GoalCreatorForm({
               </ul>
             )}
 
-            <div className="rounded-md border border-outline-variant bg-surface-container-low px-3 py-2">
-              <span className="font-label-sm text-label-sm uppercase text-on-surface-variant">
+            <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Combined allocated starting
               </span>
-              <span className="ml-2 font-data-tabular text-data-tabular text-primary">
+              <span className="ml-2 font-data-tabular tabular-nums font-semibold">
                 {formatVnd(combinedStarting)}
               </span>
             </div>
@@ -284,66 +263,44 @@ export function GoalCreatorForm({
             onApply={applyStartingBalances}
           />
 
-          <div className="rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3">
+          <div className="rounded-lg border bg-muted/30 px-3 py-3">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Monthly income (from settings)
                 </p>
                 <p
                   className={cn(
-                    "mt-1 font-data-tabular text-data-tabular text-secondary text-lg",
+                    "mt-1 text-lg font-semibold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400",
                     profile.includeMonthlyIncome === false && "opacity-45",
                   )}
                 >
                   {formatVnd(monthlyIncomeTotal)}{" "}
-                  <span className="text-body-md text-on-surface-variant">
-                    / month
-                  </span>
+                  <span className="text-sm text-muted-foreground">/ month</span>
                 </p>
               </div>
-              <FormControlLabel
-                className="m-0 shrink-0"
-                control={
-                  <Switch
-                    size="small"
-                    checked={profile.includeMonthlyIncome !== false}
-                    onChange={(_, checked) =>
-                      onChange({ ...profile, includeMonthlyIncome: checked })
-                    }
-                  />
-                }
-                label="Include in projection"
-                labelPlacement="start"
-                sx={{
-                  marginRight: 0,
-                  marginLeft: 0,
-                  gap: 1,
-                  "& .MuiFormControlLabel-label": {
-                    fontSize: "0.8125rem",
-                    fontWeight: 500,
-                    color: "var(--color-on-surface)",
-                  },
-                }}
-              />
+              <label className="flex shrink-0 items-center gap-2 text-sm">
+                <span>Include in projection</span>
+                <Switch
+                  checked={profile.includeMonthlyIncome !== false}
+                  onCheckedChange={(checked) =>
+                    onChange({ ...profile, includeMonthlyIncome: checked })
+                  }
+                />
+              </label>
             </div>
           </div>
 
-          <div className="pt-2 flex flex-col gap-2">
-            <Button type="submit" block>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button type="submit" className="w-full">
               Update projection
             </Button>
-            <Button
-              type="button"
-              variant="outline-secondary"
-              block
-              onClick={onSave}
-            >
+            <Button type="button" variant="outline" className="w-full" onClick={onSave}>
               Save plan
             </Button>
           </div>
         </form>
-      </Card>
-    </LocalizationProvider>
+      </CardContent>
+    </Card>
   );
 }

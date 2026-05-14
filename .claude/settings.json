@@ -15,7 +15,16 @@
       "Bash(pnpm lint *)",
       "Bash(npx tsc *)",
       "Bash(xargs sed -i '' 's|@mui/material/button|@mui/material/Button|g')",
-      "Bash(xargs sed -i '' 's|@mui/material/icon-button|@mui/material/IconButton|g')"
+      "Bash(xargs sed -i '' 's|@mui/material/icon-button|@mui/material/IconButton|g')",
+      "Bash(xargs ls -la)",
+      "Bash(find /Users/ryanle/Desktop/source_code/personal/shadcn-admin -type f -name \"package.json\" | head -5)",
+      "Read(//Users/ryanle/Desktop/source_code/personal/shadcn-admin/**)",
+      "Bash(grep -E \"\\\\.tsx?$\")",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"GET / → %{http_code}\\\\nGET /login → \" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\nGET /loans → \" http://localhost:3000/login)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/loans)"
     ],
     "additionalDirectories": [
       "/tmp",

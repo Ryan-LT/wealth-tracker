@@ -2,6 +2,11 @@
 
 import { useCallback, useMemo, useState } from "react";
 
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { ProfileDropdown } from "@/components/layout/profile-dropdown";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { Separator } from "@/components/ui/separator";
 import {
   buildGoalStartingOptions,
   clampSeedLinesToAllocationPool,
@@ -74,9 +79,7 @@ export function GoalsPage() {
     () => buildGoalStartingOptions(assets, settingsAssets),
     [assets, settingsAssets],
   );
-
   const seedKeySet = useMemo(() => new Set(seedOptions.map((o) => o.key)), [seedOptions]);
-
   const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
 
   const [draft, setDraft] = useState<GoalProfile>(() =>
@@ -220,25 +223,34 @@ export function GoalsPage() {
 
   return (
     <>
-      <main className="flex w-full min-w-0 flex-1 flex-col md:min-h-screen">
-        <div className="border-b border-outline-variant/70 px-margin-mobile pt-10 py-stack-md md:px-stack-lg">
-          <header className="mb-stack-md">
-            <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
-              Goal Plan
-            </h2>
-          </header>
+      <Header fixed>
+        <h1 className="text-base font-medium">Goal Plan</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
 
-          <SavedProfilesStrip
-            profiles={goals.profiles}
-            activeId={goals.activeProfileId}
-            onLoad={loadProfile}
-            onNew={startNewPlan}
-            onDelete={deletePlan}
-          />
+      <Main>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold tracking-tight">Goal Plan</h1>
+          <p className="text-sm text-muted-foreground">
+            Set a target, allocate starting balances, and track feasibility.
+          </p>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 items-start gap-stack-md lg:grid-cols-12 lg:gap-0">
-          <div className="flex min-h-0 w-full flex-col gap-stack-md border-outline-variant px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-4 lg:border-r">
+        <SavedProfilesStrip
+          profiles={goals.profiles}
+          activeId={goals.activeProfileId}
+          onLoad={loadProfile}
+          onNew={startNewPlan}
+          onDelete={deletePlan}
+        />
+
+        <Separator className="my-4" />
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <div className="flex flex-col gap-4 lg:col-span-4">
             <GoalCreatorForm
               profile={draft}
               savedPlans={goals.profiles}
@@ -258,7 +270,7 @@ export function GoalsPage() {
               note={note}
             />
           </div>
-          <div className="flex w-full min-w-0 flex-col gap-stack-md px-margin-mobile py-stack-lg md:px-stack-lg lg:col-span-8">
+          <div className="flex min-w-0 flex-col gap-4 lg:col-span-8">
             <ProjectionTimelineChart
               targetAmount={draft.targetAmount}
               startingAmount={startingBalance}
@@ -269,7 +281,7 @@ export function GoalsPage() {
             />
           </div>
         </div>
-      </main>
+      </Main>
     </>
   );
 }

@@ -1,13 +1,36 @@
 "use client";
 
-import MuiButton from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import MenuItem from "@mui/material/MenuItem";
-import TextField from "@mui/material/TextField";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type { PersonalLoan, PersonalLoanDirection } from "@/shared/storage";
 import { MoneyInput } from "@/shared/ui";
 
@@ -20,88 +43,219 @@ type LoanDialogProps = {
   onSave: () => void;
 };
 
+const schema = z.object({
+  direction: z.enum(["lent_out", "borrowed"]),
+  person: z.string().min(1, "Person is required"),
+  amount: z.number().nonnegative(),
+  date: z.string().optional(),
+  status: z.enum(["open", "settled"]),
+  note: z.string().optional(),
+});
+
+type LoanFormValues = z.infer<typeof schema>;
+
 export function LoanDialog({ open, mode, draft, onChange, onClose, onSave }: LoanDialogProps) {
-  const safeDraft = draft;
+  const form = useForm<LoanFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      direction: draft?.direction ?? "lent_out",
+      person: draft?.person ?? "",
+      amount: draft?.amount ?? 0,
+      date: draft?.date ?? "",
+      status: draft?.status ?? "open",
+      note: draft?.note ?? "",
+    },
+  });
+
+  useEffect(() => {
+    if (open && draft) {
+      form.reset({
+        direction: draft.direction,
+        person: draft.person,
+        amount: draft.amount,
+        date: draft.date ?? "",
+        status: draft.status,
+        note: draft.note ?? "",
+      });
+    }
+  }, [open, draft, form]);
 
   function patch(partial: Partial<PersonalLoan>) {
-    if (!safeDraft) return;
-    onChange({ ...safeDraft, ...partial });
+    if (!draft) return;
+    onChange({ ...draft, ...partial });
+  }
+
+  function onSubmit(values: LoanFormValues) {
+    if (!draft) return;
+    onChange({
+      ...draft,
+      direction: values.direction,
+      person: values.person,
+      amount: values.amount,
+      date: values.date || undefined,
+      status: values.status,
+      note: values.note || undefined,
+    });
+    onSave();
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{mode === "create" ? "Add loan note" : "Edit loan note"}</DialogTitle>
-      <DialogContent className="flex flex-col gap-3 pt-1">
-        <TextField
-          select
-          margin="dense"
-          label="Direction"
-          fullWidth
-          value={safeDraft?.direction ?? "lent_out"}
-          onChange={(e) =>
-            patch({ direction: e.target.value as PersonalLoanDirection })
-          }
-          helperText="“Owed to you” means you lent the money. “You owe” means you borrowed."
-        >
-          <MenuItem value="lent_out">Owed to you (you lent it)</MenuItem>
-          <MenuItem value="borrowed">You owe (you borrowed)</MenuItem>
-        </TextField>
-        <TextField
-          autoFocus
-          margin="dense"
-          label="Person"
-          placeholder="e.g. Anh Minh, Mom, John"
-          fullWidth
-          value={safeDraft?.person ?? ""}
-          onChange={(e) => patch({ person: e.target.value })}
-        />
-        <MoneyInput
-          margin="dense"
-          label="Amount (₫)"
-          value={safeDraft?.amount ?? 0}
-          min={0}
-          onChange={(amount) => patch({ amount })}
-        />
-        <TextField
-          type="date"
-          margin="dense"
-          label="Date"
-          fullWidth
-          value={safeDraft?.date ?? ""}
-          onChange={(e) => patch({ date: e.target.value || undefined })}
-          slotProps={{ inputLabel: { shrink: true } }}
-          helperText="When the loan happened (optional)."
-        />
-        <TextField
-          select
-          margin="dense"
-          label="Status"
-          fullWidth
-          value={safeDraft?.status ?? "open"}
-          onChange={(e) =>
-            patch({ status: e.target.value === "settled" ? "settled" : "open" })
-          }
-        >
-          <MenuItem value="open">Open</MenuItem>
-          <MenuItem value="settled">Settled</MenuItem>
-        </TextField>
-        <TextField
-          margin="dense"
-          label="Note (optional)"
-          placeholder="What it was for, expected return, etc."
-          fullWidth
-          multiline
-          minRows={2}
-          value={safeDraft?.note ?? ""}
-          onChange={(e) => patch({ note: e.target.value })}
-        />
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{mode === "create" ? "Add loan note" : "Edit loan note"}</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form className="flex flex-col gap-3" onSubmit={form.handleSubmit(onSubmit)}>
+            <FormField
+              control={form.control}
+              name="direction"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Direction</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(v) => {
+                      field.onChange(v);
+                      patch({ direction: v as PersonalLoanDirection });
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="lent_out">Owed to you (you lent it)</SelectItem>
+                      <SelectItem value="borrowed">You owe (you borrowed)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    “Owed to you” means you lent the money. “You owe” means you borrowed.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="person"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Person</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. Anh Minh, Mom, John"
+                      autoFocus
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        patch({ person: e.target.value });
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount (₫)</FormLabel>
+                  <FormControl>
+                    <MoneyInput
+                      value={field.value}
+                      onChange={(amount) => {
+                        field.onChange(amount);
+                        patch({ amount });
+                      }}
+                      min={0}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        patch({ date: e.target.value || undefined });
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>When the loan happened (optional).</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(v) => {
+                      field.onChange(v);
+                      patch({ status: v === "settled" ? "settled" : "open" });
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="settled">Settled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="note"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Note (optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="What it was for, expected return, etc."
+                      rows={2}
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        patch({ note: e.target.value });
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit">{mode === "create" ? "Add" : "Save"}</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
-      <DialogActions>
-        <MuiButton onClick={onClose}>Cancel</MuiButton>
-        <MuiButton onClick={onSave} variant="contained">
-          {mode === "create" ? "Add" : "Save"}
-        </MuiButton>
-      </DialogActions>
     </Dialog>
   );
 }

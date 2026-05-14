@@ -1,20 +1,12 @@
-import { cn } from "@/shared/lib";
+import { cn } from "@/lib/utils";
 
 type WealthTrackerLogoProps = {
-  /** Pixel width and height of the mark (square). */
   size?: number;
   className?: string;
-  /**
-   * When true, hides the mark from assistive tech (use beside a visible "WealthTracker" title).
-   */
   decorative?: boolean;
-  /** Short label when `decorative` is false. */
   "aria-label"?: string;
 };
 
-/**
- * Brand mark: rounded tile with an upward wealth trend — matches `app/icon.svg`.
- */
 export function WealthTrackerLogo({
   size = 32,
   className,
@@ -32,15 +24,16 @@ export function WealthTrackerLogo({
       aria-hidden={decorative ? true : undefined}
       aria-label={decorative ? undefined : ariaLabel}
     >
-      <rect width="32" height="32" rx="8" fill="#006C49" />
+      <rect width="32" height="32" rx="8" className="fill-primary" />
       <path
         d="M7 23 L12 17 L17 20 L25 9"
-        stroke="#ffffff"
+        className="stroke-primary-foreground"
         strokeWidth="2.25"
         strokeLinecap="round"
         strokeLinejoin="round"
+        fill="none"
       />
-      <circle cx="25" cy="9" r="2.25" fill="#ffffff" />
+      <circle cx="25" cy="9" r="2.25" className="fill-primary-foreground" />
     </svg>
   );
 }

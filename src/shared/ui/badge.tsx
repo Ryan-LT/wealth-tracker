@@ -1,9 +1,9 @@
 "use client";
 
-import Chip from "@mui/material/Chip";
 import type { ReactNode } from "react";
 
-import { cn } from "@/shared/lib";
+import { Badge as ShadcnBadge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type BadgeTone =
   | "success"
@@ -14,40 +14,16 @@ type BadgeTone =
   | "tag"
   | "danger";
 
-const TONE_SX: Record<
-  BadgeTone,
-  { bgcolor?: string; color?: string; border?: string }
-> = {
-  success: {
-    bgcolor: "rgba(0, 108, 73, 0.1)",
-    color: "var(--color-secondary)",
-  },
-  active: {
-    bgcolor: "var(--color-secondary-container)",
-    color: "var(--color-on-secondary-container)",
-  },
-  passive: {
-    bgcolor: "var(--color-surface-variant)",
-    color: "var(--color-on-surface-variant)",
-  },
-  neutral: {
-    bgcolor: "var(--color-surface-container-high)",
-    color: "var(--color-on-surface-variant)",
-  },
-  subtle: {
-    bgcolor: "var(--color-surface)",
-    color: "var(--color-on-surface-variant)",
-    border: "1px solid var(--color-outline-variant)",
-  },
-  tag: {
-    bgcolor: "var(--color-surface)",
-    color: "var(--color-on-surface-variant)",
-    border: "1px solid var(--color-outline-variant)",
-  },
-  danger: {
-    bgcolor: "var(--color-error-container)",
-    color: "var(--color-on-error-container)",
-  },
+const TONE_CLASSES: Record<BadgeTone, string> = {
+  success:
+    "border-transparent bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  active: "border-transparent bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  passive: "border-transparent bg-muted text-muted-foreground",
+  neutral: "border-transparent bg-muted text-muted-foreground",
+  subtle: "bg-background text-muted-foreground",
+  tag: "bg-background text-muted-foreground",
+  danger:
+    "border-transparent bg-destructive/15 text-destructive",
 };
 
 type BadgeProps = {
@@ -63,32 +39,20 @@ export function Badge({
   className,
   children,
 }: BadgeProps) {
-  const sx = TONE_SX[tone];
+  const variant: "default" | "secondary" | "destructive" | "outline" =
+    tone === "subtle" || tone === "tag" ? "outline" : "secondary";
 
   return (
-    <Chip
-      label={children}
-      size="small"
-      variant={tone === "subtle" || tone === "tag" ? "outlined" : "filled"}
-      className={cn("font-label-sm tracking-wider", className)}
-      sx={{
-        height: "auto",
-        py: 0.25,
-        px: 0.5,
-        "& .MuiChip-label": {
-          px: 0.5,
-          fontSize: "0.75rem",
-          lineHeight: "1rem",
-          textTransform: uppercase ? "uppercase" : "none",
-        },
-        ...sx,
-        ...(tone === "subtle" || tone === "tag"
-          ? {
-              bgcolor: sx.bgcolor,
-              borderColor: "var(--color-outline-variant)",
-            }
-          : {}),
-      }}
-    />
+    <ShadcnBadge
+      variant={variant}
+      className={cn(
+        "rounded-md px-2 py-0.5 text-[11px] font-semibold tracking-wider",
+        uppercase && "uppercase",
+        TONE_CLASSES[tone],
+        className,
+      )}
+    >
+      {children}
+    </ShadcnBadge>
   );
 }

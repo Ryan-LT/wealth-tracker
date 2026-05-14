@@ -1,18 +1,14 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { formatVnd } from "@/shared/lib";
 
 type FinancialSummaryWidgetProps = {
   totalAssets: number;
   totalLiabilities: number;
-  /** Detailed portfolio store (real estate, cash, investments) — still included in net worth. */
   portfolioDetailTotal: number;
-  /** Sum from Asset configuration catalog. */
   assetConfigurationTotal: number;
 };
 
-/**
- * Dark summary panel: asset breakdown and liabilities.
- * Total liabilities should be a positive number — the formatter adds the minus sign.
- */
 export function FinancialSummaryWidget({
   totalAssets,
   totalLiabilities,
@@ -20,37 +16,48 @@ export function FinancialSummaryWidget({
   assetConfigurationTotal,
 }: FinancialSummaryWidgetProps) {
   return (
-    <section className="flex h-full min-h-0 flex-col bg-tertiary-container text-on-tertiary rounded-lg border border-outline-variant/20 p-4 card-elevation">
-      <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-tertiary-container mb-3">
-        Financial summary
-      </h3>
-      <div className="space-y-2 flex-1 text-sm">
-        <div className="flex justify-between items-baseline gap-3">
-          <span className="text-on-tertiary-container/90">Asset configuration</span>
-          <span className="font-data-tabular text-data-tabular font-medium tabular-nums shrink-0">
-            {formatVnd(assetConfigurationTotal)}
-          </span>
-        </div>
-        <div className="flex justify-between items-baseline gap-3">
-          <span className="text-on-tertiary-container/90">Portfolio detail</span>
-          <span className="font-data-tabular text-data-tabular font-medium tabular-nums shrink-0">
-            {formatVnd(portfolioDetailTotal)}
-          </span>
-        </div>
-        <div className="h-px bg-outline-variant/25 w-full my-1" />
-        <div className="flex justify-between items-baseline gap-3">
-          <span className="font-medium text-on-tertiary-container">Total assets</span>
-          <span className="font-data-tabular text-data-tabular font-semibold tabular-nums shrink-0">
-            {formatVnd(totalAssets)}
-          </span>
-        </div>
-        <div className="flex justify-between items-baseline gap-3">
-          <span className="text-on-tertiary-container/90">Liabilities</span>
-          <span className="font-data-tabular text-data-tabular font-medium text-error-container tabular-nums shrink-0">
-            −{formatVnd(totalLiabilities)}
-          </span>
-        </div>
-      </div>
-    </section>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+          Financial summary
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2 text-sm">
+        <Row label="Asset configuration" value={formatVnd(assetConfigurationTotal)} />
+        <Row label="Portfolio detail" value={formatVnd(portfolioDetailTotal)} />
+        <Separator />
+        <Row label="Total assets" value={formatVnd(totalAssets)} emphasized />
+        <Row label="Liabilities" value={`−${formatVnd(totalLiabilities)}`} destructive />
+      </CardContent>
+    </Card>
+  );
+}
+
+function Row({
+  label,
+  value,
+  emphasized,
+  destructive,
+}: {
+  label: string;
+  value: string;
+  emphasized?: boolean;
+  destructive?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className={emphasized ? "font-medium text-foreground" : "text-muted-foreground"}>
+        {label}
+      </span>
+      <span
+        className={[
+          "font-data-tabular tabular-nums shrink-0",
+          emphasized ? "font-semibold text-foreground" : "font-medium",
+          destructive ? "text-destructive" : "",
+        ].join(" ")}
+      >
+        {value}
+      </span>
+    </div>
   );
 }

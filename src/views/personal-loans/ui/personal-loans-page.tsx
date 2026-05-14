@@ -1,14 +1,24 @@
 "use client";
 
+import { Info, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import MuiButton from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-
+import { Header } from "@/components/layout/header";
+import { Main } from "@/components/layout/main";
+import { ProfileDropdown } from "@/components/layout/profile-dropdown";
+import { ThemeSwitch } from "@/components/theme-switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatVnd } from "@/shared/lib";
 import {
   PERSONAL_LOANS_SEED,
@@ -16,7 +26,6 @@ import {
   type PersonalLoan,
   type PersonalLoanDirection,
 } from "@/shared/storage";
-import { Button, Card, MaterialIcon, SectionHeader } from "@/shared/ui";
 
 import { LoanCard } from "./loan-card";
 import { LoanDialog } from "./loan-dialog";
@@ -135,116 +144,137 @@ export function PersonalLoansPage() {
   }
 
   return (
-    <main className="flex w-full min-w-0 flex-1 flex-col overflow-y-auto bg-background pb-24 pt-stack-lg max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
-      <header className="mb-stack-md">
-        <h1 className="font-headline-lg text-headline-lg text-primary">Personal loans</h1>
-        <p className="mt-2 max-w-3xl text-body-md text-on-surface-variant">
-          A side notebook for informal money loans between you and other people.{" "}
-          <strong className="text-on-surface">These entries are not counted</strong> in net worth,
-          allocations, goal plans, or any other calculation — they live here purely as a reminder.
-        </p>
-      </header>
+    <>
+      <Header fixed>
+        <h1 className="text-base font-medium">Personal loans</h1>
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeSwitch />
+          <ProfileDropdown />
+        </div>
+      </Header>
 
-      <div className="flex flex-col gap-stack-lg">
-        <Card variant="section" className="p-6">
-          <SectionHeader
-            title="Owed to you"
-            subtitle="People who owe you money"
-            end={
+      <Main>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold tracking-tight">Personal loans</h1>
+          <p className="text-sm text-muted-foreground max-w-3xl">
+            A side notebook for informal money loans.{" "}
+            <strong className="text-foreground">These entries are not counted</strong> in net worth,
+            allocations, goal plans, or any other calculation.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 border-b">
+              <div>
+                <CardTitle className="text-base">Owed to you</CardTitle>
+                <CardDescription>People who owe you money</CardDescription>
+              </div>
               <div className="flex flex-col items-end gap-2">
-                <p className="font-data-tabular text-data-tabular text-lg font-semibold text-secondary">
+                <p className="text-lg font-semibold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
                   {formatVnd(totalOpenLentOut)}
                 </p>
-                <Button type="button" onClick={() => openCreate("lent_out")}>
+                <Button type="button" size="sm" onClick={() => openCreate("lent_out")}>
+                  <Plus className="size-4" />
                   Add
                 </Button>
               </div>
-            }
-          />
-          {lentOut.length === 0 ? (
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              Nothing here yet. Use “Add” to log money you lent to someone.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-stack-sm md:grid-cols-2">
-              {lentOut.map((loan) => (
-                <LoanCard
-                  key={loan.id}
-                  loan={loan}
-                  onEdit={() => openEdit(loan)}
-                  onDelete={() => requestDelete(loan)}
-                  onToggleSettled={() => toggleSettled(loan)}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {lentOut.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nothing here yet. Use “Add” to log money you lent to someone.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {lentOut.map((loan) => (
+                    <LoanCard
+                      key={loan.id}
+                      loan={loan}
+                      onEdit={() => openEdit(loan)}
+                      onDelete={() => requestDelete(loan)}
+                      onToggleSettled={() => toggleSettled(loan)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card variant="section" className="p-6">
-          <SectionHeader
-            title="You owe"
-            subtitle="Money you borrowed from people"
-            end={
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 border-b">
+              <div>
+                <CardTitle className="text-base">You owe</CardTitle>
+                <CardDescription>Money you borrowed from people</CardDescription>
+              </div>
               <div className="flex flex-col items-end gap-2">
-                <p className="font-data-tabular text-data-tabular text-lg font-semibold text-error">
+                <p className="text-lg font-semibold font-data-tabular tabular-nums text-destructive">
                   {formatVnd(totalOpenBorrowed)}
                 </p>
-                <Button type="button" onClick={() => openCreate("borrowed")}>
+                <Button type="button" size="sm" onClick={() => openCreate("borrowed")}>
+                  <Plus className="size-4" />
                   Add
                 </Button>
               </div>
-            }
-          />
-          {borrowed.length === 0 ? (
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              Nothing here yet. Use “Add” to log money you borrowed from someone.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-stack-sm md:grid-cols-2">
-              {borrowed.map((loan) => (
-                <LoanCard
-                  key={loan.id}
-                  loan={loan}
-                  onEdit={() => openEdit(loan)}
-                  onDelete={() => requestDelete(loan)}
-                  onToggleSettled={() => toggleSettled(loan)}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {borrowed.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nothing here yet. Use “Add” to log money you borrowed from someone.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {borrowed.map((loan) => (
+                    <LoanCard
+                      key={loan.id}
+                      loan={loan}
+                      onEdit={() => openEdit(loan)}
+                      onDelete={() => requestDelete(loan)}
+                      onToggleSettled={() => toggleSettled(loan)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <p className="flex items-center gap-2 text-label-sm text-on-surface-variant">
-          <MaterialIcon name="info" size={18} />
-          Totals above only include entries marked “Open”.
-        </p>
-      </div>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Info className="size-4" />
+            Totals above only include entries marked “Open”.
+          </p>
+        </div>
 
-      <LoanDialog
-        open={mode !== "idle"}
-        mode={mode === "edit" ? "edit" : "create"}
-        draft={draft}
-        onChange={setDraft}
-        onClose={closeDialog}
-        onSave={saveDialog}
-      />
+        <LoanDialog
+          open={mode !== "idle"}
+          mode={mode === "edit" ? "edit" : "create"}
+          draft={draft}
+          onChange={setDraft}
+          onClose={closeDialog}
+          onSave={saveDialog}
+        />
 
-      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
-        <DialogTitle>Delete loan note?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {pendingDelete
-              ? `Remove the ${formatVnd(pendingDelete.amount)} entry with “${pendingDelete.person}”?`
-              : null}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <MuiButton onClick={() => setDeleteOpen(false)}>Cancel</MuiButton>
-          <MuiButton onClick={confirmDelete} color="error" variant="contained">
-            Delete
-          </MuiButton>
-        </DialogActions>
-      </Dialog>
-    </main>
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete loan note?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {pendingDelete
+                  ? `Remove the ${formatVnd(pendingDelete.amount)} entry with "${pendingDelete.person}"?`
+                  : null}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Main>
+    </>
   );
 }

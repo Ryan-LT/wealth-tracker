@@ -1,21 +1,27 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import MuiButton from "@mui/material/Button";
-import Select from "@mui/material/Select";
-
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
   appendGoalSeedLine,
-  cn,
   effectiveGoalSeedLineAmount,
   formatVnd,
   labelForSeedLine,
@@ -24,7 +30,7 @@ import {
   type GoalStartingOption,
 } from "@/shared/lib";
 import type { GoalProfile, GoalSeedLine } from "@/shared/storage";
-import { Button, MoneyInput, MaterialIcon } from "@/shared/ui";
+import { MoneyInput } from "@/shared/ui";
 
 export type StartingBalancesModalProps = {
   open: boolean;
@@ -99,9 +105,7 @@ export function StartingBalancesModal({
   }
 
   function updateLineAllocation(id: string, amount: number) {
-    setWorkingLines((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, amount } : l)),
-    );
+    setWorkingLines((prev) => prev.map((l) => (l.id === id ? { ...l, amount } : l)));
   }
 
   function handleApply() {
@@ -110,80 +114,73 @@ export function StartingBalancesModal({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" scroll="paper">
-      <DialogTitle className="font-headline-md text-headline-md text-primary border-b border-outline-variant pb-3">
-        Starting balances
-      </DialogTitle>
-      <DialogContent className="flex flex-col gap-stack-md pt-4 max-h-[min(70vh,640px)] overflow-y-auto">
-        <p className="text-label-sm text-on-surface-variant">
-          Per source; caps respect other plans. Custom = extra cash.
-        </p>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Starting balances</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-3 max-h-[min(70vh,600px)] overflow-y-auto">
+          <p className="text-xs text-muted-foreground">
+            Per source; caps respect other plans. Custom = extra cash.
+          </p>
 
-        {workingLines.length === 0 ? (
-          <p className="text-label-sm text-on-surface-variant italic">Add at least one source.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {workingLines.map((line) => (
-              <ModalSeedLineRow
-                key={line.id}
-                line={line}
-                planDraft={planDraft}
-                savedPlans={savedPlans}
-                seedOptions={seedOptions}
-                onRemove={() => removeLine(line.id)}
-                onAllocationChange={(amount) => updateLineAllocation(line.id, amount)}
-              />
-            ))}
-          </ul>
-        )}
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-          <FormControl fullWidth size="small" className="sm:flex-1">
-            <InputLabel id="starting-balances-add-label">Add source</InputLabel>
-            <Select
-              labelId="starting-balances-add-label"
-              label="Add source"
-              value={pendingKey}
-              displayEmpty
-              onChange={(e) => setPendingKey(String(e.target.value))}
-            >
-              {addableOptions.map((o) => (
-                <MenuItem key={o.key} value={o.key}>
-                  <span className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className="truncate">{o.label}</span>
-                    {o.category ? (
-                      <span
-                        className={cn(
-                          "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
-                          assetCategoryBadgeClassNames(o.category),
-                        )}
-                      >
-                        {o.category}
-                      </span>
-                    ) : null}
-                  </span>
-                </MenuItem>
+          {workingLines.length === 0 ? (
+            <p className="text-xs italic text-muted-foreground">Add at least one source.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {workingLines.map((line) => (
+                <ModalSeedLineRow
+                  key={line.id}
+                  line={line}
+                  planDraft={planDraft}
+                  savedPlans={savedPlans}
+                  seedOptions={seedOptions}
+                  onRemove={() => removeLine(line.id)}
+                  onAllocationChange={(amount) => updateLineAllocation(line.id, amount)}
+                />
               ))}
-            </Select>
-          </FormControl>
-          <Button
-            type="button"
-            variant="outline-secondary"
-            className="shrink-0"
-            onClick={addLine}
-          >
-            Add
-          </Button>
+            </ul>
+          )}
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <Select value={pendingKey || undefined} onValueChange={setPendingKey}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Add source" />
+                </SelectTrigger>
+                <SelectContent>
+                  {addableOptions.map((o) => (
+                    <SelectItem key={o.key} value={o.key}>
+                      <span className="flex min-w-0 flex-wrap items-center gap-2">
+                        <span className="truncate">{o.label}</span>
+                        {o.category ? (
+                          <span
+                            className={cn(
+                              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                              assetCategoryBadgeClassNames(o.category),
+                            )}
+                          >
+                            {o.category}
+                          </span>
+                        ) : null}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="button" variant="outline" className="shrink-0" onClick={addLine}>
+              Add
+            </Button>
+          </div>
         </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleApply}>Apply to plan</Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions className="border-t border-outline-variant px-4 py-3 gap-2">
-        <MuiButton onClick={onClose} color="inherit">
-          Cancel
-        </MuiButton>
-        <MuiButton onClick={handleApply} variant="contained" color="secondary">
-          Apply to plan
-        </MuiButton>
-      </DialogActions>
     </Dialog>
   );
 }
@@ -209,9 +206,7 @@ function ModalSeedLineRow({
   const option = seedOptions.find((o) => o.key === line.sourceKey);
   const category = option?.category;
   const live =
-    line.sourceKey !== "custom"
-      ? liveBalanceForSourceKey(line.sourceKey, seedOptions)
-      : 0;
+    line.sourceKey !== "custom" ? liveBalanceForSourceKey(line.sourceKey, seedOptions) : 0;
   const maxAlloc =
     line.sourceKey !== "custom"
       ? maxAllocationForSourceKey(line.sourceKey, seedOptions, savedPlans, planDraft, line.id)
@@ -220,18 +215,14 @@ function ModalSeedLineRow({
   const over = line.sourceKey !== "custom" && line.amount > maxAlloc;
 
   return (
-    <li
-      className={cn(
-        "flex flex-col gap-2 rounded-md border border-outline-variant bg-surface-container-lowest p-3 sm:flex-row sm:items-start sm:justify-between",
-      )}
-    >
+    <li className="flex flex-col gap-2 rounded-md border bg-card p-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <p className="min-w-0 truncate font-body-md font-medium text-on-surface">{title}</p>
+          <p className="min-w-0 truncate text-sm font-medium">{title}</p>
           {category ? (
             <span
               className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-label-sm font-label-sm",
+                "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
                 assetCategoryBadgeClassNames(category),
               )}
             >
@@ -259,21 +250,16 @@ function ModalSeedLineRow({
               max={maxAlloc}
               placeholder="0"
             />
-            <p className="text-label-sm font-label-sm text-on-surface-variant">
+            <p className="text-xs text-muted-foreground">
               Live balance {formatVnd(live)}
               {maxAlloc < live ? (
-                <>
-                  {" "}
-                  · Up to {formatVnd(maxAlloc)} for this plan (other plans reserve the rest)
-                </>
+                <> · Up to {formatVnd(maxAlloc)} for this plan (other plans reserve the rest)</>
               ) : null}
             </p>
-            <p className="font-data-tabular text-data-tabular text-secondary">
+            <p className="text-xs font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
               Counts toward plan: {formatVnd(effective)}
               {over ? (
-                <span className="ml-2 text-label-sm font-label-sm text-error">
-                  (capped — exceeds pool)
-                </span>
+                <span className="ml-2 text-destructive">(capped — exceeds pool)</span>
               ) : null}
             </p>
           </div>
@@ -283,9 +269,9 @@ function ModalSeedLineRow({
         type="button"
         aria-label={`Remove ${title}`}
         onClick={onRemove}
-        className="self-end text-on-surface-variant hover:text-error sm:self-start sm:mt-1"
+        className="self-end rounded p-1 text-muted-foreground hover:text-destructive sm:self-start"
       >
-        <MaterialIcon name="delete" />
+        <Trash2 className="size-4" />
       </button>
     </li>
   );

@@ -15,7 +15,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <>
       <Sidebar />
-      <div className="flex min-h-screen min-w-0 flex-col mt-10 bg-background md:ml-sidebar-width">
+      <div className="flex min-h-screen min-w-0 flex-col bg-background md:ml-sidebar-width">
         {children}
       </div>
       <BottomNav />

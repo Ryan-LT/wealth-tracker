@@ -10,7 +10,7 @@ type FinancialSummaryWidgetProps = {
 };
 
 /**
- * Dark summary panel: asset breakdown and liabilities (net worth lives on NetWorthCard / app bar).
+ * Dark summary panel: asset breakdown and liabilities.
  * Total liabilities should be a positive number — the formatter adds the minus sign.
  */
 export function FinancialSummaryWidget({
@@ -20,7 +20,7 @@ export function FinancialSummaryWidget({
   assetConfigurationTotal,
 }: FinancialSummaryWidgetProps) {
   return (
-    <section className="bg-tertiary-container text-on-tertiary rounded-lg border border-outline-variant/20 p-4 card-elevation flex flex-col">
+    <section className="flex h-full min-h-0 flex-col bg-tertiary-container text-on-tertiary rounded-lg border border-outline-variant/20 p-4 card-elevation">
       <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-tertiary-container mb-3">
         Financial summary
       </h3>

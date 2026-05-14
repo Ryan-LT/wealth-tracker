@@ -16,6 +16,17 @@ export {
   totalGoalStartingBalance,
 } from "./goalSeedLines";
 export { formatVnd, formatThousands } from "./formatVnd";
+export { formatUsd } from "./formatUsd";
+export {
+  DEFAULT_MILESTONE_USD,
+  evaluateMilestone35Feasibility,
+  futureValueWithMonthlyContributions,
+  MILESTONE_TARGET_AGE,
+  monthsBetween,
+  parseIsoDateOnly,
+  thirtyFifthBirthday,
+} from "./milestone35Projection";
+export type { Milestone35Feasibility } from "./milestone35Projection";
 export { formatDisplayDate } from "./formatDate";
 export {
   cumulativeDueScheduleFromCheckpoints,

@@ -7,3 +7,10 @@ export function getSql() {
   }
   return neon(url);
 }
+
+/** When `DATABASE_URL` is unset, FX caching and other optional DB paths can skip gracefully. */
+export function tryGetSql(): ReturnType<typeof neon> | null {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) return null;
+  return neon(url);
+}

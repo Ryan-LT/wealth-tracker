@@ -6,7 +6,6 @@ import {
   buildGoalStartingOptions,
   estimatedMonthlyNetCashflow,
   monthlyIncomeByKind,
-  monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
   syncNetWorthTracking,
   totalAssetValue,
@@ -29,7 +28,7 @@ import {
 } from "@/shared/storage";
 import { FinancialSummaryWidget } from "./FinancialSummaryWidget";
 import { MetricGrid } from "./MetricGrid";
-import { NetWorthCard } from "./NetWorthCard";
+import { MillionBy35Card } from "./MillionBy35Card";
 import { PrimaryGoalCard } from "./PrimaryGoalCard";
 
 export function DashboardPage() {
@@ -58,9 +57,9 @@ export function DashboardPage() {
     return {
       totalAssets: grossAssets,
       totalNetWorth: nw,
-      monthChangePct: monthToDateNetWorthChangePercent(prefs, nw),
       activeIncome: monthlyIncomeByKind(sources, "active"),
       passiveIncome: monthlyIncomeByKind(sources, "passive"),
+      monthlyIncomeTotal: incomeTotal,
       totalDebt: -liabilities,
       eoyProjection: projectNetWorthEndOfYear(nw, prefs, incomeTotal),
       monthlyNet: estimatedMonthlyNetCashflow(prefs, incomeTotal),
@@ -90,7 +89,8 @@ export function DashboardPage() {
   const legacyPrimaryTarget =
     primaryProfile?.targetAmount ?? goals.primary.targetAmount;
   const legacyPrimaryName =
-    (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ?? "Primary Goal";
+    (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ??
+    "Primary Goal";
   const legacySavedTowardPrimary =
     goals.primary.saved > 0
       ? Math.min(goals.primary.saved, legacyPrimaryTarget)
@@ -102,7 +102,12 @@ export function DashboardPage() {
         key: plan.id,
         name: plan.name.trim() || "Untitled plan",
         targetAmount: plan.targetAmount,
-        saved: totalGoalStartingBalance(plan.seedLines, seedOptions, goals.profiles, plan),
+        saved: totalGoalStartingBalance(
+          plan.seedLines,
+          seedOptions,
+          goals.profiles,
+          plan,
+        ),
         savedCaption: "Allocated starting" as const,
         targetDate: plan.targetDate,
         includeMonthlyIncome: plan.includeMonthlyIncome !== false,
@@ -131,20 +136,23 @@ export function DashboardPage() {
 
   return (
     <>
-      <main className="flex w-full min-w-0 flex-1 flex-col pb-20 max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
-        <div className="mb-6 grid grid-cols-1 gap-4 lg:mb-8 lg:grid-cols-12 lg:gap-4">
-          <div className="lg:col-span-4">
-            <NetWorthCard
-              totalNetWorth={summary.totalNetWorth}
-              monthChangePct={summary.monthChangePct}
-            />
-          </div>
-          <div className="lg:col-span-8">
+      <main className="flex w-full min-w-0 flex-1 flex-col py-10 max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:mb-8 lg:grid-cols-2 lg:items-stretch lg:gap-4">
+          <div className="min-h-0 h-full">
             <FinancialSummaryWidget
               totalAssets={financialBreakdown.totalAssets}
               totalLiabilities={financialBreakdown.totalLiabilities}
               portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
-              assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
+              assetConfigurationTotal={
+                financialBreakdown.assetConfigurationTotal
+              }
+            />
+          </div>
+          <div className="min-h-0 h-full">
+            <MillionBy35Card
+              currentNetWorth={summary.totalNetWorth}
+              monthlyNetContribution={summary.monthlyNet}
+              totalMonthlyIncome={summary.monthlyIncomeTotal}
             />
           </div>
         </div>
@@ -153,7 +161,7 @@ export function DashboardPage() {
           <h2 className="mb-3 text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
             Goal plans
           </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 items-stretch sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {goalPlanCards.map((g) => (
               <PrimaryGoalCard
                 key={g.key}

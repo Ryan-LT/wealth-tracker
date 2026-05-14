@@ -21,7 +21,7 @@ export function MetricCard({
   highlight = false,
 }: MetricCardProps) {
   return (
-    <Card className="relative flex flex-col overflow-hidden p-3">
+    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden p-3">
       {highlight ? (
         <div className="absolute right-0 top-0 h-12 w-12 rounded-bl-full bg-secondary/10" />
       ) : null}

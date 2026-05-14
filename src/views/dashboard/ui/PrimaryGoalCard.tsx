@@ -102,7 +102,7 @@ export function PrimaryGoalCard({
   });
 
   return (
-    <Card className="flex flex-col border border-outline-variant/60 p-4">
+    <Card className="flex h-full min-h-0 flex-col border border-outline-variant/60 p-4">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/40 pb-2">
         <span className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">
           {cardLabel}

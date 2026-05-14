@@ -59,7 +59,6 @@ export function DashboardPage() {
       totalNetWorth: nw,
       activeIncome: monthlyIncomeByKind(sources, "active"),
       passiveIncome: monthlyIncomeByKind(sources, "passive"),
-      monthlyIncomeTotal: incomeTotal,
       totalDebt: -liabilities,
       eoyProjection: projectNetWorthEndOfYear(nw, prefs, incomeTotal),
       monthlyNet: estimatedMonthlyNetCashflow(prefs, incomeTotal),
@@ -152,7 +151,6 @@ export function DashboardPage() {
             <MillionBy35Card
               currentNetWorth={summary.totalNetWorth}
               monthlyNetContribution={summary.monthlyNet}
-              totalMonthlyIncome={summary.monthlyIncomeTotal}
             />
           </div>
         </div>

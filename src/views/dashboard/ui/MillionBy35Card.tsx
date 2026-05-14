@@ -45,7 +45,6 @@ type MilestoneConfigResponse = MilestoneConfigOk | MilestoneConfigPartial;
 type MillionBy35CardProps = {
   currentNetWorth: number;
   monthlyNetContribution: number;
-  totalMonthlyIncome: number;
 };
 
 function feasibilityIcon(tone: GoalFeasibilityTone): string {
@@ -113,7 +112,6 @@ function GoalProgressLinear({ percent }: { percent: number }) {
 export function MillionBy35Card({
   currentNetWorth,
   monthlyNetContribution,
-  totalMonthlyIncome,
 }: MillionBy35CardProps) {
   const [config, setConfig] = useState<MilestoneConfigResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -289,9 +287,6 @@ export function MillionBy35Card({
             {formatVnd(currentNetWorth)}
           </p>
           <GoalProgressLinear percent={analysis.pct} />
-          <p className="text-label-sm text-on-surface-variant tabular-nums">
-            Income (mo) {formatVnd(totalMonthlyIncome)} · Net (mo) {formatVnd(monthlyNetContribution)}
-          </p>
         </div>
       </Card>
     );
@@ -359,9 +354,6 @@ export function MillionBy35Card({
             {formatVnd(projectedEndingNetWorth)}
           </span>
           <span className="text-on-surface-variant"> · {monthsRemaining.toFixed(1)} mo left</span>
-        </p>
-        <p className="text-label-sm text-on-surface-variant tabular-nums">
-          Income (mo) {formatVnd(totalMonthlyIncome)} · Net (mo) {formatVnd(monthlyNetContribution)}
         </p>
       </div>
     </Card>

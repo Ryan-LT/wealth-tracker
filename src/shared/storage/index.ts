@@ -1,5 +1,7 @@
 export { readTable, writeTable, useTable } from "./store";
 
+export { TABLE_KEYS, isTableKey, type TableKey } from "./tableKeys";
+
 export { ASSETS_SEED } from "./assets";
 export type { AssetsState, RealEstateProperty, CashAccount, Investment } from "./assets";
 

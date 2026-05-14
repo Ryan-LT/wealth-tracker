@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatVnd } from "@/shared/lib";
 import {
   PERSONAL_LOANS_SEED,
@@ -156,37 +156,34 @@ export function PersonalLoansPage() {
       <Main>
         <div className="mb-4">
           <h1 className="text-2xl font-bold tracking-tight">Personal loans</h1>
-          <p className="text-sm text-muted-foreground max-w-3xl">
-            A side notebook for informal money loans.{" "}
-            <strong className="text-foreground">These entries are not counted</strong> in net worth,
-            allocations, goal plans, or any other calculation.
+          <p className="text-sm text-muted-foreground">
+            A side notebook. <strong className="text-foreground">Not counted</strong> in net worth or any calculation.
           </p>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card>
-            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 border-b">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
               <div>
-                <CardTitle className="text-base">Owed to you</CardTitle>
-                <CardDescription>People who owe you money</CardDescription>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <p className="text-lg font-semibold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
+                <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Owed to you
+                </CardTitle>
+                <p className="mt-1 text-2xl font-bold font-data-tabular tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
                   {formatVnd(totalOpenLentOut)}
                 </p>
-                <Button type="button" size="sm" onClick={() => openCreate("lent_out")}>
-                  <Plus className="size-4" />
-                  Add
-                </Button>
               </div>
+              <Button type="button" size="sm" onClick={() => openCreate("lent_out")}>
+                <Plus className="size-4" />
+                Add
+              </Button>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-2">
               {lentOut.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Nothing here yet. Use “Add” to log money you lent to someone.
+                <p className="text-xs text-muted-foreground">
+                  Nothing here yet. Use “Add” to log money you lent.
                 </p>
               ) : (
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
                   {lentOut.map((loan) => (
                     <LoanCard
                       key={loan.id}
@@ -202,28 +199,27 @@ export function PersonalLoansPage() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 border-b">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
               <div>
-                <CardTitle className="text-base">You owe</CardTitle>
-                <CardDescription>Money you borrowed from people</CardDescription>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <p className="text-lg font-semibold font-data-tabular tabular-nums text-destructive">
+                <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  You owe
+                </CardTitle>
+                <p className="mt-1 text-2xl font-bold font-data-tabular tabular-nums tracking-tight text-destructive">
                   {formatVnd(totalOpenBorrowed)}
                 </p>
-                <Button type="button" size="sm" onClick={() => openCreate("borrowed")}>
-                  <Plus className="size-4" />
-                  Add
-                </Button>
               </div>
+              <Button type="button" size="sm" onClick={() => openCreate("borrowed")}>
+                <Plus className="size-4" />
+                Add
+              </Button>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-2">
               {borrowed.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Nothing here yet. Use “Add” to log money you borrowed from someone.
+                <p className="text-xs text-muted-foreground">
+                  Nothing here yet. Use “Add” to log money you borrowed.
                 </p>
               ) : (
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="flex flex-col gap-2">
                   {borrowed.map((loan) => (
                     <LoanCard
                       key={loan.id}
@@ -237,12 +233,12 @@ export function PersonalLoansPage() {
               )}
             </CardContent>
           </Card>
-
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Info className="size-4" />
-            Totals above only include entries marked “Open”.
-          </p>
         </div>
+
+        <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Info className="size-3.5" />
+          Totals include open entries only.
+        </p>
 
         <LoanDialog
           open={mode !== "idle"}

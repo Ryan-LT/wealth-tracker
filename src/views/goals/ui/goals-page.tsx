@@ -86,6 +86,9 @@ export function GoalsPage() {
     normalizeGoalProfile(resolvePlanEditorProfile(goals), seedKeySet, seedOptions, goals.profiles),
   );
   const [lastLoadedKey, setLastLoadedKey] = useState(goals.activeProfileId);
+  const [editMode, setEditMode] = useState(
+    () => goals.activeProfileId === GOAL_PLAN_NEW_SENTINEL,
+  );
 
   if (lastLoadedKey !== goals.activeProfileId) {
     setLastLoadedKey(goals.activeProfileId);
@@ -97,7 +100,21 @@ export function GoalsPage() {
         goals.profiles,
       ),
     );
+    // New plans auto-enter edit mode; loading a saved plan starts in view mode.
+    setEditMode(goals.activeProfileId === GOAL_PLAN_NEW_SENTINEL);
   }
+
+  const cancelEdit = useCallback(() => {
+    setDraft(
+      normalizeGoalProfile(
+        resolvePlanEditorProfile(goals),
+        seedKeySet,
+        seedOptions,
+        goals.profiles,
+      ),
+    );
+    setEditMode(false);
+  }, [goals, seedKeySet, seedOptions]);
 
   const loadProfile = useCallback(
     (id: string) => setGoals((prev) => ({ ...prev, activeProfileId: id })),
@@ -166,6 +183,7 @@ export function GoalsPage() {
         activeProfileId: id,
       };
     });
+    setEditMode(false);
   }
 
   function simulate() {
@@ -256,9 +274,12 @@ export function GoalsPage() {
               savedPlans={goals.profiles}
               seedOptions={seedOptions}
               monthlyIncomeTotal={incomeMonthly}
+              editMode={editMode}
               onChange={setDraft}
               onSimulate={simulate}
               onSave={saveCurrentSetup}
+              onEnterEdit={() => setEditMode(true)}
+              onCancelEdit={cancelEdit}
             />
             <FeasibilityEngine
               monthlyIncome={effectiveMonthlyIncome}

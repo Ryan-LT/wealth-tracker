@@ -1,7 +1,18 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { FolderOpen, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { GOAL_PLAN_NEW_SENTINEL, type GoalProfile } from "@/shared/storage";
@@ -22,65 +33,105 @@ export function SavedProfilesStrip({
   onDelete,
 }: SavedProfilesStripProps) {
   const isComposingNew = activeId === GOAL_PLAN_NEW_SENTINEL;
+  const [pendingDelete, setPendingDelete] = useState<GoalProfile | null>(null);
+
+  function confirmDelete() {
+    if (pendingDelete) onDelete(pendingDelete.id);
+    setPendingDelete(null);
+  }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Saved plans
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={isComposingNew}
-          onClick={onNew}
-        >
-          <Plus className="size-4" />
-          New plan
-        </Button>
-      </div>
-      <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-1 sm:pb-0">
-        {profiles.length === 0 && !isComposingNew ? (
-          <p className="text-xs text-muted-foreground">None saved — use New plan, then Save.</p>
-        ) : null}
-        {profiles.map((p) => {
-          const isActive = p.id === activeId;
-          return (
-            <div
-              key={p.id}
-              className={cn(
-                "flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5",
-                isActive
-                  ? "bg-accent border-border"
-                  : "bg-muted/30 border-border/60 opacity-70",
-              )}
-            >
-              <span className="min-w-0 truncate text-sm font-medium">{p.name}</span>
-              <button
-                type="button"
-                onClick={() => onLoad(p.id)}
-                className="shrink-0 text-xs font-semibold text-primary hover:underline"
-              >
-                Load
-              </button>
-              <button
-                type="button"
-                aria-label={`Delete ${p.name}`}
-                onClick={() => onDelete(p.id)}
-                className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-destructive"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
-            </div>
-          );
-        })}
-        {isComposingNew ? (
-          <span className="rounded-full border border-dashed border-primary px-3 py-1.5 text-xs font-medium text-primary">
-            New plan (unsaved)
+    <>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Saved plans
           </span>
-        ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isComposingNew}
+            onClick={onNew}
+          >
+            <Plus className="size-4" />
+            New plan
+          </Button>
+        </div>
+        <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-1 sm:pb-0">
+          {profiles.length === 0 && !isComposingNew ? (
+            <p className="text-xs text-muted-foreground">None saved — use New plan, then Save.</p>
+          ) : null}
+          {profiles.map((p) => {
+            const isActive = p.id === activeId;
+            return (
+              <div
+                key={p.id}
+                className={cn(
+                  "flex max-w-full items-center gap-1.5 rounded-full border pl-3 pr-1 py-1 transition-colors",
+                  isActive
+                    ? "bg-primary/10 border-primary/40 text-foreground"
+                    : "bg-card border-border text-muted-foreground",
+                )}
+              >
+                <span className="min-w-0 truncate text-sm font-medium">{p.name}</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={isActive ? "secondary" : "default"}
+                  className="h-7 px-2.5 text-xs"
+                  onClick={() => onLoad(p.id)}
+                  disabled={isActive}
+                  aria-label={`Load ${p.name}`}
+                >
+                  <FolderOpen className="size-3.5" />
+                  {isActive ? "Loaded" : "Load"}
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-7 text-muted-foreground hover:text-destructive"
+                  aria-label={`Delete ${p.name}`}
+                  onClick={() => setPendingDelete(p)}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+            );
+          })}
+          {isComposingNew ? (
+            <span className="rounded-full border border-dashed border-primary px-3 py-1.5 text-xs font-medium text-primary">
+              New plan (unsaved)
+            </span>
+          ) : null}
+        </div>
       </div>
-    </div>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this plan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete
+                ? `"${pendingDelete.name}" will be removed permanently. This cannot be undone.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

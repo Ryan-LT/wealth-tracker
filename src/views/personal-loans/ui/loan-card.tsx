@@ -3,7 +3,7 @@
 import { Check, MoreVertical, Pencil, RotateCcw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,18 +38,13 @@ export function LoanCard({ loan, onEdit, onDelete, onToggleSettled }: LoanCardPr
 
   return (
     <Card className={cn("transition-colors", settled && "opacity-60")}>
-      <CardContent className="p-3">
-        <div className="mb-2 flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h4 className="text-base font-medium leading-tight">{loan.person || "—"}</h4>
-            <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {formatLoanDate(loan.date)}
-            </p>
-          </div>
-          <div className="shrink-0 text-end">
-            <p
+      <div className="flex items-start gap-3 p-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <h4 className="truncate text-sm font-medium leading-tight">{loan.person || "—"}</h4>
+            <span
               className={cn(
-                "text-lg font-semibold font-data-tabular tabular-nums",
+                "shrink-0 text-sm font-semibold font-data-tabular tabular-nums",
                 settled
                   ? "text-muted-foreground line-through"
                   : isLent
@@ -58,47 +53,41 @@ export function LoanCard({ loan, onEdit, onDelete, onToggleSettled }: LoanCardPr
               )}
             >
               {formatVnd(loan.amount)}
-            </p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {settled ? "Settled" : isLent ? "Owed to you" : "You owe"}
-            </p>
+            </span>
           </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {formatLoanDate(loan.date)}
+            {loan.note ? <span className="ml-2">· {loan.note}</span> : null}
+          </p>
         </div>
-
-        {loan.note ? (
-          <p className="mb-2 whitespace-pre-line text-sm text-muted-foreground">{loan.note}</p>
-        ) : null}
-
-        <div className="flex items-center justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-8">
-                <MoreVertical className="size-4" />
-                <span className="sr-only">Actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onToggleSettled}>
-                {settled ? (
-                  <>
-                    <RotateCcw className="mr-2 size-4" /> Reopen
-                  </>
-                ) : (
-                  <>
-                    <Check className="mr-2 size-4" /> Mark settled
-                  </>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onEdit}>
-                <Pencil className="mr-2 size-4" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-                <Trash2 className="mr-2 size-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardContent>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-7 shrink-0">
+              <MoreVertical className="size-4" />
+              <span className="sr-only">Actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onToggleSettled}>
+              {settled ? (
+                <>
+                  <RotateCcw className="mr-2 size-4" /> Reopen
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 size-4" /> Mark settled
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="mr-2 size-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <Trash2 className="mr-2 size-4" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </Card>
   );
 }

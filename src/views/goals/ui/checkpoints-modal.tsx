@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { normalizeStoredCheckpoints } from "@/shared/lib";
 import type { GoalCheckpoint, GoalProfile } from "@/shared/storage";
@@ -88,10 +88,9 @@ export function CheckpointsModal({ open, onClose, profile, onApply }: Checkpoint
                     <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       By date
                     </Label>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={cp.date || ""}
-                      onChange={(e) => patchRow(cp.id, { date: e.target.value })}
+                      onChange={(date) => patchRow(cp.id, { date })}
                     />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col">

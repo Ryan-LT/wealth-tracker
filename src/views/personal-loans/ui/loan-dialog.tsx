@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -185,12 +186,11 @@ export function LoanDialog({ open, mode, draft, onChange, onClose, onSave }: Loa
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        patch({ date: e.target.value || undefined });
+                    <DatePicker
+                      value={field.value || ""}
+                      onChange={(date) => {
+                        field.onChange(date);
+                        patch({ date: date || undefined });
                       }}
                     />
                   </FormControl>

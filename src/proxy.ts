@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { isAuthEnvConfigured, verifySessionToken, WT_SESSION_COOKIE } from "@/lib/auth-session";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (!isAuthEnvConfigured()) {
     return NextResponse.next();
   }

@@ -11,6 +11,8 @@ import {
   useTable,
 } from "@/shared/storage";
 
+import { SignOutButton } from "@/widgets/auth";
+
 import { AssetManagementTable } from "./AssetManagementTable";
 import { DebtsSection } from "./DebtsSection";
 import { IncomeSourcesGrid } from "./IncomeSourcesGrid";
@@ -28,8 +30,13 @@ export function SettingsPage() {
 
   return (
     <main className="flex w-full min-w-0 flex-1 flex-col overflow-y-auto bg-background pb-24 pt-stack-lg max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
-      <div className="mb-stack-lg">
-        <h1 className="font-headline-lg text-headline-lg text-primary">Asset configuration</h1>
+      <div className="mb-stack-lg flex flex-col gap-stack-sm max-md:flex-col md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="font-headline-lg text-headline-lg text-primary">Asset configuration</h1>
+        </div>
+        <div className="md:shrink-0">
+          <SignOutButton variant="outline-secondary" className="max-md:w-full" />
+        </div>
       </div>
 
       <div className="flex flex-col gap-stack-lg">

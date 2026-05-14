@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { NAV } from "@/shared/config";
 import { cn } from "@/shared/lib";
 import { MaterialIcon, WealthTrackerLogo } from "@/shared/ui";
+import { SignOutButton } from "@/widgets/auth";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -50,6 +51,10 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="mt-auto shrink-0 px-3 pt-stack-md">
+        <SignOutButton variant="ghost" className="w-full justify-center" />
+      </div>
     </aside>
   );
 }

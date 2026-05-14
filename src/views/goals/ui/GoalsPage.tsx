@@ -221,7 +221,7 @@ export function GoalsPage() {
   return (
     <>
       <main className="flex w-full min-w-0 flex-1 flex-col md:min-h-screen">
-        <div className="border-b border-outline-variant/70 px-margin-mobile py-stack-md md:px-stack-lg">
+        <div className="border-b border-outline-variant/70 px-margin-mobile pt-10 py-stack-md md:px-stack-lg">
           <header className="mb-stack-md">
             <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
               Goal Plan

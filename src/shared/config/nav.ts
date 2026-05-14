@@ -25,6 +25,12 @@ export const NAV: NavItem[] = [
     icon: "account_balance",
   },
   {
+    href: "/loans",
+    label: "Personal loans",
+    short: "Loans",
+    icon: "handshake",
+  },
+  {
     href: "/settings",
     label: "Asset configuration",
     short: "Configure",

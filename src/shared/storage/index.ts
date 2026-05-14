@@ -32,3 +32,10 @@ export type { GoalsState, GoalProfile, GoalSeedLine, GoalCheckpoint } from "./go
 
 export { PREFERENCES_SEED } from "./preferences";
 export type { Preferences, NetWorthMonthSnapshot } from "./preferences";
+
+export { PERSONAL_LOANS_SEED } from "./personalLoans";
+export type {
+  PersonalLoan,
+  PersonalLoanDirection,
+  PersonalLoanStatus,
+} from "./personalLoans";

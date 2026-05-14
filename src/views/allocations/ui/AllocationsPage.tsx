@@ -234,7 +234,7 @@ export function AllocationsPage() {
   );
 
   return (
-    <main className="flex w-full min-w-0 flex-col pb-24 max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
+    <main className="flex w-full min-w-0 flex-col py-10 max-md:px-margin-mobile md:min-h-screen md:px-stack-lg md:pb-8">
       <header className="mb-stack-md">
         <h2 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-background">
           Liquidity &amp; commitments

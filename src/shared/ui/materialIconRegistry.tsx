@@ -32,6 +32,8 @@ import Handshake from "@mui/icons-material/Handshake";
 import HelpOutlineOutlined from "@mui/icons-material/HelpOutlineOutlined";
 import HelpOutlined from "@mui/icons-material/HelpOutlined";
 import Home from "@mui/icons-material/Home";
+import Info from "@mui/icons-material/Info";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
 import Insights from "@mui/icons-material/Insights";
 import InsightsOutlined from "@mui/icons-material/InsightsOutlined";
 import MoneyOff from "@mui/icons-material/MoneyOff";
@@ -49,6 +51,7 @@ import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
 import ShowChart from "@mui/icons-material/ShowChart";
 import TrendingDown from "@mui/icons-material/TrendingDown";
 import TrendingUp from "@mui/icons-material/TrendingUp";
+import Undo from "@mui/icons-material/Undo";
 import Work from "@mui/icons-material/Work";
 import WorkOutlined from "@mui/icons-material/WorkOutlined";
 
@@ -84,6 +87,7 @@ const REGISTRY: Record<string, IconPair> = {
   handshake: { filled: Handshake },
   help_outline: { filled: HelpOutlineOutlined, outlined: HelpOutlined },
   home: { filled: Home },
+  info: { filled: Info, outlined: InfoOutlined },
   insights: { filled: Insights, outlined: InsightsOutlined },
   money_off: { filled: MoneyOff },
   notifications: {
@@ -99,6 +103,7 @@ const REGISTRY: Record<string, IconPair> = {
   show_chart: { filled: ShowChart },
   trending_down: { filled: TrendingDown },
   trending_up: { filled: TrendingUp },
+  undo: { filled: Undo },
   work: { filled: Work, outlined: WorkOutlined },
 };
 

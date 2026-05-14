@@ -9,6 +9,7 @@ export const TABLE_KEYS = [
   "incomeSources",
   "goals",
   "preferences",
+  "personalLoans",
 ] as const;
 
 export type TableKey = (typeof TABLE_KEYS)[number];

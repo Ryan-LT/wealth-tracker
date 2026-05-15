@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { ChevronDown, Coins, Plus, Trash2, Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,26 +11,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
   appendGoalSeedLine,
   effectiveGoalSeedLineAmount,
   formatVnd,
+  goalUsageForSourceKey,
   labelForSeedLine,
   liveBalanceForSourceKey,
   maxAllocationForSourceKey,
   type GoalStartingOption,
+  type SourceGoalUsage,
 } from "@/shared/lib";
 import type { GoalProfile, GoalSeedLine } from "@/shared/storage";
-import { MoneyInput } from "@/shared/ui";
+import { AssetCategoryBadge, MoneyInput } from "@/shared/ui";
 
 export type StartingBalancesModalProps = {
   open: boolean;
@@ -52,7 +46,7 @@ export function StartingBalancesModal({
   const initForOpen = useRef(false);
 
   const [workingLines, setWorkingLines] = useState<GoalSeedLine[]>([]);
-  const [pendingKey, setPendingKey] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -62,7 +56,7 @@ export function StartingBalancesModal({
     if (!initForOpen.current) {
       initForOpen.current = true;
       setWorkingLines((profile.seedLines ?? []).map((l) => ({ ...l })));
-      setPendingKey("");
+      setPickerOpen(false);
     }
   }, [open, profile]);
 
@@ -87,17 +81,17 @@ export function StartingBalancesModal({
     [seedOptions, usedNonCustom],
   );
 
-  function addLine() {
+  function pickSource(key: string) {
     const next = appendGoalSeedLine(
       { ...profile, seedLines: workingLines },
-      pendingKey,
+      key,
       seedOptions,
       savedPlans,
     );
     if (next?.seedLines) {
       setWorkingLines(next.seedLines);
-      setPendingKey("");
     }
+    setPickerOpen(false);
   }
 
   function removeLine(id: string) {
@@ -105,7 +99,9 @@ export function StartingBalancesModal({
   }
 
   function updateLineAllocation(id: string, amount: number) {
-    setWorkingLines((prev) => prev.map((l) => (l.id === id ? { ...l, amount } : l)));
+    setWorkingLines((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, amount } : l)),
+    );
   }
 
   function handleApply() {
@@ -120,12 +116,10 @@ export function StartingBalancesModal({
           <DialogTitle>Starting balances</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 max-h-[min(70vh,600px)] overflow-y-auto">
-          <p className="text-xs text-muted-foreground">
-            Per source; caps respect other plans. Custom = extra cash.
-          </p>
-
           {workingLines.length === 0 ? (
-            <p className="text-xs italic text-muted-foreground">Add at least one source.</p>
+            <p className="rounded-md border border-dashed px-3 py-6 text-center text-xs italic text-muted-foreground">
+              No sources yet — add one below.
+            </p>
           ) : (
             <ul className="flex flex-col gap-2">
               {workingLines.map((line) => (
@@ -136,42 +130,50 @@ export function StartingBalancesModal({
                   savedPlans={savedPlans}
                   seedOptions={seedOptions}
                   onRemove={() => removeLine(line.id)}
-                  onAllocationChange={(amount) => updateLineAllocation(line.id, amount)}
+                  onAllocationChange={(amount) =>
+                    updateLineAllocation(line.id, amount)
+                  }
                 />
               ))}
             </ul>
           )}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <Select value={pendingKey || undefined} onValueChange={setPendingKey}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Add source" />
-                </SelectTrigger>
-                <SelectContent>
-                  {addableOptions.map((o) => (
-                    <SelectItem key={o.key} value={o.key}>
-                      <span className="flex min-w-0 flex-wrap items-center gap-2">
-                        <span className="truncate">{o.label}</span>
-                        {o.category ? (
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                              assetCategoryBadgeClassNames(o.category),
-                            )}
-                          >
-                            {o.category}
-                          </span>
-                        ) : null}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="button" variant="outline" className="shrink-0" onClick={addLine}>
-              Add
+          <div className="rounded-lg border bg-card">
+            <Button
+              type="button"
+              variant="ghost"
+              aria-expanded={pickerOpen}
+              aria-controls="starting-balances-source-list"
+              className="h-auto w-full justify-between rounded-lg px-3 py-2.5 text-sm font-medium"
+              disabled={addableOptions.length === 0}
+              onClick={() => setPickerOpen((o) => !o)}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Plus className="size-4" />
+                {addableOptions.length === 0
+                  ? "All sources added"
+                  : "Add source"}
+              </span>
+              <ChevronDown
+                className={cn(
+                  "size-4 text-muted-foreground transition-transform",
+                  pickerOpen && "rotate-180",
+                )}
+              />
             </Button>
+            {pickerOpen && addableOptions.length > 0 ? (
+              <div
+                id="starting-balances-source-list"
+                className="border-t border-border/60"
+              >
+                <SourcePickerList
+                  options={addableOptions}
+                  planDraft={planDraft}
+                  savedPlans={savedPlans}
+                  onPick={pickSource}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
         <DialogFooter>
@@ -182,6 +184,163 @@ export function StartingBalancesModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type SourcePickerListProps = {
+  options: GoalStartingOption[];
+  planDraft: GoalProfile;
+  savedPlans: GoalProfile[];
+  onPick: (key: string) => void;
+};
+
+function SourcePickerList({
+  options,
+  planDraft,
+  savedPlans,
+  onPick,
+}: SourcePickerListProps) {
+  if (options.length === 0) {
+    return (
+      <div className="p-4 text-center text-xs text-muted-foreground">
+        No sources available.
+      </div>
+    );
+  }
+
+  return (
+    <ul className="max-h-80 space-y-1 overflow-y-auto overscroll-contain p-1">
+      {options.map((option) => (
+        <li key={option.key}>
+          <SourcePickerItem
+            option={option}
+            planDraft={planDraft}
+            savedPlans={savedPlans}
+            onPick={onPick}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type SourcePickerItemProps = {
+  option: GoalStartingOption;
+  planDraft: GoalProfile;
+  savedPlans: GoalProfile[];
+  onPick: (key: string) => void;
+};
+
+function SourcePickerItem({
+  option,
+  planDraft,
+  savedPlans,
+  onPick,
+}: SourcePickerItemProps) {
+  if (option.isCustom) {
+    return (
+      <button
+        type="button"
+        onClick={() => onPick(option.key)}
+        className="group flex w-full items-start gap-3 rounded-md border border-dashed border-input bg-card px-3 py-2.5 text-start transition-colors hover:border-ring hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+      >
+        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground group-hover:bg-background">
+          <Coins className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium">Custom amount</span>
+          <span className="block text-xs text-muted-foreground">
+            Extra cash not tied to a tracked source
+          </span>
+        </span>
+      </button>
+    );
+  }
+
+  const live = Math.max(0, option.amount);
+  const usage = goalUsageForSourceKey(option.key, savedPlans, planDraft);
+  const reservedElsewhere = usage.reduce((s, u) => s + u.amount, 0);
+  const remaining = Math.max(0, live - reservedElsewhere);
+  const fullyReserved = live > 0 && remaining === 0;
+  const emptySource = live === 0;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(option.key)}
+      className={cn(
+        "group flex w-full items-start gap-3 rounded-md border border-transparent bg-card px-3 py-2.5 text-start transition-colors hover:border-ring hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+      )}
+    >
+      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground group-hover:bg-background">
+        <Wallet className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="min-w-0 truncate text-sm font-medium">
+            {option.label}
+          </span>
+          {option.category ? (
+            <AssetCategoryBadge
+              category={option.category}
+              className="shrink-0 text-[10px]"
+            />
+          ) : null}
+        </span>
+
+        <span className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Available
+          </span>
+          <span
+            className={cn(
+              "font-data-tabular tabular-nums text-sm font-semibold",
+              emptySource
+                ? "text-muted-foreground"
+                : fullyReserved
+                  ? "text-destructive"
+                  : "text-emerald-600 dark:text-emerald-400",
+            )}
+          >
+            {formatVnd(remaining)}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            of {formatVnd(live)} live
+          </span>
+        </span>
+
+        {usage.length > 0 ? (
+          <span className="mt-1 block">
+            <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Reserved by other plans
+            </span>
+            <span className="mt-1 flex flex-wrap gap-1">
+              {usage.map((u) => (
+                <span
+                  key={u.planId}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px]"
+                >
+                  <span className="max-w-40 truncate font-medium">
+                    {u.planName}
+                  </span>
+                  <span className="font-data-tabular tabular-nums text-muted-foreground">
+                    {formatVnd(u.amount)}
+                  </span>
+                </span>
+              ))}
+            </span>
+          </span>
+        ) : emptySource ? (
+          <span className="mt-1 block text-[11px] italic text-muted-foreground">
+            No balance recorded.
+          </span>
+        ) : (
+          <span className="mt-1 block text-[11px] italic text-muted-foreground">
+            Not yet allocated to any other plan.
+          </span>
+        )}
+      </span>
+    </button>
   );
 }
 
@@ -205,74 +364,131 @@ function ModalSeedLineRow({
   const title = labelForSeedLine(line, seedOptions);
   const option = seedOptions.find((o) => o.key === line.sourceKey);
   const category = option?.category;
-  const live =
-    line.sourceKey !== "custom" ? liveBalanceForSourceKey(line.sourceKey, seedOptions) : 0;
-  const maxAlloc =
-    line.sourceKey !== "custom"
-      ? maxAllocationForSourceKey(line.sourceKey, seedOptions, savedPlans, planDraft, line.id)
-      : Number.POSITIVE_INFINITY;
-  const effective = effectiveGoalSeedLineAmount(line, seedOptions, savedPlans, planDraft);
-  const over = line.sourceKey !== "custom" && line.amount > maxAlloc;
+  const isCustom = line.sourceKey === "custom";
+  const live = !isCustom
+    ? liveBalanceForSourceKey(line.sourceKey, seedOptions)
+    : 0;
+  const maxAlloc = !isCustom
+    ? maxAllocationForSourceKey(
+        line.sourceKey,
+        seedOptions,
+        savedPlans,
+        planDraft,
+        line.id,
+      )
+    : Number.POSITIVE_INFINITY;
+  const effective = effectiveGoalSeedLineAmount(
+    line,
+    seedOptions,
+    savedPlans,
+    planDraft,
+  );
+  const over = !isCustom && line.amount > maxAlloc;
+  const usage: SourceGoalUsage[] = !isCustom
+    ? goalUsageForSourceKey(line.sourceKey, savedPlans, planDraft)
+    : [];
 
   return (
-    <li className="flex flex-col gap-2 rounded-md border bg-card p-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <p className="min-w-0 truncate text-sm font-medium">{title}</p>
-          {category ? (
-            <span
+    <li className="rounded-lg border bg-card shadow-sm">
+      <div className="flex items-start justify-between gap-3 border-b border-border/60 px-3 py-2.5">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            {isCustom ? (
+              <Coins className="size-4" />
+            ) : (
+              <Wallet className="size-4" />
+            )}
+          </span>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <p className="min-w-0 truncate text-sm font-semibold">{title}</p>
+            {category ? (
+              <AssetCategoryBadge
+                category={category}
+                className="shrink-0 text-[10px]"
+              />
+            ) : null}
+          </div>
+        </div>
+        <button
+          type="button"
+          aria-label={`Remove ${title}`}
+          onClick={onRemove}
+          className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+        >
+          <Trash2 className="size-4" />
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="w-full sm:max-w-xs">
+          <MoneyInput
+            label={isCustom ? "Amount (₫)" : "Allocate from this source (₫)"}
+            value={line.amount}
+            onChange={onAllocationChange}
+            min={0}
+            max={isCustom ? undefined : maxAlloc}
+            placeholder="0"
+          />
+        </div>
+
+        {!isCustom ? (
+          <dl className="flex-1 grid grid-cols-1 gap-x-4 gap-y-1 text-xs sm:grid-cols-[max-content_1fr] sm:gap-y-1.5">
+            <dt className="text-muted-foreground">Live balance</dt>
+            <dd className="font-data-tabular tabular-nums sm:text-end">
+              {formatVnd(live)}
+            </dd>
+
+            <dt className="text-muted-foreground">Available to this plan</dt>
+            <dd
               className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                assetCategoryBadgeClassNames(category),
+                "font-data-tabular tabular-nums sm:text-end",
+                maxAlloc < live
+                  ? "text-amber-600 dark:text-amber-400"
+                  : undefined,
               )}
             >
-              {category}
-            </span>
-          ) : null}
-        </div>
-        {line.sourceKey === "custom" ? (
-          <div className="mt-2 max-w-xs">
-            <MoneyInput
-              label="Amount (₫)"
-              value={line.amount}
-              onChange={onAllocationChange}
-              min={0}
-              placeholder="0"
-            />
-          </div>
-        ) : (
-          <div className="mt-2 max-w-sm space-y-1">
-            <MoneyInput
-              label="Allocate from this source (₫)"
-              value={line.amount}
-              onChange={onAllocationChange}
-              min={0}
-              max={maxAlloc}
-              placeholder="0"
-            />
-            <p className="text-xs text-muted-foreground">
-              Live balance {formatVnd(live)}
-              {maxAlloc < live ? (
-                <> · Up to {formatVnd(maxAlloc)} for this plan (other plans reserve the rest)</>
-              ) : null}
-            </p>
-            <p className="text-xs font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
-              Counts toward plan: {formatVnd(effective)}
+              {formatVnd(maxAlloc)}
+            </dd>
+
+            <dt className="text-muted-foreground">Counts toward plan</dt>
+            <dd className="font-data-tabular tabular-nums font-semibold text-emerald-600 dark:text-emerald-400 sm:text-end">
+              {formatVnd(effective)}
               {over ? (
-                <span className="ml-2 text-destructive">(capped — exceeds pool)</span>
+                <span className="ms-2 text-[10px] font-semibold uppercase text-destructive">
+                  Capped
+                </span>
               ) : null}
-            </p>
-          </div>
+            </dd>
+          </dl>
+        ) : (
+          <p className="flex-1 text-xs italic text-muted-foreground sm:pt-6">
+            Extra cash not tied to a tracked source.
+          </p>
         )}
       </div>
-      <button
-        type="button"
-        aria-label={`Remove ${title}`}
-        onClick={onRemove}
-        className="self-end rounded p-1 text-muted-foreground hover:text-destructive sm:self-start"
-      >
-        <Trash2 className="size-4" />
-      </button>
+
+      {usage.length > 0 ? (
+        <div className="border-t border-border/60 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Also accumulated for
+          </p>
+          <ul className="mt-1 flex flex-wrap gap-1">
+            {usage.map((u) => (
+              <li
+                key={u.planId}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px]"
+              >
+                <span className="max-w-40 truncate font-medium">
+                  {u.planName}
+                </span>
+                <span className="font-data-tabular tabular-nums text-muted-foreground">
+                  {formatVnd(u.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </li>
   );
 }

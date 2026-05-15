@@ -24,7 +24,8 @@
       "Bash(npm run *)",
       "Bash(curl -s -o /dev/null -w \"GET / → %{http_code}\\\\nGET /login → \" http://localhost:3000/)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\nGET /loans → \" http://localhost:3000/login)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/loans)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/loans)",
+      "Bash(npx eslint *)"
     ],
     "additionalDirectories": [
       "/tmp",

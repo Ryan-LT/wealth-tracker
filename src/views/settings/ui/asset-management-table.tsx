@@ -65,7 +65,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { assetCategoryBadgeClassNames, isDefaultAssetCategory } from "@/shared/config";
+import { isDefaultAssetCategory } from "@/shared/config";
+import { AssetCategoryBadge } from "@/shared/ui";
 import { formatThousands } from "@/shared/lib";
 import {
   SETTINGS_ASSET_LIQUIDITY_DEFAULT,
@@ -211,14 +212,10 @@ function SortableAssetRow({ asset, onEdit, onDeleteRequest }: SortableAssetRowPr
       </TableCell>
       <TableCell className="text-sm font-medium">{asset.name}</TableCell>
       <TableCell>
-        <span
-          className={cn(
-            "inline-flex max-w-[14rem] truncate rounded-full px-2 py-0.5 text-[10px] font-semibold",
-            assetCategoryBadgeClassNames(asset.category),
-          )}
-        >
-          {asset.category}
-        </span>
+        <AssetCategoryBadge
+          category={asset.category}
+          className="max-w-[14rem] text-[10px]"
+        />
       </TableCell>
       <TableCell>
         <span

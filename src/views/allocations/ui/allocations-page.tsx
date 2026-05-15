@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { assetCategoryBadgeClassNames } from "@/shared/config";
+import { AssetCategoryBadge } from "@/shared/ui";
 import {
   buildGoalStartingOptions,
   formatVnd,
@@ -293,16 +293,20 @@ export function AllocationsPage() {
                       {formatVnd(p.effectiveStartingTotal)}
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                          p.usesMonthlyIncome
-                            ? assetCategoryBadgeClassNames("Cash")
-                            : "bg-muted text-muted-foreground ring-1 ring-inset ring-border",
-                        )}
-                      >
-                        {p.usesMonthlyIncome ? `On — ${formatVnd(incomeMonthly)}/mo` : "Off for this plan"}
-                      </span>
+                      {p.usesMonthlyIncome ? (
+                        <AssetCategoryBadge category="Cash" className="text-[10px]">
+                          {`On — ${formatVnd(incomeMonthly)}/mo`}
+                        </AssetCategoryBadge>
+                      ) : (
+                        <span
+                          className={cn(
+                            "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                            "bg-muted text-muted-foreground ring-1 ring-inset ring-border",
+                          )}
+                        >
+                          Off for this plan
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { assetCategoryBadgeClassNames } from "@/shared/config";
 import {
   effectiveGoalSeedLineAmount,
   formatDisplayDate,
@@ -20,8 +19,12 @@ import {
   totalGoalStartingBalance,
   type GoalStartingOption,
 } from "@/shared/lib";
-import type { GoalCheckpoint, GoalProfile, GoalSeedLine } from "@/shared/storage";
-import { MoneyInput } from "@/shared/ui";
+import type {
+  GoalCheckpoint,
+  GoalProfile,
+  GoalSeedLine,
+} from "@/shared/storage";
+import { AssetCategoryBadge, MoneyInput } from "@/shared/ui";
 
 import { CheckpointsModal } from "./checkpoints-modal";
 import { StartingBalancesModal } from "./starting-balances-modal";
@@ -77,7 +80,10 @@ export function GoalCreatorForm({
     [lines, seedOptions, savedPlans, profile],
   );
 
-  const checkpoints = useMemo(() => profile.checkpoints ?? [], [profile.checkpoints]);
+  const checkpoints = useMemo(
+    () => profile.checkpoints ?? [],
+    [profile.checkpoints],
+  );
 
   const sortedCheckpointsDisplay = useMemo(() => {
     return [...checkpoints]
@@ -121,12 +127,22 @@ export function GoalCreatorForm({
           )}
         </CardTitle>
         {editMode ? (
-          <Button type="button" size="sm" variant="ghost" onClick={onCancelEdit}>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={onCancelEdit}
+          >
             <X className="size-3.5" />
             Cancel
           </Button>
         ) : (
-          <Button type="button" size="sm" variant="outline" onClick={onEnterEdit}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onEnterEdit}
+          >
             <Pencil className="size-3.5" />
             Edit
           </Button>
@@ -158,7 +174,9 @@ export function GoalCreatorForm({
               />
             ) : (
               <p className="text-base font-medium">
-                {planName || <span className="text-muted-foreground">Untitled plan</span>}
+                {planName || (
+                  <span className="text-muted-foreground">Untitled plan</span>
+                )}
               </p>
             )}
           </div>
@@ -168,7 +186,9 @@ export function GoalCreatorForm({
             <MoneyInput
               label="Target Amount (₫)"
               value={profile.targetAmount}
-              onChange={(targetAmount) => onChange({ ...profile, targetAmount })}
+              onChange={(targetAmount) =>
+                onChange({ ...profile, targetAmount })
+              }
               placeholder="0"
             />
           ) : (
@@ -227,7 +247,9 @@ export function GoalCreatorForm({
             </div>
             {sortedCheckpointsDisplay.length === 0 ? (
               <p className="rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
-                {editMode ? "No checkpoints — open Configure" : "No checkpoints set."}
+                {editMode
+                  ? "No checkpoints — open Configure"
+                  : "No checkpoints set."}
               </p>
             ) : (
               <>
@@ -289,12 +311,16 @@ export function GoalCreatorForm({
 
             {lines.length === 0 ? (
               <p className="mb-2 rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
-                {editMode ? "No sources — open Configure" : "No sources allocated."}
+                {editMode
+                  ? "No sources — open Configure"
+                  : "No sources allocated."}
               </p>
             ) : (
               <ul className="mb-3 divide-y divide-border/60 rounded-md border bg-card">
                 {lines.map((line) => {
-                  const cat = seedOptions.find((o) => o.key === line.sourceKey)?.category;
+                  const cat = seedOptions.find(
+                    (o) => o.key === line.sourceKey,
+                  )?.category;
                   const effective = effectiveGoalSeedLineAmount(
                     line,
                     seedOptions,
@@ -311,14 +337,10 @@ export function GoalCreatorForm({
                           {labelForSeedLine(line, seedOptions)}
                         </span>
                         {cat ? (
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                              assetCategoryBadgeClassNames(cat),
-                            )}
-                          >
-                            {cat}
-                          </span>
+                          <AssetCategoryBadge
+                            category={cat}
+                            className="shrink-0 text-[11px]"
+                          />
                         ) : null}
                       </div>
                       <span className="shrink-0 text-sm font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
@@ -361,7 +383,9 @@ export function GoalCreatorForm({
                   )}
                 >
                   {formatVnd(monthlyIncomeTotal)}{" "}
-                  <span className="text-sm font-normal text-muted-foreground">/ month</span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    / month
+                  </span>
                 </p>
               </div>
               {editMode ? (
@@ -391,10 +415,12 @@ export function GoalCreatorForm({
 
           {editMode ? (
             <div className="flex flex-col gap-2 pt-2">
-              <Button type="submit" className="w-full">
-                Update projection
-              </Button>
-              <Button type="button" variant="outline" className="w-full" onClick={onSave}>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={onSave}
+              >
                 Save plan
               </Button>
             </div>

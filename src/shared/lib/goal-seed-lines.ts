@@ -83,6 +83,60 @@ export function allocatedFromSourceKeyAcrossPlans(
   return sum;
 }
 
+export type SourceGoalUsage = {
+  planId: string;
+  planName: string;
+  amount: number;
+  isDraft: boolean;
+};
+
+/**
+ * Per-plan ₫ already allocated from `sourceKey`. By default returns only plans other than
+ * the draft; pass `includeDraft` to also include the draft (useful for in-modal "this plan
+ * still has X allocated elsewhere" displays).
+ */
+export function goalUsageForSourceKey(
+  sourceKey: string,
+  savedPlans: GoalProfile[],
+  draft: GoalProfile,
+  options?: { includeDraft?: boolean; excludeLineId?: string },
+): SourceGoalUsage[] {
+  if (sourceKey === "none" || sourceKey === "custom") return [];
+  const out: SourceGoalUsage[] = [];
+  for (const plan of savedPlans) {
+    if (plan.id === draft.id) continue;
+    let sum = 0;
+    for (const l of plan.seedLines ?? []) {
+      if (l.sourceKey === sourceKey) sum += Math.max(0, l.amount);
+    }
+    if (sum > 0) {
+      out.push({
+        planId: plan.id,
+        planName: plan.name?.trim() || "Untitled plan",
+        amount: sum,
+        isDraft: false,
+      });
+    }
+  }
+  if (options?.includeDraft) {
+    let sum = 0;
+    for (const l of draft.seedLines ?? []) {
+      if (l.sourceKey !== sourceKey) continue;
+      if (options.excludeLineId && l.id === options.excludeLineId) continue;
+      sum += Math.max(0, l.amount);
+    }
+    if (sum > 0) {
+      out.push({
+        planId: draft.id,
+        planName: draft.name?.trim() || "This plan",
+        amount: sum,
+        isDraft: true,
+      });
+    }
+  }
+  return out;
+}
+
 /** Maximum ₫ this plan may assign from `sourceKey` on the given line (others' allocations subtracted). */
 export function maxAllocationForSourceKey(
   sourceKey: string,

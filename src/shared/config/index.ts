@@ -3,6 +3,7 @@ export {
   assetCategoryBadgeClassNames,
   isDefaultAssetCategory,
   mergeAssetCategoryOptions,
+  resolveAssetCategoryEmoji,
 } from "./asset-categories";
 export type { DefaultAssetCategory } from "./asset-categories";
 

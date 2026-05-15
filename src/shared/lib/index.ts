@@ -7,6 +7,7 @@ export {
   dedupeNonCustomSeedLines,
   effectiveGoalSeedLineAmount,
   ensureKeyedSeedDefaults,
+  goalUsageForSourceKey,
   labelForSeedLine,
   liveBalanceForSourceKey,
   maxAllocationForSourceKey,
@@ -15,6 +16,7 @@ export {
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
 } from "./goal-seed-lines";
+export type { SourceGoalUsage } from "./goal-seed-lines";
 export { formatVnd, formatThousands } from "./format-vnd";
 export { formatUsd } from "./format-usd";
 export {

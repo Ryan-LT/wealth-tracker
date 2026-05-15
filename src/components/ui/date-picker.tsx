@@ -26,6 +26,15 @@ function parseValue(value: string | undefined): Date | undefined {
   return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
+/** Dropdown captions default to end-of-current-year only; widen so future dates are reachable. */
+function calendarNavBounds(reference = new Date()) {
+  const y = reference.getFullYear();
+  return {
+    startMonth: new Date(y - 100, 0),
+    endMonth: new Date(y + 100, 11),
+  };
+}
+
 export function DatePicker({
   value,
   onChange,
@@ -36,6 +45,7 @@ export function DatePicker({
 }: DatePickerProps) {
   const selected = parseValue(value);
   const [open, setOpen] = React.useState(false);
+  const { startMonth, endMonth } = calendarNavBounds();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -64,6 +74,8 @@ export function DatePicker({
             setOpen(false);
           }}
           captionLayout="dropdown"
+          startMonth={startMonth}
+          endMonth={endMonth}
           autoFocus
         />
       </PopoverContent>

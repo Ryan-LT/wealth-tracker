@@ -71,7 +71,6 @@ import { formatThousands } from "@/shared/lib";
 import {
   SETTINGS_ASSET_LIQUIDITY_DEFAULT,
   type SettingsAsset,
-  type SettingsAssetLiquidity,
   resolveSettingsAssetLiquidity,
   settingsAssetLiquidityLabel,
 } from "@/shared/storage";
@@ -279,6 +278,19 @@ export function AssetManagementTable({
     return sortAssetsList(assets, sort.key, sort.dir);
   }, [assets, sort]);
 
+  const categorySelectOptions = useMemo(() => {
+    const list = [...categoryOptions];
+    const seen = new Set(list.map((c) => c.trim()).filter(Boolean));
+    const cur = assetDraft?.category?.trim();
+    if (cur && !seen.has(cur)) {
+      list.push(cur);
+      seen.add(cur);
+    }
+    return list.sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    );
+  }, [categoryOptions, assetDraft?.category]);
+
   const sortableIds = useMemo(() => displayAssets.map((a) => a.id), [displayAssets]);
 
   function toggleSortColumn(key: AssetSortKey) {
@@ -342,6 +354,12 @@ export function AssetManagementTable({
   }
 
   const assetDialogOpen = assetDialogMode !== "idle";
+  const draftLiquidity = resolveSettingsAssetLiquidity(assetDraft?.liquidity);
+  const draftCategoryValue =
+    assetDraft?.category?.trim() &&
+    categorySelectOptions.includes(assetDraft.category.trim())
+      ? assetDraft.category.trim()
+      : (categorySelectOptions[0] ?? "Cash");
 
   function requestDelete(asset: SettingsAsset) {
     setPendingDelete(asset);
@@ -441,38 +459,66 @@ export function AssetManagementTable({
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="asset-category">Category</Label>
-              <Input
-                id="asset-category"
-                list="asset-category-options"
-                value={assetDraft?.category ?? ""}
-                onChange={(e) =>
-                  setAssetDraft((d) => (d ? { ...d, category: e.target.value } : d))
-                }
-              />
-              <datalist id="asset-category-options">
-                {categoryOptions.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Access</Label>
               <Select
-                value={resolveSettingsAssetLiquidity(assetDraft?.liquidity)}
+                value={draftCategoryValue}
                 onValueChange={(v) =>
-                  setAssetDraft((d) =>
-                    d ? { ...d, liquidity: v as SettingsAssetLiquidity } : d,
-                  )
+                  setAssetDraft((d) => (d ? { ...d, category: v } : d))
                 }
               >
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger id="asset-category" className="w-full">
+                  <SelectValue placeholder="Choose category" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="instant">Instant</SelectItem>
-                  <SelectItem value="not_instant">Not instant</SelectItem>
+                <SelectContent position="popper" className="w-[var(--radix-select-trigger-width)]">
+                  {categorySelectOptions.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium leading-none" id="asset-access-label">
+                Access
+              </span>
+              <div
+                role="group"
+                aria-labelledby="asset-access-label"
+                className="grid grid-cols-2 gap-1 rounded-lg border border-input bg-muted/40 p-1"
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAssetDraft((d) =>
+                      d ? { ...d, liquidity: "instant" } : d,
+                    )
+                  }
+                  className={cn(
+                    "rounded-md px-3 py-2 text-center text-sm font-medium transition-colors",
+                    draftLiquidity === "instant"
+                      ? "bg-background text-foreground shadow-sm ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  Instant
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAssetDraft((d) =>
+                      d ? { ...d, liquidity: "not_instant" } : d,
+                    )
+                  }
+                  className={cn(
+                    "rounded-md px-3 py-2 text-center text-sm font-medium transition-colors",
+                    draftLiquidity === "not_instant"
+                      ? "bg-background text-foreground shadow-sm ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  Not instant
+                </button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 Instant: cash or equivalents. Not instant: locked, term deposits, etc.
               </p>

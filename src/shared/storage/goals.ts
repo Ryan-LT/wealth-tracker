@@ -16,6 +16,8 @@ export type GoalCheckpoint = {
   date: string;
   /** ₫ to pay (or set aside) on this date — not a running total; the chart cumulates automatically. */
   amount: number;
+  /** User-marked: this installment has been paid (shown on the projection chart). */
+  paid?: boolean;
 };
 
 export type GoalProfile = {

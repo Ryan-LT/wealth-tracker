@@ -34,15 +34,15 @@ export const NAV: NavItem[] = [
     icon: PieChart,
   },
   {
-    href: "/loans",
-    label: "Personal loans",
-    short: "Loans",
-    icon: HandCoins,
-  },
-  {
     href: "/settings",
     label: "Asset configuration",
     short: "Configure",
     icon: Settings,
+  },
+  {
+    href: "/loans",
+    label: "Personal loans",
+    short: "Loans",
+    icon: HandCoins,
   },
 ];

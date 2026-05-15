@@ -6,6 +6,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -158,6 +159,33 @@ type ChartRow = {
   target: number;
 };
 
+type PaidCheckpointDot = { id: string; label: string; cumulative: number };
+
+function paidCheckpointDots(checkpoints: GoalCheckpoint[]): PaidCheckpointDot[] {
+  const sorted = [...checkpoints]
+    .filter((c) => String(c.date).trim())
+    .map((c) => ({
+      ...c,
+      date: String(c.date).trim().split("T")[0],
+      amount: Math.max(0, Math.floor(Number(c.amount) || 0)),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const out: PaidCheckpointDot[] = [];
+  let running = 0;
+  for (const c of sorted) {
+    running += c.amount;
+    if (c.paid !== true) continue;
+    const d = parseGoalDateLocal(c.date);
+    if (!d) continue;
+    out.push({
+      id: c.id,
+      label: formatXAxisLabel(localDay(d)),
+      cumulative: running,
+    });
+  }
+  return out;
+}
+
 export function ProjectionTimelineChart({
   targetAmount,
   startingAmount,
@@ -166,10 +194,11 @@ export function ProjectionTimelineChart({
   targetDateIso,
   checkpoints = [],
 }: ProjectionTimelineChartProps) {
-  const { rows, hasSchedule } = useMemo(() => {
+  const { rows, hasSchedule, paidDots } = useMemo(() => {
     const today = atLocalDate(new Date());
     const schedule = cumulativeDueScheduleFromCheckpoints(checkpoints);
     const hasSched = schedule.length > 0;
+    const paidMarkers = paidCheckpointDots(checkpoints);
 
     const axisDates = buildAxisColumnDates(
       today,
@@ -200,15 +229,16 @@ export function ProjectionTimelineChart({
       };
     });
 
-    return { rows: data, hasSchedule: hasSched };
+    return { rows: data, hasSchedule: hasSched, paidDots: paidMarkers };
   }, [targetAmount, startingAmount, monthlyIncome, monthsToTarget, targetDateIso, checkpoints]);
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">Projection (linear)</CardTitle>
+        <CardTitle className="text-base font-semibold">Projection</CardTitle>
         <p className="text-xs text-muted-foreground">
-          X: month starts; checkpoint / goal days when needed.
+          X: month starts; checkpoint / goal days when needed. Filled dots: paid
+          checkpoints (cumulative after that payment).
         </p>
       </CardHeader>
       <CardContent>
@@ -267,6 +297,18 @@ export function ProjectionTimelineChart({
                   isAnimationActive={false}
                 />
               )}
+              {paidDots.map((p) => (
+                <ReferenceDot
+                  key={p.id}
+                  x={p.label}
+                  y={p.cumulative}
+                  r={5}
+                  fill="var(--chart-1)"
+                  stroke="var(--background)"
+                  strokeWidth={2}
+                  ifOverflow="discard"
+                />
+              ))}
               <ReferenceLine
                 y={targetAmount}
                 stroke="var(--destructive)"

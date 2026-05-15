@@ -12,6 +12,7 @@ type RawCheckpoint = {
   date?: string;
   amount?: number;
   cumulativeAmount?: number;
+  paid?: boolean;
 };
 
 /**
@@ -37,6 +38,7 @@ export function normalizeStoredCheckpoints(
         id: String(r.id).trim(),
         date: String(r.date).trim().split("T")[0],
         amount: typeof r.amount === "number" ? Math.max(0, Math.floor(r.amount)) : 0,
+        paid: r.paid === true,
         legacyCumulative:
           typeof r.cumulativeAmount === "number"
             ? Math.max(0, Math.floor(r.cumulativeAmount))
@@ -54,11 +56,17 @@ export function normalizeStoredCheckpoints(
       const cum = r.legacyCumulative ?? 0;
       const installment = Math.max(0, cum - prevCumulative);
       prevCumulative = cum;
-      return { id: r.id, date: r.date, amount: installment };
+      const row: GoalCheckpoint = { id: r.id, date: r.date, amount: installment };
+      if (r.paid) row.paid = true;
+      return row;
     });
   }
 
-  return cleaned.map((r) => ({ id: r.id, date: r.date, amount: r.amount }));
+  return cleaned.map((r) => {
+    const row: GoalCheckpoint = { id: r.id, date: r.date, amount: r.amount };
+    if (r.paid) row.paid = true;
+    return row;
+  });
 }
 
 /**

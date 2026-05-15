@@ -1,9 +1,19 @@
 "use client";
 
 import { format, parse } from "date-fns";
-import { Lock, Pencil, X } from "lucide-react";
+import { CheckCircle2, CircleDashed, Lock, Pencil, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -72,6 +82,10 @@ export function GoalCreatorForm({
 }: GoalCreatorFormProps) {
   const [startingBalancesOpen, setStartingBalancesOpen] = useState(false);
   const [checkpointsOpen, setCheckpointsOpen] = useState(false);
+  const [paidToggleConfirm, setPaidToggleConfirm] = useState<{
+    id: string;
+    nextPaid: boolean;
+  } | null>(null);
 
   const lines = useMemo(() => profile.seedLines ?? [], [profile.seedLines]);
 
@@ -96,6 +110,10 @@ export function GoalCreatorForm({
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [checkpoints]);
 
+  const paidConfirmRow =
+    paidToggleConfirm &&
+    sortedCheckpointsDisplay.find((c) => c.id === paidToggleConfirm.id);
+
   function applyCheckpoints(next: GoalCheckpoint[]) {
     onChange({ ...profile, checkpoints: next });
     onSimulate();
@@ -104,6 +122,19 @@ export function GoalCreatorForm({
   function applyStartingBalances(seedLines: GoalSeedLine[]) {
     onChange({ ...profile, seedLines });
     onSimulate();
+  }
+
+  function commitCheckpointPaidToggle() {
+    if (!paidToggleConfirm) return;
+    const { id, nextPaid } = paidToggleConfirm;
+    applyCheckpoints(
+      checkpoints.map((c) => {
+        if (c.id !== id) return c;
+        if (nextPaid) return { ...c, paid: true };
+        return { id: c.id, date: c.date, amount: c.amount };
+      }),
+    );
+    setPaidToggleConfirm(null);
   }
 
   const includesIncome = profile.includeMonthlyIncome !== false;
@@ -253,30 +284,74 @@ export function GoalCreatorForm({
               </p>
             ) : (
               <>
-                <div className="mb-1 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 border-b border-border/50 px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:gap-x-3 sm:px-3">
+                <div className="mb-1 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_auto] gap-x-2 border-b border-border/50 px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:gap-x-3 sm:px-3">
                   <span className="min-w-0">Date</span>
-                  <span className="min-w-0 text-end">Payment</span>
-                  <span className="min-w-0 text-end">Due</span>
+                  <span className="min-w-0 text-end leading-tight">
+                    <span className="block">Payment</span>
+                    <span className="block">Due</span>
+                  </span>
+                  <span className="min-w-0 shrink-0 text-end sm:w-[7.5rem]">
+                    Status
+                  </span>
                 </div>
                 <ul className="min-w-0 divide-y divide-border/60 overflow-x-auto rounded-md border bg-card">
                   {sortedCheckpointsDisplay.map((cp, idx) => {
                     const running = sortedCheckpointsDisplay
                       .slice(0, idx + 1)
                       .reduce((s, x) => s + x.amount, 0);
+                    const isPaid = cp.paid === true;
                     return (
                       <li
                         key={cp.id}
-                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-2 px-2 py-2 sm:gap-x-3 sm:px-3 text-sm"
+                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_auto] items-center gap-x-2 px-2 py-2 sm:gap-x-3 sm:px-3 text-sm"
                       >
                         <span className="min-w-0 font-data-tabular tabular-nums">
                           {formatDisplayDate(cp.date)}
                         </span>
-                        <span className="min-w-0 break-all text-end font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
-                          {formatVnd(cp.amount)}
-                        </span>
-                        <span className="min-w-0 break-all text-end font-data-tabular tabular-nums">
-                          {formatVnd(running)}
-                        </span>
+                        <div className="min-w-0 text-end font-data-tabular tabular-nums leading-snug">
+                          <div className="text-emerald-600 dark:text-emerald-400">
+                            {formatVnd(cp.amount)}
+                          </div>
+                          <div className="text-foreground">{formatVnd(running)}</div>
+                        </div>
+                        <div className="flex shrink-0 justify-end sm:w-[7.5rem]">
+                          {editMode ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 gap-1 px-2 text-xs"
+                              onClick={() =>
+                                setPaidToggleConfirm({
+                                  id: cp.id,
+                                  nextPaid: !isPaid,
+                                })
+                              }
+                            >
+                              {isPaid ? (
+                                <>
+                                  <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  Paid
+                                </>
+                              ) : (
+                                <>
+                                  <CircleDashed className="size-3.5 text-muted-foreground" />
+                                  Unpaid
+                                </>
+                              )}
+                            </Button>
+                          ) : isPaid ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="size-3.5" />
+                              Paid
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <CircleDashed className="size-3.5" />
+                              Unpaid
+                            </span>
+                          )}
+                        </div>
                       </li>
                     );
                   })}
@@ -284,6 +359,44 @@ export function GoalCreatorForm({
               </>
             )}
           </div>
+
+          <AlertDialog
+            open={paidToggleConfirm !== null}
+            onOpenChange={(open) => {
+              if (!open) setPaidToggleConfirm(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {paidToggleConfirm?.nextPaid
+                    ? "Mark checkpoint as paid?"
+                    : "Mark checkpoint as unpaid?"}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {paidToggleConfirm ? (
+                    <>
+                      {paidToggleConfirm.nextPaid
+                        ? "This records that this installment has been paid. A marker appears on the projection chart at the cumulative amount after this payment."
+                        : "This removes the paid marker from the projection chart for this checkpoint."}
+                      {paidConfirmRow ? (
+                        <span className="mt-2 block font-medium text-foreground">
+                          {formatDisplayDate(paidConfirmRow.date)} —{" "}
+                          {formatVnd(paidConfirmRow.amount)}
+                        </span>
+                      ) : null}
+                    </>
+                  ) : null}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
+                <AlertDialogAction type="button" onClick={commitCheckpointPaidToggle}>
+                  Confirm
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <CheckpointsModal
             open={checkpointsOpen && editMode}

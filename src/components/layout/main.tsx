@@ -11,8 +11,8 @@ export function Main({ fixed, className, children, ...props }: MainProps) {
     <main
       data-layout={fixed ? "fixed" : "auto"}
       className={cn(
-        "@container/main peer-[.header-fixed]/header:mt-16",
-        "flex-1 px-4 py-6",
+        "@container/main",
+        "flex-1 p-4",
         fixed && "flex flex-col overflow-hidden",
         className,
       )}

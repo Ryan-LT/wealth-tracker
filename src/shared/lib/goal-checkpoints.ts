@@ -52,9 +52,18 @@ export function normalizeStoredCheckpoints(
 
   if (anyLegacy && !anyExplicitPay) {
     let prevCumulative = 0;
+    let warnedNonMonotonic = false;
     return cleaned.map((r) => {
       const cum = r.legacyCumulative ?? 0;
-      const installment = Math.max(0, cum - prevCumulative);
+      const delta = cum - prevCumulative;
+      if (delta < 0 && !warnedNonMonotonic) {
+        warnedNonMonotonic = true;
+        console.warn(
+          "[wealthtracker] legacy checkpoint cumulativeAmount is not monotonic; negative delta clamped to 0 during migration",
+          { id: r.id, date: r.date, prevCumulative, cumulativeAmount: cum },
+        );
+      }
+      const installment = Math.max(0, delta);
       prevCumulative = cum;
       const row: GoalCheckpoint = { id: r.id, date: r.date, amount: installment };
       if (r.paid) row.paid = true;

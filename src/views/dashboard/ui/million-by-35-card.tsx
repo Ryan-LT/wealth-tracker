@@ -174,7 +174,6 @@ export function MillionBy35Card({
     const { projectedEndingNetWorth, feasible, monthsRemaining } = evaluateMilestone35Feasibility({
       currentNetWorth,
       monthlyNetContribution,
-      annualRealReturn: config.annualRealRate,
       targetNetWorthVnd: targetVnd,
       deadline,
       now,
@@ -187,7 +186,7 @@ export function MillionBy35Card({
     if (feasible && monthsRemaining > 1) {
       tone = "on_track";
       label = "On track";
-      hint = `Projected ${formatVnd(projectedEndingNetWorth)} at age ${MILESTONE_TARGET_AGE} meets the ${formatUsd(config.targetUsd)} goal (≈ ${formatVnd(targetVnd)}).`;
+      hint = `Projected ${formatVnd(projectedEndingNetWorth)} at age ${MILESTONE_TARGET_AGE} from current monthly net meets the ${formatUsd(config.targetUsd)} goal (≈ ${formatVnd(targetVnd)}).`;
     } else if (feasible) {
       tone = "steady";
       label = "Tight but possible";

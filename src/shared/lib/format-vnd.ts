@@ -14,6 +14,7 @@ export function formatVnd(
   } = {},
 ): string {
   const { showSign = false, omitSymbol = false, decimals = 0 } = options;
+  if (!Number.isFinite(amount)) return omitSymbol ? "—" : "₫—";
   const isNegative = amount < 0;
   const abs = Math.abs(amount);
 
@@ -34,6 +35,7 @@ export function formatVnd(
  * (used in the Settings asset management table and similar.)
  */
 export function formatThousands(amount: number): string {
+  if (!Number.isFinite(amount)) return "—";
   const abs = Math.abs(amount);
   const grouped = abs
     .toFixed(0)

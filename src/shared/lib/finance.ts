@@ -53,7 +53,7 @@ export function monthToDateNetWorthChangePercent(
   netWorth: number,
 ): number {
   const b = prefs.netWorthMonthBaseline;
-  if (b === undefined || !Number.isFinite(b) || b === 0) return 0;
+  if (b === undefined || !Number.isFinite(b) || Math.abs(b) < 1) return 0;
   return ((netWorth - b) / Math.abs(b)) * 100;
 }
 

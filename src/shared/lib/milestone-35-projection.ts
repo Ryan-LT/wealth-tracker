@@ -23,8 +23,9 @@ export function monthsBetween(from: Date, to: Date): number {
 }
 
 /**
- * Ending balance after `months` periods: PV compounds monthly at `annualRate`,
- * plus a fixed contribution `pmt` at each month-end.
+ * @deprecated Project uses strictly linear projections — no compound / imagined
+ * interest. Do not reintroduce in any new code path; kept exported only to avoid
+ * a breaking removal in case external callers reference it.
  */
 export function futureValueWithMonthlyContributions(
   pv: number,
@@ -54,19 +55,14 @@ export type Milestone35Feasibility = {
 export function evaluateMilestone35Feasibility(input: {
   currentNetWorth: number;
   monthlyNetContribution: number;
-  annualRealReturn: number;
   targetNetWorthVnd: number;
   deadline: Date;
   now?: Date;
 }): Milestone35Feasibility {
   const now = input.now ?? new Date();
   const monthsRemaining = monthsBetween(now, input.deadline);
-  const projectedEndingNetWorth = futureValueWithMonthlyContributions(
-    input.currentNetWorth,
-    input.monthlyNetContribution,
-    input.annualRealReturn,
-    monthsRemaining,
-  );
+  const projectedEndingNetWorth =
+    input.currentNetWorth + input.monthlyNetContribution * monthsRemaining;
   const feasible = projectedEndingNetWorth >= input.targetNetWorthVnd;
   return { projectedEndingNetWorth, feasible, monthsRemaining };
 }

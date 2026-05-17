@@ -195,9 +195,9 @@ export function GoalsPage() {
     const now = new Date();
     const target = new Date(draft.targetDate);
     if (Number.isNaN(target.getTime())) return 1;
-    const months =
-      (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
-    return Math.max(1, months);
+    const MS_PER_MONTH = (1000 * 60 * 60 * 24 * 365.25) / 12;
+    const ms = Math.max(0, target.getTime() - now.getTime());
+    return Math.max(1, Math.round(ms / MS_PER_MONTH));
   }, [draft.targetDate]);
 
   const startingBalance = useMemo(

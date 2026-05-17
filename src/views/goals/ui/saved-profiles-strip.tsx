@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderOpen, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -67,33 +67,38 @@ export function SavedProfilesStrip({
             return (
               <div
                 key={p.id}
+                role="button"
+                tabIndex={isActive ? -1 : 0}
+                aria-pressed={isActive}
+                aria-label={isActive ? `${p.name} (loaded)` : `Load ${p.name}`}
+                onClick={() => {
+                  if (!isActive) onLoad(p.id);
+                }}
+                onKeyDown={(e) => {
+                  if (isActive) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onLoad(p.id);
+                  }
+                }}
                 className={cn(
-                  "flex max-w-full items-center gap-1.5 rounded-full border pl-3 pr-1 py-1 transition-colors",
+                  "flex max-w-full items-center gap-1.5 rounded-full border pl-3 pr-1 py-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isActive
-                    ? "bg-primary/10 border-primary/40 text-foreground"
-                    : "bg-card border-border text-muted-foreground",
+                    ? "bg-primary/10 border-primary/40 text-foreground cursor-default"
+                    : "bg-card border-border text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground",
                 )}
               >
                 <span className="min-w-0 truncate text-sm font-medium">{p.name}</span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={isActive ? "secondary" : "default"}
-                  className="h-7 px-2.5 text-xs"
-                  onClick={() => onLoad(p.id)}
-                  disabled={isActive}
-                  aria-label={`Load ${p.name}`}
-                >
-                  <FolderOpen className="size-3.5" />
-                  {isActive ? "Loaded" : "Load"}
-                </Button>
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
                   className="size-7 text-muted-foreground hover:text-destructive"
                   aria-label={`Delete ${p.name}`}
-                  onClick={() => setPendingDelete(p)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPendingDelete(p);
+                  }}
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

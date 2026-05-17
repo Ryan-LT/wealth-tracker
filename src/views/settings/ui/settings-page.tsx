@@ -44,9 +44,6 @@ export function SettingsPage() {
       <Main>
         <div className="mb-4">
           <h1 className="text-2xl font-bold tracking-tight">Asset configuration</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage assets, debts, and income sources used across the app.
-          </p>
         </div>
 
         <Separator className="my-4" />

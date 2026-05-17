@@ -23,8 +23,28 @@ import {
   type GoalStartingOption,
   type SourceGoalUsage,
 } from "@/shared/lib";
-import type { GoalProfile, GoalSeedLine } from "@/shared/storage";
+import type {
+  GoalProfile,
+  GoalSeedLine,
+  SettingsAssetLiquidity,
+} from "@/shared/storage";
 import { AssetCategoryBadge, MoneyInput } from "@/shared/ui";
+
+function LiquidityChip({ liquidity }: { liquidity: SettingsAssetLiquidity }) {
+  const isInstant = liquidity === "instant";
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset",
+        isInstant
+          ? "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300"
+          : "bg-amber-500/15 text-amber-800 ring-amber-500/30 dark:text-amber-300",
+      )}
+    >
+      {isInstant ? "Instant" : "Not instant"}
+    </span>
+  );
+}
 
 export type StartingBalancesModalProps = {
   open: boolean;
@@ -286,6 +306,7 @@ function SourcePickerItem({
               className="shrink-0 text-[10px]"
             />
           ) : null}
+          {option.liquidity ? <LiquidityChip liquidity={option.liquidity} /> : null}
         </span>
 
         <span className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -364,6 +385,7 @@ function ModalSeedLineRow({
   const title = labelForSeedLine(line, seedOptions);
   const option = seedOptions.find((o) => o.key === line.sourceKey);
   const category = option?.category;
+  const liquidity = option?.liquidity;
   const isCustom = line.sourceKey === "custom";
   const live = !isCustom
     ? liveBalanceForSourceKey(line.sourceKey, seedOptions)
@@ -407,6 +429,7 @@ function ModalSeedLineRow({
                 className="shrink-0 text-[10px]"
               />
             ) : null}
+            {liquidity ? <LiquidityChip liquidity={liquidity} /> : null}
           </div>
         </div>
         <button

@@ -1,4 +1,9 @@
-import type { AssetsState, SettingsAsset } from "@/shared/storage";
+import {
+  resolveSettingsAssetLiquidity,
+  type AssetsState,
+  type SettingsAsset,
+  type SettingsAssetLiquidity,
+} from "@/shared/storage";
 
 export type GoalStartingOption = {
   key: string;
@@ -11,6 +16,12 @@ export type GoalStartingOption = {
    * Goal Plan starting-balance list and add-source picker.
    */
   category?: string;
+  /**
+   * Liquidity band for this source — `"instant"` (cash & instant-tagged catalog) or
+   * `"not_instant"` (real estate, investments, not-instant catalog). Undefined for
+   * `none` / `custom` rows.
+   */
+  liquidity?: SettingsAssetLiquidity;
 };
 
 /**
@@ -30,6 +41,7 @@ export function buildGoalStartingOptions(
       key: `re:${p.id}`,
       label: `Real estate — ${p.name}`,
       amount: p.estValue,
+      liquidity: "not_instant",
     });
   }
   for (const c of assets.cashAccounts) {
@@ -38,6 +50,7 @@ export function buildGoalStartingOptions(
       key: `cash:${c.id}`,
       label: `Cash — ${title}`,
       amount: c.balance,
+      liquidity: "instant",
     });
   }
   for (const i of assets.investments) {
@@ -45,6 +58,7 @@ export function buildGoalStartingOptions(
       key: `inv:${i.id}`,
       label: `Investment — ${i.name}`,
       amount: i.value,
+      liquidity: "not_instant",
     });
   }
   for (const a of catalog) {
@@ -53,6 +67,7 @@ export function buildGoalStartingOptions(
       label: a.name,
       amount: a.currentValue,
       category: a.category?.trim() || undefined,
+      liquidity: resolveSettingsAssetLiquidity(a.liquidity),
     });
   }
 

@@ -4,6 +4,9 @@ export type NetWorthMonthSnapshot = {
   value: number;
 };
 
+/** Liquidity-band visibility for the allocations matrix switcher. */
+export type AllocationsBandFilter = "both" | "instant" | "not_instant";
+
 export type Preferences = {
   /** Net income fallback when month inflow/outflow are unset. */
   netMonthIncome: number;
@@ -22,6 +25,9 @@ export type Preferences = {
 
   /** User-defined asset category labels (merged with built-in defaults in the UI). */
   extraAssetCategories?: string[];
+
+  /** Liquidity-band visibility on the allocations matrix; defaults to `"both"`. */
+  allocationsBandFilter?: AllocationsBandFilter;
 };
 
 export const PREFERENCES_SEED: Preferences = {

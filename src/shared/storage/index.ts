@@ -31,7 +31,11 @@ export {
 export type { GoalsState, GoalProfile, GoalSeedLine, GoalCheckpoint } from "./goals";
 
 export { PREFERENCES_SEED } from "./preferences";
-export type { Preferences, NetWorthMonthSnapshot } from "./preferences";
+export type {
+  AllocationsBandFilter,
+  NetWorthMonthSnapshot,
+  Preferences,
+} from "./preferences";
 
 export { PERSONAL_LOANS_SEED } from "./personal-loans";
 export type {

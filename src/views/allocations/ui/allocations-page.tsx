@@ -7,6 +7,7 @@ import { Main } from "@/components/layout/main";
 import { ProfileDropdown } from "@/components/layout/profile-dropdown";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -28,7 +29,9 @@ import {
   ASSETS_SEED,
   GOALS_SEED,
   INCOME_SOURCES_SEED,
+  PREFERENCES_SEED,
   SETTINGS_ASSETS_SEED,
+  type AllocationsBandFilter,
   type AssetsState,
   type GoalProfile,
   useTable,
@@ -184,11 +187,24 @@ function SourceCard({
   );
 }
 
+const BAND_FILTER_OPTIONS: { value: AllocationsBandFilter; label: string }[] = [
+  { value: "both", label: "Both" },
+  { value: "instant", label: "Instant access" },
+  { value: "not_instant", label: "Not instant" },
+];
+
+function isBandFilter(value: string): value is AllocationsBandFilter {
+  return value === "both" || value === "instant" || value === "not_instant";
+}
+
 export function AllocationsPage() {
   const [goals] = useTable("goals", GOALS_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+
+  const bandFilter: AllocationsBandFilter = prefs.allocationsBandFilter ?? "both";
 
   const [matrixColSort, setMatrixColSort] = useState<MatrixColumnSort>(null);
 
@@ -230,6 +246,15 @@ export function AllocationsPage() {
     () => sortMatrixByColumn(report.sources, matrixColSort),
     [report.sources, matrixColSort],
   );
+  const visibleMatrixSources = useMemo(() => {
+    if (bandFilter === "both") return sortedMatrixSources;
+    return sortedMatrixSources.filter((row) => row.band === bandFilter);
+  }, [sortedMatrixSources, bandFilter]);
+
+  const onBandFilterChange = (value: string) => {
+    if (!isBandFilter(value)) return;
+    setPrefs((p) => ({ ...p, allocationsBandFilter: value }));
+  };
 
   return (
     <>
@@ -244,10 +269,6 @@ export function AllocationsPage() {
       <Main>
         <div className="mb-4">
           <h1 className="text-2xl font-bold tracking-tight">Liquidity & commitments</h1>
-          <p className="text-sm text-muted-foreground max-w-3xl">
-            Starting-balance lines from Asset configuration reserved across Goal Plan profiles.
-            Uncommitted pool = live balance minus other plans&apos; claims.
-          </p>
         </div>
 
         <Card className="mb-4">
@@ -367,12 +388,35 @@ export function AllocationsPage() {
         </section>
 
         <section>
-          <h3 className="mb-2 text-base font-semibold">Source × plan matrix</h3>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-semibold">Source × plan matrix</h3>
+            <Tabs value={bandFilter} onValueChange={onBandFilterChange}>
+              <TabsList>
+                {BAND_FILTER_OPTIONS.map((opt) => (
+                  <TabsTrigger
+                    key={opt.value}
+                    value={opt.value}
+                    className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold dark:data-[state=active]:bg-emerald-600 dark:data-[state=active]:text-white dark:data-[state=active]:border-emerald-500"
+                  >
+                    {opt.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
           {report.sources.length === 0 ? (
             <Card>
               <CardContent className="py-4 text-center">
                 <p className="text-xs text-muted-foreground">
                   No keyed starting sources with balances or reservations.
+                </p>
+              </CardContent>
+            </Card>
+          ) : visibleMatrixSources.length === 0 ? (
+            <Card>
+              <CardContent className="py-4 text-center">
+                <p className="text-xs text-muted-foreground">
+                  No sources match this liquidity filter.
                 </p>
               </CardContent>
             </Card>
@@ -434,7 +478,7 @@ export function AllocationsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {sortedMatrixSources.map((row) => (
+                        {visibleMatrixSources.map((row) => (
                           <TableRow key={row.sourceKey}>
                             <TableCell className="sticky left-0 z-10 bg-card align-top">
                               <div className="text-sm">{row.label}</div>
@@ -473,7 +517,7 @@ export function AllocationsPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-3 md:hidden">
-                {sortedMatrixSources.map((row) => (
+                {visibleMatrixSources.map((row) => (
                   <SourceCard key={row.sourceKey} row={row} plans={plansForCards} />
                 ))}
               </div>

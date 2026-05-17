@@ -47,20 +47,12 @@ export function SavedProfilesStrip({
           <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Saved plans
           </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={isComposingNew}
-            onClick={onNew}
-          >
-            <Plus className="size-4" />
-            New plan
-          </Button>
         </div>
         <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-1 sm:pb-0">
           {profiles.length === 0 && !isComposingNew ? (
-            <p className="text-xs text-muted-foreground">None saved — use New plan, then Save.</p>
+            <p className="text-xs text-muted-foreground">
+              None saved — use New plan, then Save.
+            </p>
           ) : null}
           {profiles.map((p) => {
             const isActive = p.id === activeId;
@@ -88,7 +80,9 @@ export function SavedProfilesStrip({
                     : "bg-card border-border text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground",
                 )}
               >
-                <span className="min-w-0 truncate text-sm font-medium">{p.name}</span>
+                <span className="min-w-0 truncate text-sm font-medium">
+                  {p.name}
+                </span>
                 <Button
                   type="button"
                   size="icon"
@@ -110,6 +104,14 @@ export function SavedProfilesStrip({
               New plan (unsaved)
             </span>
           ) : null}
+          <Button
+            type="button"
+            className="rounded-full"
+            disabled={isComposingNew}
+            onClick={onNew}
+          >
+            <Plus className="size-4" />
+          </Button>
         </div>
       </div>
 

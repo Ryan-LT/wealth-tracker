@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { MaterialIcon } from "@/shared/ui";
 
@@ -9,6 +10,7 @@ type MetricCardProps = {
   hint?: string;
   negative?: boolean;
   highlight?: boolean;
+  loading?: boolean;
 };
 
 export function MetricCard({
@@ -18,6 +20,7 @@ export function MetricCard({
   hint,
   negative = false,
   highlight = false,
+  loading = false,
 }: MetricCardProps) {
   return (
     <Card className="gap-0 py-0">
@@ -37,14 +40,16 @@ export function MetricCard({
       <CardContent className="p-4 pt-0">
         <div
           className={cn(
-            "text-2xl font-bold font-data-tabular tabular-nums tracking-tight",
+            "text-2xl font-bold font-data-tabular tabular-nums tracking-tight leading-8",
             negative && "text-destructive",
           )}
         >
-          {value}
+          {loading ? <Skeleton className="h-7 w-32" /> : value}
         </div>
         {hint ? (
-          <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+          <p className="mt-1 text-xs text-muted-foreground leading-4">
+            {loading ? <Skeleton className="h-3 w-28" /> : hint}
+          </p>
         ) : null}
       </CardContent>
     </Card>

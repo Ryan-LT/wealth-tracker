@@ -28,6 +28,7 @@ import {
   PREFERENCES_SEED,
   SETTINGS_ASSETS_SEED,
   type AssetsState,
+  useHydrated,
   useTable,
 } from "@/shared/storage";
 
@@ -37,6 +38,7 @@ import { MillionBy35Card } from "./million-by-35-card";
 import { PrimaryGoalCard } from "./primary-goal-card";
 
 export function DashboardPage() {
+  const hydrated = useHydrated();
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts] = useTable("debts", DEBTS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
@@ -51,8 +53,9 @@ export function DashboardPage() {
   }, [assets, debts, settingsAssets]);
 
   useEffect(() => {
+    if (!hydrated) return;
     setPrefs((p) => syncNetWorthTracking(p, netWorth));
-  }, [netWorth, setPrefs]);
+  }, [hydrated, netWorth, setPrefs]);
 
   const summary = useMemo(() => {
     const grossAssets = totalCombinedAssetValue(assets, settingsAssets);
@@ -158,10 +161,12 @@ export function DashboardPage() {
             totalLiabilities={financialBreakdown.totalLiabilities}
             portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
             assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
+            loading={!hydrated}
           />
           <MillionBy35Card
             currentNetWorth={summary.totalNetWorth}
             monthlyNetContribution={summary.monthlyNet}
+            loading={!hydrated}
           />
         </div>
 
@@ -170,18 +175,28 @@ export function DashboardPage() {
             Goal plans
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {goalPlanCards.map((g) => (
-              <PrimaryGoalCard
-                key={g.key}
-                name={g.name}
-                targetAmount={g.targetAmount}
-                saved={g.saved}
-                savedCaption={g.savedCaption}
-                targetDate={g.targetDate}
-                includeMonthlyIncome={g.includeMonthlyIncome}
-                estimatedMonthlyNet={summary.monthlyNet}
-              />
-            ))}
+            {hydrated
+              ? goalPlanCards.map((g) => (
+                  <PrimaryGoalCard
+                    key={g.key}
+                    name={g.name}
+                    targetAmount={g.targetAmount}
+                    saved={g.saved}
+                    savedCaption={g.savedCaption}
+                    targetDate={g.targetDate}
+                    includeMonthlyIncome={g.includeMonthlyIncome}
+                    estimatedMonthlyNet={summary.monthlyNet}
+                  />
+                ))
+              : Array.from({ length: 3 }).map((_, i) => (
+                  <PrimaryGoalCard
+                    key={`skeleton-${i}`}
+                    name=""
+                    targetAmount={0}
+                    saved={0}
+                    loading
+                  />
+                ))}
           </div>
         </section>
 
@@ -192,6 +207,7 @@ export function DashboardPage() {
             passiveIncome={summary.passiveIncome}
             totalDebt={summary.totalDebt}
             eoyProjection={summary.eoyProjection}
+            loading={!hydrated}
           />
         </section>
       </Main>

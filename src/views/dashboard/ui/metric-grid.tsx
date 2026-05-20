@@ -8,6 +8,7 @@ type MetricGridProps = {
   passiveIncome: number;
   totalDebt: number;
   eoyProjection: number;
+  loading?: boolean;
 };
 
 export function MetricGrid({
@@ -16,6 +17,7 @@ export function MetricGrid({
   passiveIncome,
   totalDebt,
   eoyProjection,
+  loading = false,
 }: MetricGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -24,18 +26,21 @@ export function MetricGrid({
         label="Total Assets"
         value={formatVnd(totalAssets)}
         hint="Catalog + portfolio detail"
+        loading={loading}
       />
       <MetricCard
         icon="work"
         label="Active Income"
         value={formatVnd(activeIncome)}
         hint="/ Month Avg"
+        loading={loading}
       />
       <MetricCard
         icon="savings"
         label="Passive Income"
         value={formatVnd(passiveIncome)}
         hint="/ Month Avg"
+        loading={loading}
       />
       <MetricCard
         icon="credit_card"
@@ -43,6 +48,7 @@ export function MetricGrid({
         value={formatVnd(totalDebt)}
         hint="Mortgage excluded"
         negative
+        loading={loading}
       />
       <MetricCard
         icon="event"
@@ -50,6 +56,7 @@ export function MetricGrid({
         value={formatVnd(eoyProjection)}
         hint="Based on current trajectory"
         highlight
+        loading={loading}
       />
     </div>
   );

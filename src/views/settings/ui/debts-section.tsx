@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -41,7 +42,34 @@ type DebtsSectionProps = {
   onAdd: (debt: Debt) => void;
   onUpdate: (debt: Debt) => void;
   onDelete: (id: string) => void;
+  loading?: boolean;
 };
+
+function DebtRowSkeleton({ isLast }: { isLast: boolean }) {
+  return (
+    <div className={isLast ? "pb-4" : "pb-4 border-b border-border"}>
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <Skeleton className="h-6 w-40" />
+        <div className="flex shrink-0 items-center gap-2">
+          <Skeleton className="h-6 w-32" />
+          <div className="size-8" />
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-1">
+            <Skeleton className="h-3 w-10" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Skeleton className="h-3 w-14" />
+            <Skeleton className="h-5 w-24" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const emptyDebt = (): Debt => ({
   id: `debt-${Date.now()}`,
@@ -52,7 +80,7 @@ const emptyDebt = (): Debt => ({
   nextPayment: "",
 });
 
-export function DebtsSection({ debts, onAdd, onUpdate, onDelete }: DebtsSectionProps) {
+export function DebtsSection({ debts, onAdd, onUpdate, onDelete, loading = false }: DebtsSectionProps) {
   type Mode = "idle" | "create" | "edit";
   const [mode, setMode] = useState<Mode>("idle");
   const [draft, setDraft] = useState<Debt | null>(null);
@@ -130,7 +158,11 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete }: DebtsSectionP
       </CardHeader>
       <CardContent className="pt-4">
         <div className="space-y-4">
-          {debts.length === 0 ? (
+          {loading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <DebtRowSkeleton key={idx} isLast={idx === 2} />
+            ))
+          ) : debts.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No debts recorded. Use &quot;Add Debt&quot; to track loans, credit cards, etc.
             </p>

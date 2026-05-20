@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { AssetCategoryBadge } from "@/shared/ui";
 import {
@@ -34,6 +35,7 @@ import {
   type AllocationsBandFilter,
   type AssetsState,
   type GoalProfile,
+  useHydrated,
   useTable,
 } from "@/shared/storage";
 
@@ -198,6 +200,7 @@ function isBandFilter(value: string): value is AllocationsBandFilter {
 }
 
 export function AllocationsPage() {
+  const hydrated = useHydrated();
   const [goals] = useTable("goals", GOALS_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
@@ -278,16 +281,39 @@ export function AllocationsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight">
-              {formatVnd(incomeMonthly)}
+            <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight leading-8">
+              {hydrated ? formatVnd(incomeMonthly) : <Skeleton className="h-7 w-40 inline-block align-middle" />}
             </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Plans can include or exclude this in their projection.
+            <p className="mt-2 text-xs text-muted-foreground leading-4">
+              {hydrated
+                ? "Plans can include or exclude this in their projection."
+                : <Skeleton className="h-3 w-64 inline-block align-middle" />}
             </p>
           </CardContent>
         </Card>
 
-        {report.plans.length === 0 ? (
+        {!hydrated ? (
+          <Card className="mb-4 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Starting (capped)</TableHead>
+                  <TableHead>Monthly income in projection</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-32 rounded-full" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        ) : report.plans.length === 0 ? (
           <Card className="mb-4">
             <CardContent className="px-4 py-8 text-center">
               <p className="text-sm">No saved goal plans yet.</p>
@@ -346,11 +372,11 @@ export function AllocationsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {formatVnd(report.totals.instantRemainingPool)}
+                <p className="text-2xl font-bold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400 leading-8">
+                  {hydrated ? formatVnd(report.totals.instantRemainingPool) : <Skeleton className="h-7 w-32 inline-block align-middle" />}
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Uncommitted capacity on instant-tagged sources.
+                <p className="mt-2 text-xs text-muted-foreground leading-4">
+                  {hydrated ? "Uncommitted capacity on instant-tagged sources." : <Skeleton className="h-3 w-56 inline-block align-middle" />}
                 </p>
               </CardContent>
             </Card>
@@ -361,11 +387,11 @@ export function AllocationsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold font-data-tabular tabular-nums">
-                  {formatVnd(report.totals.notInstantRemainingPool)}
+                <p className="text-2xl font-bold font-data-tabular tabular-nums leading-8">
+                  {hydrated ? formatVnd(report.totals.notInstantRemainingPool) : <Skeleton className="h-7 w-32 inline-block align-middle" />}
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Real estate, investments, and not-instant catalog rows.
+                <p className="mt-2 text-xs text-muted-foreground leading-4">
+                  {hydrated ? "Real estate, investments, and not-instant catalog rows." : <Skeleton className="h-3 w-56 inline-block align-middle" />}
                 </p>
               </CardContent>
             </Card>
@@ -376,11 +402,11 @@ export function AllocationsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold font-data-tabular tabular-nums">
-                  {formatVnd(report.totals.customReservedStored)}
+                <p className="text-2xl font-bold font-data-tabular tabular-nums leading-8">
+                  {hydrated ? formatVnd(report.totals.customReservedStored) : <Skeleton className="h-7 w-32 inline-block align-middle" />}
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Total custom starting lines (no live balance).
+                <p className="mt-2 text-xs text-muted-foreground leading-4">
+                  {hydrated ? "Total custom starting lines (no live balance)." : <Skeleton className="h-3 w-56 inline-block align-middle" />}
                 </p>
               </CardContent>
             </Card>
@@ -404,7 +430,32 @@ export function AllocationsPage() {
               </TabsList>
             </Tabs>
           </div>
-          {report.sources.length === 0 ? (
+          {!hydrated ? (
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead><Skeleton className="h-4 w-20" /></TableHead>
+                      <TableHead className="text-end"><Skeleton className="ml-auto h-4 w-16" /></TableHead>
+                      <TableHead className="text-end"><Skeleton className="ml-auto h-4 w-16" /></TableHead>
+                      <TableHead className="text-end"><Skeleton className="ml-auto h-4 w-16" /></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell className="text-end"><Skeleton className="ml-auto h-4 w-20" /></TableCell>
+                        <TableCell className="text-end"><Skeleton className="ml-auto h-4 w-20" /></TableCell>
+                        <TableCell className="text-end"><Skeleton className="ml-auto h-4 w-20" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          ) : report.sources.length === 0 ? (
             <Card>
               <CardContent className="py-4 text-center">
                 <p className="text-xs text-muted-foreground">

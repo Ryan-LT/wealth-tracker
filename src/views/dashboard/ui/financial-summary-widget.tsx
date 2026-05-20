@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatVnd } from "@/shared/lib";
 
 type FinancialSummaryWidgetProps = {
@@ -7,6 +8,7 @@ type FinancialSummaryWidgetProps = {
   totalLiabilities: number;
   portfolioDetailTotal: number;
   assetConfigurationTotal: number;
+  loading?: boolean;
 };
 
 export function FinancialSummaryWidget({
@@ -14,6 +16,7 @@ export function FinancialSummaryWidget({
   totalLiabilities,
   portfolioDetailTotal,
   assetConfigurationTotal,
+  loading = false,
 }: FinancialSummaryWidgetProps) {
   return (
     <Card className="h-full">
@@ -23,11 +26,24 @@ export function FinancialSummaryWidget({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2 text-sm">
-        <Row label="Asset configuration" value={formatVnd(assetConfigurationTotal)} />
-        <Row label="Portfolio detail" value={formatVnd(portfolioDetailTotal)} />
+        <Row
+          label="Asset configuration"
+          value={formatVnd(assetConfigurationTotal)}
+          loading={loading}
+        />
+        <Row
+          label="Portfolio detail"
+          value={formatVnd(portfolioDetailTotal)}
+          loading={loading}
+        />
         <Separator />
-        <Row label="Total assets" value={formatVnd(totalAssets)} emphasized />
-        <Row label="Liabilities" value={`−${formatVnd(totalLiabilities)}`} destructive />
+        <Row label="Total assets" value={formatVnd(totalAssets)} emphasized loading={loading} />
+        <Row
+          label="Liabilities"
+          value={`−${formatVnd(totalLiabilities)}`}
+          destructive
+          loading={loading}
+        />
       </CardContent>
     </Card>
   );
@@ -38,14 +54,16 @@ function Row({
   value,
   emphasized,
   destructive,
+  loading,
 }: {
   label: string;
   value: string;
   emphasized?: boolean;
   destructive?: boolean;
+  loading?: boolean;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3">
+    <div className="flex items-baseline justify-between gap-3 leading-5">
       <span className={emphasized ? "font-medium text-foreground" : "text-muted-foreground"}>
         {label}
       </span>
@@ -56,7 +74,7 @@ function Row({
           destructive ? "text-destructive" : "",
         ].join(" ")}
       >
-        {value}
+        {loading ? <Skeleton className="h-4 w-24 inline-block align-middle" /> : value}
       </span>
     </div>
   );

@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -167,7 +168,23 @@ type AssetManagementTableProps = {
   onUpdate: (asset: SettingsAsset) => void;
   onAdd: (asset: SettingsAsset) => void;
   onReorder: (ordered: SettingsAsset[]) => void;
+  loading?: boolean;
 };
+
+function AssetRowSkeleton() {
+  return (
+    <TableRow>
+      <TableCell className="w-10 pr-0">
+        <Skeleton className="size-4" />
+      </TableCell>
+      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+      <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+      <TableCell className="text-right"><Skeleton className="ml-auto h-4 w-24" /></TableCell>
+      <TableCell className="text-right"><Skeleton className="ml-auto h-8 w-16" /></TableCell>
+    </TableRow>
+  );
+}
 
 type SortableAssetRowProps = {
   asset: SettingsAsset;
@@ -263,6 +280,7 @@ export function AssetManagementTable({
   onUpdate,
   onAdd,
   onReorder,
+  loading = false,
 }: AssetManagementTableProps) {
   type AssetDialogMode = "idle" | "edit" | "create";
   const [assetDialogMode, setAssetDialogMode] = useState<AssetDialogMode>("idle");
@@ -426,14 +444,16 @@ export function AssetManagementTable({
             </TableHeader>
             <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
               <TableBody>
-                {displayAssets.map((asset) => (
-                  <SortableAssetRow
-                    key={asset.id}
-                    asset={asset}
-                    onEdit={openEdit}
-                    onDeleteRequest={requestDelete}
-                  />
-                ))}
+                {loading
+                  ? Array.from({ length: 4 }).map((_, i) => <AssetRowSkeleton key={i} />)
+                  : displayAssets.map((asset) => (
+                      <SortableAssetRow
+                        key={asset.id}
+                        asset={asset}
+                        onEdit={openEdit}
+                        onDeleteRequest={requestDelete}
+                      />
+                    ))}
               </TableBody>
             </SortableContext>
           </Table>

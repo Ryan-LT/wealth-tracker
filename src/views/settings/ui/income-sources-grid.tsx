@@ -34,7 +34,7 @@ import {
 import type { IncomeSource, IncomeSourceKind } from "@/shared/storage";
 import { MoneyInput } from "@/shared/ui";
 
-import { IncomeSourceCard } from "./income-source-card";
+import { IncomeSourceCard, IncomeSourceCardSkeleton } from "./income-source-card";
 
 function newIncomeSourceDraft(): IncomeSource {
   return {
@@ -52,6 +52,7 @@ type IncomeSourcesGridProps = {
   onCreate: (source: IncomeSource) => void;
   onUpdate: (source: IncomeSource) => void;
   onDelete: (id: string) => void;
+  loading?: boolean;
 };
 
 export function IncomeSourcesGrid({
@@ -59,6 +60,7 @@ export function IncomeSourcesGrid({
   onCreate,
   onUpdate,
   onDelete,
+  loading = false,
 }: IncomeSourcesGridProps) {
   const [formOpen, setFormOpen] = useState(false);
   const [isCreate, setIsCreate] = useState(true);
@@ -134,7 +136,13 @@ export function IncomeSourcesGrid({
         </Button>
       </CardHeader>
       <CardContent className="pt-4">
-        {sources.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <IncomeSourceCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : sources.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">
             No income sources yet. Click &quot;Add Source&quot; to create one.
           </p>

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { computeGoalFeasibility, formatVnd, type GoalFeasibilityTone } from "@/shared/lib";
 import { MaterialIcon } from "@/shared/ui";
@@ -13,6 +14,7 @@ type PrimaryGoalCardProps = {
   targetDate?: string;
   includeMonthlyIncome?: boolean;
   estimatedMonthlyNet?: number;
+  loading?: boolean;
 };
 
 function feasibilityIcon(tone: GoalFeasibilityTone): string {
@@ -61,6 +63,7 @@ export function PrimaryGoalCard({
   targetDate = "",
   includeMonthlyIncome = true,
   estimatedMonthlyNet = 0,
+  loading = false,
 }: PrimaryGoalCardProps) {
   const pct = targetAmount === 0 ? 0 : Math.round((saved / targetAmount) * 100);
 
@@ -78,28 +81,46 @@ export function PrimaryGoalCard({
         <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {cardLabel}
         </CardTitle>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
-            feasibilityChipClass(pulse.tone),
-          )}
-          title={pulse.hint}
-        >
-          <MaterialIcon name={feasibilityIcon(pulse.tone)} size={12} />
-          <span className="truncate">{pulse.label}</span>
-        </span>
+        {loading ? (
+          <Skeleton className="h-5 w-20 rounded-full" />
+        ) : (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+              feasibilityChipClass(pulse.tone),
+            )}
+            title={pulse.hint}
+          >
+            <MaterialIcon name={feasibilityIcon(pulse.tone)} size={12} />
+            <span className="truncate">{pulse.label}</span>
+          </span>
+        )}
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-2">
-        <p className="line-clamp-2 text-base font-semibold leading-snug">{name}</p>
-        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums">
-          Target {formatVnd(targetAmount)}
+        <p className="line-clamp-2 text-base font-semibold leading-6 min-h-12">
+          {loading ? <Skeleton className="h-5 w-3/4 inline-block align-middle" /> : name}
+        </p>
+        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums leading-4">
+          {loading ? (
+            <Skeleton className="h-3 w-32 inline-block align-middle" />
+          ) : (
+            <>Target {formatVnd(targetAmount)}</>
+          )}
         </p>
         <div className="mt-1 flex items-center gap-2">
-          <Progress value={Math.min(100, Math.max(0, pct))} className="h-2" />
-          <span className="shrink-0 text-xs font-semibold tabular-nums">{pct}%</span>
+          <Progress value={loading ? 0 : Math.min(100, Math.max(0, pct))} className="h-2" />
+          <span className="shrink-0 text-xs font-semibold tabular-nums leading-4 w-8 text-right">
+            {loading ? <Skeleton className="h-3 w-6 inline-block align-middle" /> : `${pct}%`}
+          </span>
         </div>
-        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums">
-          <span className="font-semibold text-foreground">{formatVnd(saved)}</span> {savedCaption}
+        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums leading-4">
+          {loading ? (
+            <Skeleton className="h-3 w-40 inline-block align-middle" />
+          ) : (
+            <>
+              <span className="font-semibold text-foreground">{formatVnd(saved)}</span> {savedCaption}
+            </>
+          )}
         </p>
       </CardContent>
     </Card>

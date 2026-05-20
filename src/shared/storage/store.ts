@@ -5,6 +5,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import { TABLE_KEYS, type TableKey } from "./table-keys";
 
 const tablesUrl = "/api/tables";
+const LOCAL_CACHE_KEY = "wealthtracker:tables:v1";
 
 type Listener = () => void;
 
@@ -19,12 +20,52 @@ const dirty = new Set<string>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let hydrateState: "pending" | "ok" | "error" = "pending";
 let hydratePromise: Promise<void> | null = null;
+let localCacheLoaded = false;
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof window.fetch !== "undefined";
 }
 
+function loadLocalCache(): void {
+  if (localCacheLoaded) return;
+  localCacheLoaded = true;
+  if (!isBrowser()) return;
+  try {
+    const raw = window.localStorage.getItem(LOCAL_CACHE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Partial<Record<TableKey, unknown>>;
+    if (!parsed || typeof parsed !== "object") return;
+    for (const key of TABLE_KEYS) {
+      if (parsed[key] !== undefined) {
+        valueCache.set(key, parsed[key]);
+      }
+    }
+    // We have *some* data to render — flip hydrate to ok so consumers don't show a full-screen spinner.
+    if (valueCache.size > 0) {
+      hydrateState = "ok";
+    }
+  } catch {
+    // Corrupt cache — ignore.
+  }
+}
+
+function persistLocalCache(): void {
+  if (!isBrowser()) return;
+  try {
+    const snapshot: Record<string, unknown> = {};
+    for (const key of TABLE_KEYS) {
+      if (valueCache.has(key)) {
+        snapshot[key] = valueCache.get(key);
+      }
+    }
+    window.localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // Quota or serialization error — non-fatal.
+  }
+}
+
 function subscribe(listener: Listener): () => void {
+  loadLocalCache();
   listeners.add(listener);
   void ensureHydrated();
   return () => {
@@ -51,17 +92,25 @@ function ensureHydrated(): Promise<void> {
       }
       const data = (await res.json()) as { tables?: Partial<Record<TableKey, unknown>> };
       const remote = data.tables ?? {};
+      let mutated = false;
       for (const key of TABLE_KEYS) {
         if (dirty.has(key)) {
           continue;
         }
         if (remote[key] !== undefined) {
           valueCache.set(key, remote[key]);
+          mutated = true;
         }
       }
       hydrateState = "ok";
+      if (mutated) {
+        persistLocalCache();
+      }
     } catch {
-      hydrateState = "error";
+      // Keep prior hydrateState if we already loaded from localStorage; otherwise mark error.
+      if (hydrateState === "pending") {
+        hydrateState = "error";
+      }
     } finally {
       notify();
       if (dirty.size > 0) {
@@ -115,6 +164,7 @@ async function flushDirty(): Promise<void> {
 }
 
 function readSnapshot<T>(name: string, seed: T): T {
+  loadLocalCache();
   if (valueCache.has(name)) {
     return valueCache.get(name) as T;
   }
@@ -131,6 +181,7 @@ export function writeTable<T>(name: string, value: T): void {
   }
   valueCache.set(name, value);
   dirty.add(name);
+  persistLocalCache();
   notify();
   scheduleFlush();
 }
@@ -166,8 +217,9 @@ export function useTable<T>(name: string, seed: T) {
 }
 
 /**
- * Global hydration flag. `false` until the initial Neon fetch resolves
- * (either success or error), then `true` for the rest of the session.
+ * Global hydration flag. `false` until either the local cache restores any data
+ * or the initial Neon fetch resolves (success or error). Then stays `true` for
+ * the rest of the session.
  *
  * Mounting this hook also kicks off hydration, so it can gate the first
  * render before any `useTable` subscribes.

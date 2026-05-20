@@ -13,6 +13,7 @@ import {
   INCOME_SOURCES_SEED,
   PREFERENCES_SEED,
   SETTINGS_ASSETS_SEED,
+  useHydrated,
   useTable,
 } from "@/shared/storage";
 
@@ -21,6 +22,7 @@ import { DebtsSection } from "./debts-section";
 import { IncomeSourcesGrid } from "./income-sources-grid";
 
 export function SettingsPage() {
+  const hydrated = useHydrated();
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [debts, setDebts] = useTable("debts", DEBTS_SEED);
   const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
@@ -66,6 +68,7 @@ export function SettingsPage() {
             }
             onAdd={(asset) => setAssets((prev) => [...prev, asset])}
             onReorder={(ordered) => setAssets(() => ordered)}
+            loading={!hydrated}
           />
           <DebtsSection
             debts={debts}
@@ -74,6 +77,7 @@ export function SettingsPage() {
               setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
             }
             onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
+            loading={!hydrated}
           />
           <IncomeSourcesGrid
             sources={sources}
@@ -82,6 +86,7 @@ export function SettingsPage() {
               setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))
             }
             onDelete={(id) => setSources((prev) => prev.filter((s) => s.id !== id))}
+            loading={!hydrated}
           />
         </div>
       </Main>

@@ -19,15 +19,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatVnd } from "@/shared/lib";
 import {
   PERSONAL_LOANS_SEED,
+  useHydrated,
   useTable,
   type PersonalLoan,
   type PersonalLoanDirection,
 } from "@/shared/storage";
 
-import { LoanCard } from "./loan-card";
+import { LoanCard, LoanCardSkeleton } from "./loan-card";
 import { LoanDialog } from "./loan-dialog";
 
 type DialogMode = "idle" | "create" | "edit";
@@ -55,6 +57,7 @@ function sortLoans(loans: PersonalLoan[]): PersonalLoan[] {
 }
 
 export function PersonalLoansPage() {
+  const hydrated = useHydrated();
   const [loans, setLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
 
   const [mode, setMode] = useState<DialogMode>("idle");
@@ -168,17 +171,27 @@ export function PersonalLoansPage() {
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Owed to you
                 </CardTitle>
-                <p className="mt-1 text-2xl font-bold font-data-tabular tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">
-                  {formatVnd(totalOpenLentOut)}
+                <p className="mt-1 text-2xl font-bold font-data-tabular tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 leading-8">
+                  {hydrated ? (
+                    formatVnd(totalOpenLentOut)
+                  ) : (
+                    <Skeleton className="h-7 w-32 inline-block align-middle" />
+                  )}
                 </p>
               </div>
-              <Button type="button" size="sm" onClick={() => openCreate("lent_out")}>
+              <Button type="button" size="sm" onClick={() => openCreate("lent_out")} disabled={!hydrated}>
                 <Plus className="size-4" />
                 Add
               </Button>
             </CardHeader>
             <CardContent className="pt-2">
-              {lentOut.length === 0 ? (
+              {!hydrated ? (
+                <div className="flex flex-col gap-2">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <LoanCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : lentOut.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
                   Nothing here yet. Use “Add” to log money you lent.
                 </p>
@@ -204,17 +217,27 @@ export function PersonalLoansPage() {
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   You owe
                 </CardTitle>
-                <p className="mt-1 text-2xl font-bold font-data-tabular tabular-nums tracking-tight text-destructive">
-                  {formatVnd(totalOpenBorrowed)}
+                <p className="mt-1 text-2xl font-bold font-data-tabular tabular-nums tracking-tight text-destructive leading-8">
+                  {hydrated ? (
+                    formatVnd(totalOpenBorrowed)
+                  ) : (
+                    <Skeleton className="h-7 w-32 inline-block align-middle" />
+                  )}
                 </p>
               </div>
-              <Button type="button" size="sm" onClick={() => openCreate("borrowed")}>
+              <Button type="button" size="sm" onClick={() => openCreate("borrowed")} disabled={!hydrated}>
                 <Plus className="size-4" />
                 Add
               </Button>
             </CardHeader>
             <CardContent className="pt-2">
-              {borrowed.length === 0 ? (
+              {!hydrated ? (
+                <div className="flex flex-col gap-2">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <LoanCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : borrowed.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
                   Nothing here yet. Use “Add” to log money you borrowed.
                 </p>

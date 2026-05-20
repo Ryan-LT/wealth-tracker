@@ -10,9 +10,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatVnd } from "@/shared/lib";
 import type { PersonalLoan } from "@/shared/storage";
+
+export function LoanCardSkeleton() {
+  return (
+    <Card>
+      <div className="flex items-start gap-3 p-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline justify-between gap-2 leading-tight">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <p className="mt-0.5 leading-4">
+            <Skeleton className="h-3 w-24 inline-block align-middle" />
+          </p>
+        </div>
+        <div className="size-7 shrink-0" />
+      </div>
+    </Card>
+  );
+}
 
 type LoanCardProps = {
   loan: PersonalLoan;

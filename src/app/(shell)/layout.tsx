@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { HydrationGate } from "@/components/layout/hydration-gate";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { LayoutProvider } from "@/context/layout-provider";
 import { cn } from "@/lib/utils";
@@ -21,10 +22,12 @@ export default async function ShellLayout({ children }: { children: ReactNode })
               "@container/content",
               "has-data-[layout=fixed]:h-svh",
               "peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
+              "pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0",
             )}
           >
             {children}
           </SidebarInset>
+          <MobileBottomNav />
         </SidebarProvider>
       </HydrationGate>
     </LayoutProvider>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_MILESTONE_USD,
@@ -47,6 +48,8 @@ type MilestoneConfigResponse = MilestoneConfigOk | MilestoneConfigPartial;
 type MillionBy35CardProps = {
   currentNetWorth: number;
   monthlyNetContribution: number;
+  /** Page-level hydration flag. When false, render the skeleton variant. */
+  loading?: boolean;
 };
 
 function feasibilityIcon(tone: GoalFeasibilityTone): string {
@@ -104,6 +107,7 @@ function Chip({ tone, label, title }: { tone: GoalFeasibilityTone; label: string
 export function MillionBy35Card({
   currentNetWorth,
   monthlyNetContribution,
+  loading = false,
 }: MillionBy35CardProps) {
   const [config, setConfig] = useState<MilestoneConfigResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -212,6 +216,31 @@ export function MillionBy35Card({
       deadline,
     };
   }, [config, loadError, currentNetWorth, monthlyNetContribution]);
+
+  if (loading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
+          </CardTitle>
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <p className="text-2xl font-bold leading-8">
+            <Skeleton className="h-7 w-40 inline-block align-middle" />
+          </p>
+          <p className="text-xs text-muted-foreground leading-4">
+            <Skeleton className="h-3 w-48 inline-block align-middle" />
+          </p>
+          <Progress value={0} />
+          <p className="text-xs text-muted-foreground leading-4">
+            <Skeleton className="h-3 w-56 inline-block align-middle" />
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (loadError) {
     return (

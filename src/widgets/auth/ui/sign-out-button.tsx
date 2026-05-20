@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 
 type SignOutButtonProps = {
   variant?: "default" | "secondary" | "ghost" | "outline" | "destructive" | "link";

@@ -7,7 +7,7 @@ import {
   WT_SESSION_COOKIE,
   createSessionToken,
   isAuthEnvConfigured,
-} from "@/lib/auth-session";
+} from "@/shared/api/auth-session";
 
 export const dynamic = "force-dynamic";
 

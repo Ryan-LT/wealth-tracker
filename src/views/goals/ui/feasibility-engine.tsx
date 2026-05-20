@@ -4,7 +4,7 @@ import { Check, CircleHelp, TriangleAlert } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 import { formatVnd } from "@/shared/lib";
 
 type FeasibilityEngineProps = {

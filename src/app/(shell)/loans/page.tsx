@@ -1,5 +1,5 @@
-import { PersonalLoansPage } from "@/views/personal-loans";
+import { LoansPage } from "@/views/loans";
 
 export default function Page() {
-  return <PersonalLoansPage />;
+  return <LoansPage />;
 }

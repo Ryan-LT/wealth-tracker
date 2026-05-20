@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { WT_SESSION_COOKIE } from "@/lib/auth-session";
+import { WT_SESSION_COOKIE } from "@/shared/api/auth-session";
 
 export const dynamic = "force-dynamic";
 

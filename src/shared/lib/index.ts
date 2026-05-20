@@ -1,24 +1,9 @@
-export { cn } from "./cn";
-export { buildGoalStartingOptions } from "./goal-starting-options";
-export type { GoalStartingOption } from "./goal-starting-options";
-export {
-  appendGoalSeedLine,
-  clampSeedLinesToAllocationPool,
-  dedupeNonCustomSeedLines,
-  effectiveGoalSeedLineAmount,
-  ensureKeyedSeedDefaults,
-  goalUsageForSourceKey,
-  labelForSeedLine,
-  liveBalanceForSourceKey,
-  maxAllocationForSourceKey,
-  migrateLegacySeedsToLines,
-  resolvedSeedLineAmount,
-  sanitizeSeedLinesAgainstOptions,
-  totalGoalStartingBalance,
-} from "./goal-seed-lines";
-export type { SourceGoalUsage } from "./goal-seed-lines";
+// Entity-agnostic helpers stay here.
+export { cn, getDisplayNameInitials } from "./cn";
+export { useIsMobile } from "./use-mobile";
 export { formatVnd, formatThousands } from "./format-vnd";
 export { formatUsd } from "./format-usd";
+export { formatDisplayDate } from "./format-date";
 export {
   DEFAULT_MILESTONE_USD,
   evaluateMilestone35Feasibility,
@@ -27,21 +12,15 @@ export {
   monthsBetween,
   parseIsoDateOnly,
   thirtyFifthBirthday,
+  type Milestone35Feasibility,
 } from "./milestone-35-projection";
-export type { Milestone35Feasibility } from "./milestone-35-projection";
-export { formatDisplayDate } from "./format-date";
-export {
-  cumulativeDueScheduleFromCheckpoints,
-  normalizeStoredCheckpoints,
-} from "./goal-checkpoints";
-export {
-  monthlyIncomeByKind,
-  totalAssetValue,
-  totalCombinedAssetValue,
-  totalDebtBalance,
-  totalMonthlyIncomeFromSources,
-  totalSettingsAssetsValue,
-} from "./wealth-totals";
+
+// Migration shims: re-exported from entity slices for backward compatibility.
+// New code should import directly from @/entities/<name>.
+export { totalAssetValue } from "@/entities/asset";
+export { totalDebtBalance } from "@/entities/debt";
+export { monthlyIncomeByKind, totalMonthlyIncomeFromSources } from "@/entities/income";
+export { totalSettingsAssetsValue } from "@/entities/settings-asset";
 export {
   buildNetWorthChartSeries,
   estimatedMonthlyNetCashflow,
@@ -50,7 +29,29 @@ export {
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
   syncNetWorthTracking,
-} from "./finance";
-export { computeGoalFeasibility } from "./goal-feasibility";
-export type { GoalFeasibility, GoalFeasibilityTone, GoalFeasibilityInput } from "./goal-feasibility";
-export type { NetWorthMonthSnapshot } from "@/shared/storage/preferences";
+  type NetWorthMonthSnapshot,
+} from "@/entities/preferences";
+export {
+  appendGoalSeedLine,
+  buildGoalStartingOptions,
+  clampSeedLinesToAllocationPool,
+  computeGoalFeasibility,
+  cumulativeDueScheduleFromCheckpoints,
+  dedupeNonCustomSeedLines,
+  effectiveGoalSeedLineAmount,
+  ensureKeyedSeedDefaults,
+  goalUsageForSourceKey,
+  labelForSeedLine,
+  liveBalanceForSourceKey,
+  maxAllocationForSourceKey,
+  migrateLegacySeedsToLines,
+  normalizeStoredCheckpoints,
+  resolvedSeedLineAmount,
+  sanitizeSeedLinesAgainstOptions,
+  totalGoalStartingBalance,
+  type GoalFeasibility,
+  type GoalFeasibilityInput,
+  type GoalFeasibilityTone,
+  type GoalStartingOption,
+  type SourceGoalUsage,
+} from "@/entities/goal";

@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { Header } from "@/components/layout/header";
-import { Main } from "@/components/layout/main";
-import { ProfileDropdown } from "@/components/layout/profile-dropdown";
-import { ThemeSwitch } from "@/components/theme-switch";
+import { Header } from "@/widgets/page-header";
+import { Main } from "@/widgets/page-shell";
+import { ProfileDropdown } from "@/widgets/profile-menu";
+import { ThemeSwitch } from "@/widgets/theme-switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 import { AssetCategoryBadge } from "@/shared/ui";
 import {
   buildGoalStartingOptions,
@@ -262,7 +262,7 @@ export function AllocationsPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-base font-medium">Liquidity & commitments</h1>
+        <h1 className="text-lg font-semibold md:text-base md:font-medium">Liquidity & commitments</h1>
         <div className="ml-auto flex items-center gap-2">
           <ThemeSwitch />
           <ProfileDropdown />

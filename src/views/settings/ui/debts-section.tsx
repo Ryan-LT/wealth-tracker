@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Debt } from "@/shared/storage";
+import type { Debt } from "@/entities/debt";
 import { MoneyInput, PercentInput } from "@/shared/ui";
 
 import { DebtRow } from "./debt-row";

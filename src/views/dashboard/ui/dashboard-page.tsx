@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo } from "react";
 
-import { Header } from "@/components/layout/header";
-import { Main } from "@/components/layout/main";
-import { ProfileDropdown } from "@/components/layout/profile-dropdown";
-import { ThemeSwitch } from "@/components/theme-switch";
+import { Header } from "@/widgets/page-header";
+import { Main } from "@/widgets/page-shell";
+import { ProfileDropdown } from "@/widgets/profile-menu";
+import { ThemeSwitch } from "@/widgets/theme-switch";
 import {
   buildGoalStartingOptions,
   estimatedMonthlyNetCashflow,
@@ -13,12 +13,13 @@ import {
   projectNetWorthEndOfYear,
   syncNetWorthTracking,
   totalAssetValue,
-  totalCombinedAssetValue,
   totalDebtBalance,
   totalGoalStartingBalance,
   totalMonthlyIncomeFromSources,
   totalSettingsAssetsValue,
 } from "@/shared/lib";
+
+import { totalCombinedAssetValue } from "../lib/total-combined-asset-value";
 import {
   ASSETS_SEED,
   DEBTS_SEED,
@@ -138,7 +139,7 @@ export function DashboardPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-base font-medium">Dashboard</h1>
+        <h1 className="text-lg font-semibold md:text-base md:font-medium">Dashboard</h1>
         <div className="ml-auto flex items-center gap-2">
           <ThemeSwitch />
           <ProfileDropdown />

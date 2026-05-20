@@ -2,7 +2,7 @@
 
 import { createElement } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 
 import { resolveSymbolIcon } from "./material-icon-registry";
 

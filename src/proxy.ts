@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { isAuthEnvConfigured, verifySessionToken, WT_SESSION_COOKIE } from "@/lib/auth-session";
+import { isAuthEnvConfigured, verifySessionToken, WT_SESSION_COOKIE } from "@/shared/api/auth-session";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

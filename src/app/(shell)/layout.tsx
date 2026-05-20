@@ -1,12 +1,11 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { HydrationGate } from "@/components/layout/hydration-gate";
-import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { LayoutProvider } from "@/context/layout-provider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
+import { AppSidebar, LayoutProvider } from "@/widgets/app-sidebar";
+import { MobileBottomNav } from "@/widgets/mobile-bottom-nav";
+import { HydrationGate } from "@/widgets/page-shell";
 
 export default async function ShellLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
@@ -22,7 +21,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
               "@container/content",
               "has-data-[layout=fixed]:h-svh",
               "peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
-              "pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0",
+              "pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-0",
             )}
           >
             {children}

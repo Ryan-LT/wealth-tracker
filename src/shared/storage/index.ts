@@ -2,24 +2,29 @@ export { readTable, writeTable, useTable, useHydrated } from "./store";
 
 export { TABLE_KEYS, isTableKey, type TableKey } from "./table-keys";
 
-export { ASSETS_SEED } from "./assets";
-export type { AssetsState, RealEstateProperty, CashAccount, Investment } from "./assets";
-
-export { DEBTS_SEED } from "./debts";
-export type { Debt } from "./debts";
-
-export { INCOME_SOURCES_SEED, SETTINGS_ASSETS_SEED } from "./income-sources";
-export type {
-  IncomeSource,
-  IncomeSourceKind,
-  SettingsAsset,
-  SettingsAssetLiquidity,
-} from "./income-sources";
+// Migration shims: entity models live under @/entities/<name>.
+// Existing consumers can continue to import from here for now.
 export {
+  ASSETS_SEED,
+  type AssetsState,
+  type CashAccount,
+  type Investment,
+  type RealEstateProperty,
+} from "@/entities/asset";
+export { DEBTS_SEED, type Debt } from "@/entities/debt";
+export {
+  INCOME_SOURCES_SEED,
+  type IncomeSource,
+  type IncomeSourceKind,
+} from "@/entities/income";
+export {
+  SETTINGS_ASSETS_SEED,
   SETTINGS_ASSET_LIQUIDITY_DEFAULT,
   resolveSettingsAssetLiquidity,
   settingsAssetLiquidityLabel,
-} from "./income-sources";
+  type SettingsAsset,
+  type SettingsAssetLiquidity,
+} from "@/entities/settings-asset";
 
 export {
   EMPTY_GOAL_PROFILE,
@@ -27,19 +32,16 @@ export {
   GOAL_PLAN_NEW_SENTINEL,
   GOAL_SIMULATOR_NEW_SENTINEL,
   goalProfileForDashboard,
-} from "./goals";
-export type { GoalsState, GoalProfile, GoalSeedLine, GoalCheckpoint } from "./goals";
+  type GoalCheckpoint,
+  type GoalProfile,
+  type GoalSeedLine,
+  type GoalsState,
+} from "@/entities/goal";
 
-export { PREFERENCES_SEED } from "./preferences";
-export type {
-  AllocationsBandFilter,
-  NetWorthMonthSnapshot,
-  Preferences,
-} from "./preferences";
+export {
+  PREFERENCES_SEED,
+  type AllocationsBandFilter,
+  type NetWorthMonthSnapshot,
+  type Preferences,
+} from "@/entities/preferences";
 
-export { PERSONAL_LOANS_SEED } from "./personal-loans";
-export type {
-  PersonalLoan,
-  PersonalLoanDirection,
-  PersonalLoanStatus,
-} from "./personal-loans";

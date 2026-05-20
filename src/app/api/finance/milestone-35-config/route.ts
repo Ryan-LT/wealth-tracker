@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { resolveUsdVndRate } from "@/lib/usd-vnd-exchange-rate";
+import { resolveUsdVndRate } from "@/shared/api/usd-vnd-exchange-rate";
 import {
   DEFAULT_MILESTONE_USD,
   parseIsoDateOnly,

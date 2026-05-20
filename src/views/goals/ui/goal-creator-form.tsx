@@ -20,7 +20,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 import {
   effectiveGoalSeedLineAmount,
   formatDisplayDate,

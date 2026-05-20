@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 
 import { Badge as ShadcnBadge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 
 type BadgeTone =
   | "success"

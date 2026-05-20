@@ -65,7 +65,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 import { isDefaultAssetCategory } from "@/shared/config";
 import { AssetCategoryBadge } from "@/shared/ui";
 import { formatThousands } from "@/shared/lib";

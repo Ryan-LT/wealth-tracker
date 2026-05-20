@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib";
 import { formatVnd } from "@/shared/lib";
-import type { Debt } from "@/shared/storage";
+import type { Debt } from "@/entities/debt";
 
 function formatRatePctVi(ratePct: number): string {
   return new Intl.NumberFormat("vi-VN", {

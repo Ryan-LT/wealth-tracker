@@ -270,7 +270,7 @@ export function AllocationsPage() {
       </Header>
 
       <Main>
-        <div className="mb-4">
+        <div className="mb-4 max-md:hidden">
           <h1 className="text-2xl font-bold tracking-tight">Liquidity & commitments</h1>
         </div>
 

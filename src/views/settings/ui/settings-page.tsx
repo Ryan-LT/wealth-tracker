@@ -44,7 +44,7 @@ export function SettingsPage() {
       </Header>
 
       <Main>
-        <div className="mb-4">
+        <div className="mb-4 max-md:hidden">
           <h1 className="text-2xl font-bold tracking-tight">Asset configuration</h1>
         </div>
 

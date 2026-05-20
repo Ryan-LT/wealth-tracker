@@ -146,7 +146,7 @@ export function DashboardPage() {
       </Header>
 
       <Main>
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between max-md:hidden">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
             <p className="text-sm text-muted-foreground">

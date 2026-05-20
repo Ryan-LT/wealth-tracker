@@ -157,7 +157,7 @@ export function PersonalLoansPage() {
       </Header>
 
       <Main>
-        <div className="mb-4">
+        <div className="mb-4 max-md:hidden">
           <h1 className="text-2xl font-bold tracking-tight">Personal loans</h1>
           <p className="text-sm text-muted-foreground">
             A side notebook. <strong className="text-foreground">Not counted</strong> in net worth or any calculation.

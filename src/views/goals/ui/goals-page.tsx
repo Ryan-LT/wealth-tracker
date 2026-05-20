@@ -250,7 +250,7 @@ export function GoalsPage() {
       </Header>
 
       <Main>
-        <div className="mb-4">
+        <div className="mb-4 max-md:hidden">
           <h1 className="text-2xl font-bold tracking-tight">Goal Plan</h1>
           <p className="text-sm text-muted-foreground">
             Set a target, allocate starting balances, and track feasibility.

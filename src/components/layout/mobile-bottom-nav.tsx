@@ -40,59 +40,53 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav
-      aria-label="Primary"
+    <div
       className={cn(
         "md:hidden",
-        "fixed inset-x-0 bottom-0 z-40",
-        "border-t border-sidebar-border bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/80",
-        "pb-[max(env(safe-area-inset-bottom),0.5rem)]",
+        "pointer-events-none fixed inset-x-0 z-40 flex justify-center",
+        "bottom-[max(0.75rem,env(safe-area-inset-bottom))]",
+        "px-4",
       )}
     >
-      <ul className="mx-auto grid max-w-screen-md grid-cols-5">
+      <nav
+        aria-label="Primary"
+        className={cn(
+          "pointer-events-auto",
+          "flex items-center gap-1",
+          "rounded-full border border-border/60",
+          "bg-sidebar/95 supports-backdrop-filter:bg-sidebar/75 backdrop-blur-xs",
+          "shadow-[0_8px_24px_-4px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)]",
+          "px-1.5 py-1.5",
+        )}
+      >
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = isActive(optimisticActive, item.href);
           return (
-            <li key={item.href} className="contents">
-              <Link
-                href={item.href}
-                onClick={(event) => handleNavigate(event, item.href)}
-                aria-current={active ? "page" : undefined}
-                aria-label={item.label}
-                className={cn(
-                  "relative flex flex-col items-center justify-center gap-1",
-                  "h-14 px-1 pt-1.5 pb-1",
-                  "text-[11px] font-medium leading-none",
-                  "text-sidebar-foreground/70 transition-colors",
-                  "hover:text-sidebar-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-inset",
-                  active && "text-sidebar-primary",
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "pointer-events-none absolute inset-x-1/2 top-0 h-[2px] -translate-x-1/2 rounded-full transition-all",
-                    active
-                      ? "w-10 bg-sidebar-primary"
-                      : "w-0 bg-transparent",
-                  )}
-                />
-                <span
-                  className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
-                    active && "bg-sidebar-primary/12",
-                  )}
-                >
-                  <Icon className="size-5" />
-                </span>
-                <span className="truncate max-w-full">{item.short}</span>
-              </Link>
-            </li>
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={(event) => handleNavigate(event, item.href)}
+              aria-current={active ? "page" : undefined}
+              aria-label={item.label}
+              title={item.label}
+              className={cn(
+                "relative inline-flex items-center justify-center",
+                "size-11 shrink-0 rounded-full",
+                "transition-[background-color,color,transform,box-shadow] duration-200",
+                "active:scale-[0.92]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+                active
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-md shadow-sidebar-primary/40 ring-4 ring-sidebar-primary/15"
+                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground",
+              )}
+            >
+              <Icon className="size-5" />
+              <span className="sr-only">{item.label}</span>
+            </Link>
           );
         })}
-      </ul>
-    </nav>
+      </nav>
+    </div>
   );
 }

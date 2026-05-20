@@ -164,3 +164,18 @@ export function useTable<T>(name: string, seed: T) {
 
   return [value, update, loadFinished] as const;
 }
+
+/**
+ * Global hydration flag. `false` until the initial Neon fetch resolves
+ * (either success or error), then `true` for the rest of the session.
+ *
+ * Mounting this hook also kicks off hydration, so it can gate the first
+ * render before any `useTable` subscribes.
+ */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => hydrateState !== "pending",
+    () => false,
+  );
+}

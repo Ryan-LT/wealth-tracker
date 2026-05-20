@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition, useOptimistic } from "react";
 
 import { NavUser } from "@/components/layout/nav-user";
 import {
@@ -16,19 +17,50 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useLayout } from "@/context/layout-provider";
 import { NAV } from "@/shared/config";
 import { Wallet } from "lucide-react";
 
-function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isActive(activeHref: string, href: string) {
+  if (href === "/") return activeHref === "/";
+  return activeHref === href || activeHref.startsWith(`${href}/`);
 }
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout();
+  const { isMobile, setOpenMobile } = useSidebar();
+  const router = useRouter();
   const pathname = usePathname() ?? "/";
+  const [optimisticActive, setOptimisticActive] = useOptimistic(pathname);
+
+  const handleNavigate = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0
+    ) {
+      return;
+    }
+    event.preventDefault();
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+    if (href === pathname) {
+      return;
+    }
+    startTransition(() => {
+      setOptimisticActive(href);
+      router.push(href);
+    });
+  };
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
@@ -56,11 +88,14 @@ export function AppSidebar() {
             <SidebarMenu>
               {NAV.map((item) => {
                 const Icon = item.icon;
-                const active = isActive(pathname, item.href);
+                const active = isActive(optimisticActive, item.href);
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
-                      <Link href={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={(event) => handleNavigate(event, item.href)}
+                      >
                         <Icon />
                         <span>{item.label}</span>
                       </Link>

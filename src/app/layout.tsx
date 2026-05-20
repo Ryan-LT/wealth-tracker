@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
+import { ServiceWorkerRegistrar } from "@/components/sw-register";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -16,6 +17,24 @@ export const metadata: Metadata = {
   title: "WealthTracker — Private Terminal",
   description:
     "WealthTracker — a private financial terminal for tracking net worth, assets, debts, income, and goals.",
+  applicationName: "WealthTracker",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "WealthTracker",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0b14" },
+  ],
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -35,6 +54,7 @@ export default function RootLayout({
           {children}
           <Toaster richColors closeButton />
         </ThemeProvider>
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );

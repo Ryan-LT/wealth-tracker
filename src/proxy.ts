@@ -4,11 +4,20 @@ import { NextResponse } from "next/server";
 import { isAuthEnvConfigured, verifySessionToken, WT_SESSION_COOKIE } from "@/lib/auth-session";
 
 export async function proxy(request: NextRequest) {
-  if (!isAuthEnvConfigured()) {
+  const { pathname } = request.nextUrl;
+
+  if (
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/sw.js" ||
+    pathname.startsWith("/swe-worker-") ||
+    pathname.startsWith("/workbox-")
+  ) {
     return NextResponse.next();
   }
 
-  const { pathname } = request.nextUrl;
+  if (!isAuthEnvConfigured()) {
+    return NextResponse.next();
+  }
 
   const token = request.cookies.get(WT_SESSION_COOKIE)?.value ?? "";
   const secret = process.env.AUTH_SECRET!.trim();

@@ -96,7 +96,8 @@ function MatrixSortTh({
   children: React.ReactNode;
 }) {
   const ind = sortIndicator(sort, click);
-  const ariaSort = ind === "asc" ? "ascending" : ind === "desc" ? "descending" : "none";
+  const ariaSort =
+    ind === "asc" ? "ascending" : ind === "desc" ? "descending" : "none";
   return (
     <TableHead
       aria-sort={ariaSort}
@@ -125,12 +126,18 @@ function MatrixSortTh({
   );
 }
 
-function normalizeForReport(profiles: GoalProfile[], seedKeys: Set<string>): GoalProfile[] {
+function normalizeForReport(
+  profiles: GoalProfile[],
+  seedKeys: Set<string>,
+): GoalProfile[] {
   return profiles
     .filter((p) => p.id)
     .map((p) => ({
       ...p,
-      seedLines: sanitizeSeedLinesAgainstOptions(migrateLegacySeedsToLines(p), seedKeys),
+      seedLines: sanitizeSeedLinesAgainstOptions(
+        migrateLegacySeedsToLines(p),
+        seedKeys,
+      ),
     }));
 }
 
@@ -158,16 +165,31 @@ function SourceCard({
           </div>
           <div className="shrink-0 text-end text-xs text-muted-foreground">
             <div>
-              Live <span className="font-data-tabular tabular-nums">{formatVnd(row.liveBalance)}</span>
+              Live{" "}
+              <span className="font-data-tabular tabular-nums">
+                {formatVnd(row.liveBalance)}
+              </span>
             </div>
             <div>
               Reserved{" "}
-              <span className="font-data-tabular tabular-nums">{formatVnd(row.totalReservedStored)}</span>
+              <span className="font-data-tabular tabular-nums">
+                {formatVnd(row.totalReservedStored)}
+              </span>
             </div>
             <div className="text-emerald-600 dark:text-emerald-400">
               Uncommitted pool{" "}
-              <span className="font-data-tabular tabular-nums">{formatVnd(row.remainingPool)}</span>
+              <span className="font-data-tabular tabular-nums">
+                {formatVnd(row.remainingPool)}
+              </span>
             </div>
+            {row.totalIncomeCapital > 0 ? (
+              <div>
+                Income capital{" "}
+                <span className="font-data-tabular tabular-nums">
+                  {formatVnd(row.totalIncomeCapital)}
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
         {plans.length > 0 ? (
@@ -176,9 +198,16 @@ function SourceCard({
               const v = row.perPlanStored[p.id] ?? 0;
               if (v <= 0) return null;
               return (
-                <li key={p.id} className="flex justify-between gap-2 py-1.5 text-xs">
-                  <span className="min-w-0 truncate text-muted-foreground">{p.name}</span>
-                  <span className="shrink-0 font-data-tabular tabular-nums">{formatVnd(v)}</span>
+                <li
+                  key={p.id}
+                  className="flex justify-between gap-2 py-1.5 text-xs"
+                >
+                  <span className="min-w-0 truncate text-muted-foreground">
+                    {p.name}
+                  </span>
+                  <span className="shrink-0 font-data-tabular tabular-nums">
+                    {formatVnd(v)}
+                  </span>
                 </li>
               );
             })}
@@ -207,7 +236,8 @@ export function AllocationsPage() {
   const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
-  const bandFilter: AllocationsBandFilter = prefs.allocationsBandFilter ?? "both";
+  const bandFilter: AllocationsBandFilter =
+    prefs.allocationsBandFilter ?? "both";
 
   const [matrixColSort, setMatrixColSort] = useState<MatrixColumnSort>(null);
 
@@ -231,16 +261,23 @@ export function AllocationsPage() {
     () => buildGoalStartingOptions(assets, settingsAssets),
     [assets, settingsAssets],
   );
-  const seedKeySet = useMemo(() => new Set(seedOptions.map((o) => o.key)), [seedOptions]);
+  const seedKeySet = useMemo(
+    () => new Set(seedOptions.map((o) => o.key)),
+    [seedOptions],
+  );
   const normalizedProfiles = useMemo(
     () => normalizeForReport(goals.profiles, seedKeySet),
     [goals.profiles, seedKeySet],
   );
   const report = useMemo(
-    () => buildAllocationReport(normalizedProfiles, seedOptions, settingsAssets),
-    [normalizedProfiles, seedOptions, settingsAssets],
+    () =>
+      buildAllocationReport(normalizedProfiles, seedOptions, settingsAssets, sources),
+    [normalizedProfiles, seedOptions, settingsAssets, sources],
   );
-  const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
+  const incomeMonthly = useMemo(
+    () => totalMonthlyIncomeFromSources(sources),
+    [sources],
+  );
   const plansForCards = useMemo(
     () => report.plans.map((p) => ({ id: p.id, name: p.name })),
     [report.plans],
@@ -262,7 +299,9 @@ export function AllocationsPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-lg font-semibold md:text-base md:font-medium">Liquidity & commitments</h1>
+        <h1 className="text-lg font-semibold md:text-base md:font-medium">
+          Liquidity & commitments
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <ThemeSwitch />
           <ProfileDropdown />
@@ -271,23 +310,31 @@ export function AllocationsPage() {
 
       <Main>
         <div className="mb-4 max-md:hidden">
-          <h1 className="text-2xl font-bold tracking-tight">Liquidity & commitments</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Liquidity & commitments
+          </h1>
         </div>
 
         <Card className="card-hero mb-4 gap-0 w-fit">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Monthly income (settings)
+              Monthly income
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight leading-8">
-              {hydrated ? formatVnd(incomeMonthly) : <Skeleton className="h-7 w-40 inline-block align-middle" />}
+              {hydrated ? (
+                formatVnd(incomeMonthly)
+              ) : (
+                <Skeleton className="h-7 w-40 inline-block align-middle" />
+              )}
             </p>
             <p className="mt-2 text-xs text-muted-foreground leading-4">
-              {hydrated
-                ? "Plans can include or exclude this in their projection."
-                : <Skeleton className="h-3 w-64 inline-block align-middle" />}
+              {hydrated ? (
+                "Plans can include or exclude this in their projection."
+              ) : (
+                <Skeleton className="h-3 w-64 inline-block align-middle" />
+              )}
             </p>
           </CardContent>
         </Card>
@@ -305,9 +352,15 @@ export function AllocationsPage() {
               <TableBody>
                 {Array.from({ length: 2 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-32 rounded-full" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-32 rounded-full" />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -341,7 +394,10 @@ export function AllocationsPage() {
                     </TableCell>
                     <TableCell>
                       {p.usesMonthlyIncome ? (
-                        <AssetCategoryBadge category="Cash" className="text-[10px]">
+                        <AssetCategoryBadge
+                          category="Cash"
+                          className="text-[10px]"
+                        >
                           {`On — ${formatVnd(incomeMonthly)}/mo`}
                         </AssetCategoryBadge>
                       ) : (
@@ -363,7 +419,6 @@ export function AllocationsPage() {
         )}
 
         <section className="mb-4">
-          <h3 className="mb-3 text-base font-semibold">Spendable headroom (keyed sources)</h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="card-quiet gap-2">
               <CardHeader className="pb-2">
@@ -373,10 +428,18 @@ export function AllocationsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400 leading-8">
-                  {hydrated ? formatVnd(report.totals.instantRemainingPool) : <Skeleton className="h-7 w-32 inline-block align-middle" />}
+                  {hydrated ? (
+                    formatVnd(report.totals.instantRemainingPool)
+                  ) : (
+                    <Skeleton className="h-7 w-32 inline-block align-middle" />
+                  )}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground leading-4">
-                  {hydrated ? "Uncommitted capacity on instant-tagged sources." : <Skeleton className="h-3 w-56 inline-block align-middle" />}
+                  {hydrated ? (
+                    "Uncommitted capacity on instant-tagged sources."
+                  ) : (
+                    <Skeleton className="h-3 w-56 inline-block align-middle" />
+                  )}
                 </p>
               </CardContent>
             </Card>
@@ -388,10 +451,18 @@ export function AllocationsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold font-data-tabular tabular-nums leading-8">
-                  {hydrated ? formatVnd(report.totals.notInstantRemainingPool) : <Skeleton className="h-7 w-32 inline-block align-middle" />}
+                  {hydrated ? (
+                    formatVnd(report.totals.notInstantRemainingPool)
+                  ) : (
+                    <Skeleton className="h-7 w-32 inline-block align-middle" />
+                  )}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground leading-4">
-                  {hydrated ? "Real estate, investments, and not-instant catalog rows." : <Skeleton className="h-3 w-56 inline-block align-middle" />}
+                  {hydrated ? (
+                    "Real estate, investments, and not-instant catalog rows."
+                  ) : (
+                    <Skeleton className="h-3 w-56 inline-block align-middle" />
+                  )}
                 </p>
               </CardContent>
             </Card>
@@ -403,10 +474,18 @@ export function AllocationsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold font-data-tabular tabular-nums leading-8">
-                  {hydrated ? formatVnd(report.totals.customReservedStored) : <Skeleton className="h-7 w-32 inline-block align-middle" />}
+                  {hydrated ? (
+                    formatVnd(report.totals.customReservedStored)
+                  ) : (
+                    <Skeleton className="h-7 w-32 inline-block align-middle" />
+                  )}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground leading-4">
-                  {hydrated ? "Total custom starting lines (no live balance)." : <Skeleton className="h-3 w-56 inline-block align-middle" />}
+                  {hydrated ? (
+                    "Total custom starting lines (no live balance)."
+                  ) : (
+                    <Skeleton className="h-3 w-56 inline-block align-middle" />
+                  )}
                 </p>
               </CardContent>
             </Card>
@@ -414,9 +493,13 @@ export function AllocationsPage() {
         </section>
 
         <section>
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="mb-2 flex flex-wrap items-center gap-4 md:gap-10">
             <h3 className="text-base font-semibold">Source × plan matrix</h3>
-            <Tabs value={bandFilter} onValueChange={onBandFilterChange} className="w-full md:w-auto">
+            <Tabs
+              value={bandFilter}
+              onValueChange={onBandFilterChange}
+              className="w-full md:w-auto"
+            >
               <TabsList className="w-full md:w-auto">
                 {BAND_FILTER_OPTIONS.map((opt) => (
                   <TabsTrigger
@@ -436,19 +519,35 @@ export function AllocationsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-                      <TableHead className="text-end"><Skeleton className="ml-auto h-4 w-16" /></TableHead>
-                      <TableHead className="text-end"><Skeleton className="ml-auto h-4 w-16" /></TableHead>
-                      <TableHead className="text-end"><Skeleton className="ml-auto h-4 w-16" /></TableHead>
+                      <TableHead>
+                        <Skeleton className="h-4 w-20" />
+                      </TableHead>
+                      <TableHead className="text-end">
+                        <Skeleton className="ml-auto h-4 w-16" />
+                      </TableHead>
+                      <TableHead className="text-end">
+                        <Skeleton className="ml-auto h-4 w-16" />
+                      </TableHead>
+                      <TableHead className="text-end">
+                        <Skeleton className="ml-auto h-4 w-16" />
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {Array.from({ length: 4 }).map((_, i) => (
                       <TableRow key={i}>
-                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                        <TableCell className="text-end"><Skeleton className="ml-auto h-4 w-20" /></TableCell>
-                        <TableCell className="text-end"><Skeleton className="ml-auto h-4 w-20" /></TableCell>
-                        <TableCell className="text-end"><Skeleton className="ml-auto h-4 w-20" /></TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <Skeleton className="ml-auto h-4 w-20" />
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <Skeleton className="ml-auto h-4 w-20" />
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <Skeleton className="ml-auto h-4 w-20" />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -473,9 +572,6 @@ export function AllocationsPage() {
             </Card>
           ) : (
             <>
-              <p className="mb-3 max-w-3xl text-xs text-muted-foreground">
-                Click a column header to sort.
-              </p>
               <div className="hidden md:block">
                 <Card className="overflow-hidden">
                   <div className="overflow-x-auto">
@@ -496,12 +592,26 @@ export function AllocationsPage() {
                               key={p.id}
                               sort={matrixColSort}
                               click={{ type: "plan", planId: p.id }}
-                              onSort={() => bumpMatrixSort({ type: "plan", planId: p.id })}
+                              onSort={() =>
+                                bumpMatrixSort({ type: "plan", planId: p.id })
+                              }
                               align="end"
                             >
                               {p.name}
                             </MatrixSortTh>
                           ))}
+                          <TableHead className="text-end align-bottom">
+                            <span className="inline-flex items-center gap-1 text-muted-foreground">
+                              Income capital
+                              <span
+                                aria-hidden
+                                className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                                title="Sum of capital allocated to this asset across all income sources"
+                              >
+                                Income
+                              </span>
+                            </span>
+                          </TableHead>
                           <MatrixSortTh
                             sort={matrixColSort}
                             click={{ type: "reserved" }}
@@ -550,6 +660,11 @@ export function AllocationsPage() {
                                 {formatVnd(row.perPlanStored[p.id] ?? 0)}
                               </TableCell>
                             ))}
+                            <TableCell className="text-end font-data-tabular tabular-nums text-muted-foreground">
+                              {row.totalIncomeCapital > 0
+                                ? formatVnd(row.totalIncomeCapital)
+                                : "—"}
+                            </TableCell>
                             <TableCell className="text-end font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
                               {formatVnd(row.totalReservedStored)}
                             </TableCell>
@@ -569,7 +684,11 @@ export function AllocationsPage() {
 
               <div className="grid grid-cols-1 gap-3 md:hidden">
                 {visibleMatrixSources.map((row) => (
-                  <SourceCard key={row.sourceKey} row={row} plans={plansForCards} />
+                  <SourceCard
+                    key={row.sourceKey}
+                    row={row}
+                    plans={plansForCards}
+                  />
                 ))}
               </div>
             </>

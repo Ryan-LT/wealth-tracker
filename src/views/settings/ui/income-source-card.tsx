@@ -5,8 +5,8 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { totalCapitalAmount, type IncomeSource } from "@/entities/income";
 import { formatThousands } from "@/shared/lib";
-import type { IncomeSource } from "@/shared/storage";
 import { Badge } from "@/shared/ui";
 
 export function IncomeSourceCardSkeleton() {
@@ -40,6 +40,8 @@ type IncomeSourceCardProps = {
 };
 
 export function IncomeSourceCard({ source, onEdit, onDelete }: IncomeSourceCardProps) {
+  const capitalTotal = totalCapitalAmount(source.capitalLines);
+  const capitalLineCount = source.capitalLines?.length ?? 0;
   return (
     <Card>
       <CardContent className="p-3 py-0">
@@ -68,11 +70,14 @@ export function IncomeSourceCard({ source, onEdit, onDelete }: IncomeSourceCardP
               {formatThousands(source.monthly)} ₫{" "}
               <span className="text-sm font-normal text-muted-foreground">/mo</span>
             </div>
-            {source.capital && source.capital > 0 ? (
+            {capitalTotal > 0 ? (
               <p className="text-xs text-muted-foreground font-data-tabular tabular-nums">
                 Capital{" "}
                 <span className="text-foreground font-medium">
-                  {formatThousands(source.capital)} ₫
+                  {formatThousands(capitalTotal)} ₫
+                </span>{" "}
+                <span className="text-muted-foreground">
+                  · {capitalLineCount} source{capitalLineCount === 1 ? "" : "s"}
                 </span>
               </p>
             ) : null}

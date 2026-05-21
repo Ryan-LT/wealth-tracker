@@ -1,3 +1,5 @@
+import type { GoalSeedLine } from "@/entities/goal";
+
 export type IncomeSourceKind = "active" | "passive";
 
 export type IncomeSource = {
@@ -7,16 +9,21 @@ export type IncomeSource = {
   details: string;
   icon: string;
   monthly: number;
-  /** "Active" / "Passive" badge for the Settings page; payment day-of-month. */
+  /** Day-of-month (1-31) the payment lands. */
   paymentDay?: number;
   paymentEntity?: string;
   /**
-   * Capital (principal) invested to produce this income — in ₫. Mainly meaningful
-   * for passive sources (deposits, bonds, real estate, dividend portfolios) where
-   * the holder has put money in to earn the monthly return. Optional; leave 0/unset
-   * for active income (salary, contracts) where no capital is invested.
+   * Capital (principal) backing this income — modelled as allocations from
+   * specific assets, the same way goal starting balances are. Each line points
+   * at an asset (via `sourceKey`) or `"custom"` for free-form amounts. Mainly
+   * meaningful for passive sources (deposits, bonds, dividend portfolios) where
+   * the holder has put money in to earn the monthly return.
+   *
+   * Reservations here are tracked independently of goal seed lines; they do
+   * NOT compete with goal headroom. See Liquidity & commitments for the
+   * collapsed-across-sources view.
    */
-  capital?: number;
+  capitalLines?: GoalSeedLine[];
 };
 
 export const INCOME_SOURCES_SEED: IncomeSource[] = [];

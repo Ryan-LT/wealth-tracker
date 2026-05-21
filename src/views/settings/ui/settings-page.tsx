@@ -7,6 +7,7 @@ import { Main } from "@/widgets/page-shell";
 import { ProfileDropdown } from "@/widgets/profile-menu";
 import { ThemeSwitch } from "@/widgets/theme-switch";
 import { Separator } from "@/components/ui/separator";
+import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { mergeAssetCategoryOptions } from "@/shared/config";
 import {
   DEBTS_SEED,
@@ -24,6 +25,7 @@ import { IncomeSourcesGrid } from "./income-sources-grid";
 export function SettingsPage() {
   const hydrated = useHydrated();
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [richAssets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts, setDebts] = useTable("debts", DEBTS_SEED);
   const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
@@ -81,6 +83,8 @@ export function SettingsPage() {
           />
           <IncomeSourcesGrid
             sources={sources}
+            assets={richAssets}
+            settingsAssets={assets}
             onCreate={(source) => setSources((prev) => [...prev, source])}
             onUpdate={(source) =>
               setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))

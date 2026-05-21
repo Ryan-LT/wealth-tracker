@@ -1,7 +1,7 @@
 "use client";
 
-import { Receipt } from "lucide-react";
-import { useState } from "react";
+import { Coins, Receipt } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import {
   AlertDialog,
@@ -25,8 +25,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { IncomeSource, IncomeSourceKind } from "@/shared/storage";
+import type { AssetsState } from "@/entities/asset";
+import type { GoalSeedLine } from "@/entities/goal";
+import {
+  totalCapitalAmount,
+  wrapIncomeSourceAsProfile,
+  type IncomeSource,
+  type IncomeSourceKind,
+} from "@/entities/income";
+import type { SettingsAsset } from "@/entities/settings-asset";
+import { buildGoalStartingOptions, formatVnd } from "@/shared/lib";
 import { MoneyInput } from "@/shared/ui";
+import { StartingBalancesModal } from "@/views/goals/ui/starting-balances-modal";
 
 import { IncomeSourceCard, IncomeSourceCardSkeleton } from "./income-source-card";
 
@@ -38,11 +48,16 @@ function newIncomeSourceDraft(): IncomeSource {
     details: "",
     icon: "work",
     monthly: 0,
+    capitalLines: [],
   };
 }
 
 type IncomeSourcesGridProps = {
   sources: IncomeSource[];
+  /** Detailed-tracker asset state (Dashboard cash/real-estate/investments). */
+  assets: AssetsState;
+  /** Settings → Asset Management catalog rows. */
+  settingsAssets: SettingsAsset[];
   onCreate: (source: IncomeSource) => void;
   onUpdate: (source: IncomeSource) => void;
   onDelete: (id: string) => void;
@@ -51,6 +66,8 @@ type IncomeSourcesGridProps = {
 
 export function IncomeSourcesGrid({
   sources,
+  assets,
+  settingsAssets,
   onCreate,
   onUpdate,
   onDelete,
@@ -60,8 +77,32 @@ export function IncomeSourcesGrid({
   const [isCreate, setIsCreate] = useState(true);
   const [draft, setDraft] = useState<IncomeSource | null>(null);
 
+  const [capitalModalOpen, setCapitalModalOpen] = useState(false);
+
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<IncomeSource | null>(null);
+
+  /** Asset pool options used by the capital allocator modal. */
+  const seedOptions = useMemo(
+    () => buildGoalStartingOptions(assets, settingsAssets),
+    [assets, settingsAssets],
+  );
+
+  /** Other income sources, wrapped as profiles so the modal subtracts their
+   *  capital reservations when sizing capacity for the source being edited. */
+  const otherIncomeAsPlans = useMemo(() => {
+    if (!draft) return [];
+    return sources
+      .filter((s) => s.id !== draft.id)
+      .map(wrapIncomeSourceAsProfile);
+  }, [sources, draft]);
+
+  const draftAsProfile = useMemo(
+    () => (draft ? wrapIncomeSourceAsProfile(draft) : null),
+    [draft],
+  );
+
+  const draftCapitalTotal = totalCapitalAmount(draft?.capitalLines);
 
   function openCreate() {
     setIsCreate(true);
@@ -71,27 +112,32 @@ export function IncomeSourcesGrid({
 
   function openEdit(source: IncomeSource) {
     setIsCreate(false);
-    setDraft({ ...source });
+    setDraft({ ...source, capitalLines: [...(source.capitalLines ?? [])] });
     setFormOpen(true);
   }
 
   function closeForm() {
     setFormOpen(false);
     setDraft(null);
+    setCapitalModalOpen(false);
+  }
+
+  function applyCapitalLines(lines: GoalSeedLine[]) {
+    setDraft((d) => (d ? { ...d, capitalLines: lines } : d));
+    setCapitalModalOpen(false);
   }
 
   function saveForm() {
     if (!draft?.id || !draft.name.trim()) return;
-    const normalizedCapital =
-      typeof draft.capital === "number" && Number.isFinite(draft.capital)
-        ? Math.max(0, draft.capital)
-        : 0;
+    const cleanLines = (draft.capitalLines ?? []).filter(
+      (l) => Number.isFinite(l.amount) && l.amount > 0,
+    );
     const normalized: IncomeSource = {
       ...draft,
       name: draft.name.trim(),
       details: draft.details.trim(),
       monthly: Number.isFinite(draft.monthly) ? Math.max(0, draft.monthly) : 0,
-      capital: normalizedCapital > 0 ? normalizedCapital : undefined,
+      capitalLines: cleanLines.length > 0 ? cleanLines : undefined,
       paymentEntity:
         draft.paymentEntity?.trim() === "" ? undefined : draft.paymentEntity?.trim(),
       paymentDay:
@@ -215,18 +261,21 @@ export function IncomeSourcesGrid({
               onChange={(v) => setDraft((d) => (d ? { ...d, monthly: Math.max(0, v) } : d))}
             />
             <div className="flex flex-col gap-1.5">
-              <MoneyInput
-                label="Capital invested (₫)"
-                value={draft?.capital ?? 0}
-                min={0}
-                onChange={(v) =>
-                  setDraft((d) => (d ? { ...d, capital: Math.max(0, v) } : d))
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Principal you put in to earn this monthly return. Leave at 0 for
-                active income (salary, contracts) where no capital is invested.
-              </p>
+              <Label>Capital invested</Label>
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-between gap-2"
+                onClick={() => setCapitalModalOpen(true)}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Coins className="size-4 text-muted-foreground" />
+                  {draftCapitalTotal > 0
+                    ? `${formatVnd(draftCapitalTotal)} from ${draft?.capitalLines?.length ?? 0} source${(draft?.capitalLines?.length ?? 0) === 1 ? "" : "s"}`
+                    : "Set capital sources"}
+                </span>
+                <span className="text-xs text-muted-foreground">Edit</span>
+              </Button>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="income-payment-entity">Payment entity (optional)</Label>
@@ -274,6 +323,17 @@ export function IncomeSourcesGrid({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {draftAsProfile ? (
+        <StartingBalancesModal
+          open={capitalModalOpen}
+          onClose={() => setCapitalModalOpen(false)}
+          profile={draftAsProfile}
+          savedPlans={otherIncomeAsPlans}
+          seedOptions={seedOptions}
+          onApply={applyCapitalLines}
+        />
+      ) : null}
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>

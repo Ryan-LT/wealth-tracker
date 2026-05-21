@@ -1,3 +1,4 @@
+import type { IncomeSource } from "@/entities/income";
 import type { GoalStartingOption } from "@/shared/lib";
 import {
   liveBalanceForSourceKey,
@@ -56,11 +57,19 @@ export type AllocationSourceRow = {
   /** How much more keyed capacity exists before hitting live minus others’ claims. */
   remainingPool: number;
   perPlanStored: Record<string, number>;
+  /**
+   * Sum of capital reserved against this source across all income sources
+   * (collapsed column — capital reservations live in their own pool and do
+   * not reduce the goal `remainingPool`).
+   */
+  totalIncomeCapital: number;
 };
 
 export type AllocationReport = {
   plans: AllocationPlanColumn[];
   sources: AllocationSourceRow[];
+  /** Sum of all income-source capital reservations across keyed sources. */
+  totalIncomeCapital: number;
   totals: {
     instantRemainingPool: number;
     notInstantRemainingPool: number;
@@ -78,10 +87,17 @@ function labelForKey(sourceKey: string, seedOptions: GoalStartingOption[]): stri
   return seedOptions.find((o) => o.key === sourceKey)?.label ?? sourceKey;
 }
 
+function storedForIncome(source: IncomeSource, sourceKey: string): number {
+  return (source.capitalLines ?? [])
+    .filter((l) => l.sourceKey === sourceKey)
+    .reduce((s, l) => s + Math.max(0, l.amount), 0);
+}
+
 export function buildAllocationReport(
   profiles: GoalProfile[],
   seedOptions: GoalStartingOption[],
   catalog: SettingsAsset[],
+  incomeSources: IncomeSource[] = [],
 ): AllocationReport {
   const saved = profiles.filter((p) => p.id);
   const phantom = PHANTOM_ALLOCATION_DRAFT;
@@ -104,6 +120,11 @@ export function buildAllocationReport(
   }
   for (const p of saved) {
     for (const l of p.seedLines ?? []) {
+      keySet.add(l.sourceKey);
+    }
+  }
+  for (const s of incomeSources) {
+    for (const l of s.capitalLines ?? []) {
       keySet.add(l.sourceKey);
     }
   }
@@ -134,7 +155,18 @@ export function buildAllocationReport(
       totalReservedStored += v;
     }
 
-    if (liveBalance <= 0 && totalReservedStored <= 0) continue;
+    let totalIncomeCapital = 0;
+    for (const s of incomeSources) {
+      totalIncomeCapital += storedForIncome(s, sourceKey);
+    }
+
+    if (
+      liveBalance <= 0 &&
+      totalReservedStored <= 0 &&
+      totalIncomeCapital <= 0
+    ) {
+      continue;
+    }
 
     sources.push({
       sourceKey,
@@ -144,6 +176,7 @@ export function buildAllocationReport(
       totalReservedStored,
       remainingPool,
       perPlanStored,
+      totalIncomeCapital,
     });
   }
 
@@ -163,9 +196,15 @@ export function buildAllocationReport(
     0,
   );
 
+  const totalIncomeCapital = sources.reduce(
+    (s, row) => s + row.totalIncomeCapital,
+    0,
+  );
+
   return {
     plans,
     sources,
+    totalIncomeCapital,
     totals: {
       instantRemainingPool,
       notInstantRemainingPool,

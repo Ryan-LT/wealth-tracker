@@ -1,6 +1,11 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from "serwist";
-import { ExpirationPlugin, Serwist, StaleWhileRevalidate } from "serwist";
+import {
+  ExpirationPlugin,
+  NetworkFirst,
+  Serwist,
+  StaleWhileRevalidate,
+} from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -9,6 +14,10 @@ declare global {
 }
 
 declare const self: ServiceWorkerGlobalScope;
+
+const NAV_CACHE = "wealthtracker-pages";
+const OFFLINE_URL = "/offline";
+const SHELL_ROUTES = ["/", "/loans", "/goals", "/allocations", "/settings"];
 
 /**
  * Override the default `/api/*` NetworkFirst handler with StaleWhileRevalidate for
@@ -50,12 +59,78 @@ const apiCaching: RuntimeCaching[] = [
   },
 ];
 
+/**
+ * Navigation + RSC caching. Defined BEFORE `defaultCache` in the runtime list so
+ * these matchers win. `defaultCache`'s HTML matcher gates on `Content-Type`,
+ * which browser navigation requests never set, so it misses real page loads.
+ */
+const navigationCaching: RuntimeCaching[] = [
+  {
+    matcher: ({ request, url: { pathname }, sameOrigin }) =>
+      sameOrigin &&
+      !pathname.startsWith("/api/") &&
+      request.headers.get("RSC") === "1" &&
+      request.headers.get("Next-Router-Prefetch") === "1",
+    handler: new StaleWhileRevalidate({
+      cacheName: "pages-rsc-prefetch",
+      plugins: [
+        new ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 }),
+      ],
+    }),
+  },
+  {
+    matcher: ({ request, url: { pathname }, sameOrigin }) =>
+      sameOrigin &&
+      !pathname.startsWith("/api/") &&
+      request.headers.get("RSC") === "1",
+    handler: new StaleWhileRevalidate({
+      cacheName: "pages-rsc",
+      plugins: [
+        new ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 }),
+      ],
+    }),
+  },
+  {
+    matcher: ({ request, sameOrigin, url: { pathname } }) =>
+      sameOrigin &&
+      request.mode === "navigate" &&
+      !pathname.startsWith("/api/"),
+    handler: new NetworkFirst({
+      cacheName: NAV_CACHE,
+      networkTimeoutSeconds: 3,
+      plugins: [
+        new ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 }),
+      ],
+    }),
+  },
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(NAV_CACHE);
+      await Promise.allSettled(SHELL_ROUTES.map((url) => cache.add(url)));
+    })(),
+  );
+});
+
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  precacheEntries: [
+    ...(self.__SW_MANIFEST ?? []),
+    { url: OFFLINE_URL, revision: null } as PrecacheEntry,
+  ],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [...apiCaching, ...defaultCache],
+  runtimeCaching: [...apiCaching, ...navigationCaching, ...defaultCache],
+  fallbacks: {
+    entries: [
+      {
+        url: OFFLINE_URL,
+        matcher: ({ request }) => request.destination === "document",
+      },
+    ],
+  },
 });
 
 serwist.addEventListeners();

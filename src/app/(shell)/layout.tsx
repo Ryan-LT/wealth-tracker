@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 
+import { OfflineBanner } from "@/components/offline-banner";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { cn } from "@/shared/lib";
 import { AppSidebar, LayoutProvider } from "@/widgets/app-sidebar";
@@ -24,6 +25,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
               "pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0",
             )}
           >
+            <OfflineBanner />
             {children}
           </SidebarInset>
           <MobileBottomNav />

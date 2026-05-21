@@ -21,10 +21,16 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let hydrateState: "pending" | "ok" | "error" = "pending";
 let hydratePromise: Promise<void> | null = null;
 let localCacheLoaded = false;
+let lastSyncedAt: number | null = null;
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof window.fetch !== "undefined";
 }
+
+type StoredShape = {
+  tables?: Partial<Record<TableKey, unknown>>;
+  lastSyncedAt?: number | null;
+};
 
 function loadLocalCache(): void {
   if (localCacheLoaded) return;
@@ -33,12 +39,20 @@ function loadLocalCache(): void {
   try {
     const raw = window.localStorage.getItem(LOCAL_CACHE_KEY);
     if (!raw) return;
-    const parsed = JSON.parse(raw) as Partial<Record<TableKey, unknown>>;
+    const parsed = JSON.parse(raw) as StoredShape & Partial<Record<TableKey, unknown>>;
     if (!parsed || typeof parsed !== "object") return;
+    // Detect shape: new envelope has a `tables` object; legacy stored table keys directly.
+    const tables =
+      parsed.tables && typeof parsed.tables === "object" && !Array.isArray(parsed.tables)
+        ? parsed.tables
+        : (parsed as Partial<Record<TableKey, unknown>>);
     for (const key of TABLE_KEYS) {
-      if (parsed[key] !== undefined) {
-        valueCache.set(key, parsed[key]);
+      if (tables[key] !== undefined) {
+        valueCache.set(key, tables[key]);
       }
+    }
+    if (typeof parsed.lastSyncedAt === "number") {
+      lastSyncedAt = parsed.lastSyncedAt;
     }
     // We have *some* data to render — flip hydrate to ok so consumers don't show a full-screen spinner.
     if (valueCache.size > 0) {
@@ -52,13 +66,14 @@ function loadLocalCache(): void {
 function persistLocalCache(): void {
   if (!isBrowser()) return;
   try {
-    const snapshot: Record<string, unknown> = {};
+    const tables: Record<string, unknown> = {};
     for (const key of TABLE_KEYS) {
       if (valueCache.has(key)) {
-        snapshot[key] = valueCache.get(key);
+        tables[key] = valueCache.get(key);
       }
     }
-    window.localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(snapshot));
+    const envelope: StoredShape = { tables, lastSyncedAt };
+    window.localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(envelope));
   } catch {
     // Quota or serialization error — non-fatal.
   }
@@ -92,20 +107,17 @@ function ensureHydrated(): Promise<void> {
       }
       const data = (await res.json()) as { tables?: Partial<Record<TableKey, unknown>> };
       const remote = data.tables ?? {};
-      let mutated = false;
       for (const key of TABLE_KEYS) {
         if (dirty.has(key)) {
           continue;
         }
         if (remote[key] !== undefined) {
           valueCache.set(key, remote[key]);
-          mutated = true;
         }
       }
       hydrateState = "ok";
-      if (mutated) {
-        persistLocalCache();
-      }
+      lastSyncedAt = Date.now();
+      persistLocalCache();
     } catch {
       // Keep prior hydrateState if we already loaded from localStorage; otherwise mark error.
       if (hydrateState === "pending") {
@@ -230,4 +242,24 @@ export function useHydrated(): boolean {
     () => hydrateState !== "pending",
     () => false,
   );
+}
+
+/**
+ * Last successful hydrate-from-server timestamp (epoch ms). `null` until the
+ * first network sync completes. Restored from localStorage on cold start.
+ */
+export function useLastSyncedAt(): number | null {
+  return useSyncExternalStore(
+    subscribe,
+    () => lastSyncedAt,
+    () => null,
+  );
+}
+
+/**
+ * Force a re-fetch from Neon. Used by the offline banner when the network comes back.
+ */
+export function refetchTables(): Promise<void> {
+  hydratePromise = null;
+  return ensureHydrated();
 }

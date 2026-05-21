@@ -19,7 +19,7 @@ type DebtRowProps = {
 
 export function DebtRow({ debt, isLast, actions }: DebtRowProps) {
   return (
-    <div className={cn("pb-4", !isLast && "border-b border-border")}>
+    <div className={cn(!isLast && "border-b border-border")}>
       <div className="mb-1 flex items-start justify-between gap-3">
         <h4 className="min-w-0 text-base font-medium">{debt.name}</h4>
         <div className="flex shrink-0 items-center gap-2">
@@ -48,7 +48,9 @@ export function DebtRow({ debt, isLast, actions }: DebtRowProps) {
               debt.paymentDayOfMonth >= 1 &&
               debt.paymentDayOfMonth <= 31 ? (
                 <>
-                  <span className="text-foreground">Day {debt.paymentDayOfMonth}</span>
+                  <span className="text-foreground">
+                    Day {debt.paymentDayOfMonth}
+                  </span>
                   <span> each month</span>
                 </>
               ) : debt.nextPayment.trim() ? (
@@ -61,7 +63,9 @@ export function DebtRow({ debt, isLast, actions }: DebtRowProps) {
             debt.paymentDayOfMonth >= 1 &&
             debt.paymentDayOfMonth <= 31 &&
             debt.nextPayment.trim() ? (
-              <p className="mt-0.5 text-xs text-muted-foreground">{debt.nextPayment}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {debt.nextPayment}
+              </p>
             ) : null}
           </div>
         </div>

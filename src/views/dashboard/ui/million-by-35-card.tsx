@@ -219,7 +219,7 @@ export function MillionBy35Card({
 
   if (loading) {
     return (
-      <Card className="h-full">
+      <Card className="card-hero h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
           <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
@@ -244,7 +244,7 @@ export function MillionBy35Card({
 
   if (loadError) {
     return (
-      <Card className="h-full">
+      <Card className="card-hero h-full">
         <CardHeader>
           <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
@@ -259,7 +259,7 @@ export function MillionBy35Card({
 
   if (!config || !analysis) {
     return (
-      <Card className="h-full">
+      <Card className="card-hero h-full">
         <CardHeader>
           <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
             Milestone
@@ -276,7 +276,7 @@ export function MillionBy35Card({
 
   if (analysis.kind === "incomplete") {
     return (
-      <Card className="h-full">
+      <Card className="card-hero h-full">
         <CardHeader>
           <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
@@ -296,7 +296,7 @@ export function MillionBy35Card({
 
   if (analysis.kind === "achieved") {
     return (
-      <Card className="h-full">
+      <Card className="card-hero h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
           <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
@@ -315,7 +315,7 @@ export function MillionBy35Card({
 
   if (analysis.kind === "past_deadline") {
     return (
-      <Card className="h-full">
+      <Card className="card-hero h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
           <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
@@ -335,7 +335,7 @@ export function MillionBy35Card({
   const { tone, label, hint, pct, projectedEndingNetWorth, monthsRemaining } = analysis;
 
   return (
-    <Card className="h-full">
+    <Card className="card-hero h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
         <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {goalTitle} by age {MILESTONE_TARGET_AGE}

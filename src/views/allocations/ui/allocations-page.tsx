@@ -43,7 +43,7 @@ import {
   buildAllocationReport,
   type AllocationSourceRow,
   type LiquidityBand,
-} from "../lib/compute-cross-goal-allocations";
+} from "@/views/allocations/lib/compute-cross-goal-allocations";
 import {
   cycleMatrixColumnSort,
   readStoredMatrixColumnSort,
@@ -52,7 +52,7 @@ import {
   writeStoredMatrixColumnSort,
   type MatrixColumnClick,
   type MatrixColumnSort,
-} from "../lib/matrix-column-sort";
+} from "@/views/allocations/lib/matrix-column-sort";
 
 function bandBadgeClass(band: LiquidityBand): string {
   switch (band) {
@@ -274,7 +274,7 @@ export function AllocationsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Liquidity & commitments</h1>
         </div>
 
-        <Card className="mb-4">
+        <Card className="card-hero mb-4 gap-0 w-fit">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Monthly income (settings)
@@ -323,7 +323,7 @@ export function AllocationsPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="mb-4 overflow-hidden">
+          <Card className="mb-4 overflow-hidden py-0">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -365,7 +365,7 @@ export function AllocationsPage() {
         <section className="mb-4">
           <h3 className="mb-3 text-base font-semibold">Spendable headroom (keyed sources)</h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
+            <Card className="card-quiet gap-2">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Instant pool left
@@ -380,7 +380,7 @@ export function AllocationsPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="card-quiet gap-2">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Not-instant pool left
@@ -395,7 +395,7 @@ export function AllocationsPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="card-quiet gap-2">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Custom amounts (modelled)
@@ -416,8 +416,8 @@ export function AllocationsPage() {
         <section>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-semibold">Source × plan matrix</h3>
-            <Tabs value={bandFilter} onValueChange={onBandFilterChange}>
-              <TabsList>
+            <Tabs value={bandFilter} onValueChange={onBandFilterChange} className="w-full md:w-auto">
+              <TabsList className="w-full md:w-auto">
                 {BAND_FILTER_OPTIONS.map((opt) => (
                   <TabsTrigger
                     key={opt.value}

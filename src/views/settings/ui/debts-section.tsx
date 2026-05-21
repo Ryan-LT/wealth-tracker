@@ -141,7 +141,7 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete, loading = false
   }
 
   return (
-    <Card>
+    <Card className="gap-2">
       <CardHeader className="flex flex-row items-end justify-between gap-4 space-y-0 border-b">
         <div className="min-w-0">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -156,7 +156,7 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete, loading = false
           Add Debt
         </Button>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent>
         <div className="space-y-4">
           {loading ? (
             Array.from({ length: 3 }).map((_, idx) => (

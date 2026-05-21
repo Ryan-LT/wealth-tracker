@@ -3,4 +3,4 @@ export {
   type PersonalLoan,
   type PersonalLoanDirection,
   type PersonalLoanStatus,
-} from "./model";
+} from "@/entities/personal-loan/model";

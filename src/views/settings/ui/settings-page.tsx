@@ -48,7 +48,7 @@ export function SettingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Asset configuration</h1>
         </div>
 
-        <Separator className="my-4" />
+        <Separator className="my-4 hidden md:block" />
 
         <div className="flex flex-col gap-6">
           <AssetManagementTable

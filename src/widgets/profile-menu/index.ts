@@ -1,1 +1,1 @@
-export { ProfileDropdown } from "./ui/profile-dropdown";
+export { ProfileDropdown } from "@/widgets/profile-menu/ui/profile-dropdown";

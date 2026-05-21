@@ -42,7 +42,7 @@ export function ProfileDropdown() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Private session</DropdownMenuLabel>
+        <DropdownMenuLabel>Ryan Le</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => void onSignOut()} disabled={busy}>
           <LogOut className="mr-2 size-4" />

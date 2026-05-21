@@ -1,1 +1,1 @@
-export { MobileBottomNav } from "./ui/mobile-bottom-nav";
+export { MobileBottomNav } from "@/widgets/mobile-bottom-nav/ui/mobile-bottom-nav";

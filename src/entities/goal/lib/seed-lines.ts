@@ -1,6 +1,5 @@
-import type { GoalProfile, GoalSeedLine } from "../model";
-
-import type { GoalStartingOption } from "./starting-options";
+import type { GoalProfile, GoalSeedLine } from "@/entities/goal/model";
+import type { GoalStartingOption } from "@/entities/goal/lib/starting-options";
 
 /** Convert legacy single-seed fields or normalize stored `seedLines`. */
 export function migrateLegacySeedsToLines(profile: GoalProfile): GoalSeedLine[] {

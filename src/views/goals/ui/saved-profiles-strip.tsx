@@ -106,7 +106,7 @@ export function SavedProfilesStrip({
           ) : null}
           <Button
             type="button"
-            className="rounded-full"
+            className="rounded-full size-[38px]"
             disabled={isComposingNew}
             onClick={onNew}
           >

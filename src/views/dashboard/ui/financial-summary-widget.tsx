@@ -19,7 +19,7 @@ export function FinancialSummaryWidget({
   loading = false,
 }: FinancialSummaryWidgetProps) {
   return (
-    <Card className="h-full">
+    <Card className="card-hero h-full">
       <CardHeader>
         <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
           Financial summary

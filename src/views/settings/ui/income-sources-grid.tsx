@@ -24,13 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { IncomeSource, IncomeSourceKind } from "@/shared/storage";
 import { MoneyInput } from "@/shared/ui";
 
@@ -88,11 +82,16 @@ export function IncomeSourcesGrid({
 
   function saveForm() {
     if (!draft?.id || !draft.name.trim()) return;
+    const normalizedCapital =
+      typeof draft.capital === "number" && Number.isFinite(draft.capital)
+        ? Math.max(0, draft.capital)
+        : 0;
     const normalized: IncomeSource = {
       ...draft,
       name: draft.name.trim(),
       details: draft.details.trim(),
       monthly: Number.isFinite(draft.monthly) ? Math.max(0, draft.monthly) : 0,
+      capital: normalizedCapital > 0 ? normalizedCapital : undefined,
       paymentEntity:
         draft.paymentEntity?.trim() === "" ? undefined : draft.paymentEntity?.trim(),
       paymentDay:
@@ -125,8 +124,8 @@ export function IncomeSourcesGrid({
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b">
+    <Card className="gap-0">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b [.border-b]:pb-4">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <Receipt className="size-4 text-primary" />
           Income Sources
@@ -168,20 +167,17 @@ export function IncomeSourcesGrid({
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Type</Label>
-              <Select
+              <Tabs
                 value={draft?.kind ?? "active"}
                 onValueChange={(v) =>
                   setDraft((d) => (d ? { ...d, kind: v as IncomeSourceKind } : d))
                 }
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="passive">Passive</SelectItem>
-                </SelectContent>
-              </Select>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="active">Active</TabsTrigger>
+                  <TabsTrigger value="passive">Passive</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="income-name">Name</Label>
@@ -218,6 +214,20 @@ export function IncomeSourcesGrid({
               min={0}
               onChange={(v) => setDraft((d) => (d ? { ...d, monthly: Math.max(0, v) } : d))}
             />
+            <div className="flex flex-col gap-1.5">
+              <MoneyInput
+                label="Capital invested (₫)"
+                value={draft?.capital ?? 0}
+                min={0}
+                onChange={(v) =>
+                  setDraft((d) => (d ? { ...d, capital: Math.max(0, v) } : d))
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Principal you put in to earn this monthly return. Leave at 0 for
+                active income (salary, contracts) where no capital is invested.
+              </p>
+            </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="income-payment-entity">Payment entity (optional)</Label>
               <Input

@@ -1,4 +1,4 @@
-import type { IncomeSource } from "../model";
+import type { IncomeSource } from "@/entities/income/model";
 
 export function monthlyIncomeByKind(
   sources: IncomeSource[],

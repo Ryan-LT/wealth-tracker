@@ -5,5 +5,5 @@ export {
   settingsAssetLiquidityLabel,
   type SettingsAsset,
   type SettingsAssetLiquidity,
-} from "./model";
-export { totalSettingsAssetsValue } from "./lib/totals";
+} from "@/entities/settings-asset/model";
+export { totalSettingsAssetsValue } from "@/entities/settings-asset/lib/totals";

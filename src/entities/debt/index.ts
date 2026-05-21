@@ -1,2 +1,2 @@
-export { DEBTS_SEED, type Debt } from "./model";
-export { totalDebtBalance } from "./lib/totals";
+export { DEBTS_SEED, type Debt } from "@/entities/debt/model";
+export { totalDebtBalance } from "@/entities/debt/lib/totals";

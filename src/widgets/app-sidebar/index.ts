@@ -1,2 +1,2 @@
-export { AppSidebar } from "./ui/app-sidebar";
-export { LayoutProvider, useLayout } from "./lib/layout-provider";
+export { AppSidebar } from "@/widgets/app-sidebar/ui/app-sidebar";
+export { LayoutProvider, useLayout } from "@/widgets/app-sidebar/lib/layout-provider";

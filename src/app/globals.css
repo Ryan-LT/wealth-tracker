@@ -9,6 +9,12 @@
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
+  /* Hero-tier surface: same white but with a soft cool-toned border + shadow. */
+  --card-elevated: oklch(1 0 0);
+  --card-elevated-border: oklch(0.86 0.018 257);
+  /* Quiet-tier surface: faintly cooler than card, recedes into the page. */
+  --card-muted: oklch(0.979 0.005 248);
+  --card-muted-border: oklch(0.93 0.011 256 / 60%);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
   --primary: oklch(0.208 0.042 265.755);
@@ -44,6 +50,12 @@
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.14 0.04 259.21);
   --card-foreground: oklch(0.984 0.003 247.858);
+  /* Hero-tier surface (dark): a step brighter than --card, gentle accent border. */
+  --card-elevated: oklch(0.185 0.044 259.21);
+  --card-elevated-border: oklch(0.42 0.045 259.21 / 55%);
+  /* Quiet-tier surface (dark): just under --card, fades toward --background. */
+  --card-muted: oklch(0.158 0.038 259.21);
+  --card-muted-border: oklch(1 0 0 / 6%);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
   --primary: oklch(0.929 0.013 255.508);
@@ -78,6 +90,8 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-card-elevated: var(--card-elevated);
+  --color-card-muted: var(--card-muted);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
@@ -110,12 +124,18 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    /* Hide scrollbars globally; scrolling still works (touch, wheel, keys). */
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
   html {
     @apply overflow-x-hidden;
     font-family: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+    -ms-overflow-style: none;
   }
   body {
     @apply min-h-svh w-full bg-background text-foreground;
@@ -139,6 +159,29 @@
   }
 }
 
+/**
+ * Card importance tiers. Used to give the page a visual hierarchy so the eye
+ * lands on hero KPIs first, then defaults, then quiet supporting metrics.
+ *
+ * Apply as a className on a Card alongside any layout classes:
+ *   <Card className="card-hero">       // primary KPI
+ *   <Card>                             // default (no class needed)
+ *   <Card className="card-quiet">      // supporting / less important
+ */
+@utility card-hero {
+  background-color: var(--card-elevated);
+  border-color: var(--card-elevated-border);
+  box-shadow:
+    0 1px 2px 0 oklch(0 0 0 / 4%),
+    0 8px 24px -12px oklch(0 0 0 / 8%);
+}
+
+@utility card-quiet {
+  background-color: var(--card-muted);
+  border-color: var(--card-muted-border);
+  box-shadow: none;
+}
+
 @utility no-scrollbar {
   &::-webkit-scrollbar {
     display: none;
@@ -154,4 +197,53 @@
 .font-data-tabular,
 .text-data-tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* One-shot "pop" used when a nav item becomes the active route. */
+@keyframes nav-pop {
+  0% {
+    transform: scale(1);
+  }
+  55% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes nav-pop-rest {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@utility animate-nav-pop {
+  animation: nav-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Subtle slide-in indicator bar for the active desktop sidebar row. */
+@keyframes nav-rail-in {
+  from {
+    transform: scaleY(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@utility animate-nav-rail-in {
+  animation: nav-rail-in 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-nav-pop,
+  .animate-nav-rail-in {
+    animation: none;
+  }
 }

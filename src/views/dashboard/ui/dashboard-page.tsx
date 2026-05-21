@@ -19,7 +19,7 @@ import {
   totalSettingsAssetsValue,
 } from "@/shared/lib";
 
-import { totalCombinedAssetValue } from "../lib/total-combined-asset-value";
+import { totalCombinedAssetValue } from "@/views/dashboard/lib/total-combined-asset-value";
 import {
   ASSETS_SEED,
   DEBTS_SEED,

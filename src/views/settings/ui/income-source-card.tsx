@@ -42,7 +42,7 @@ type IncomeSourceCardProps = {
 export function IncomeSourceCard({ source, onEdit, onDelete }: IncomeSourceCardProps) {
   return (
     <Card>
-      <CardContent className="p-3">
+      <CardContent className="p-3 py-0">
         <div className="mb-3 flex items-start justify-between">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold">{source.name}</h3>
@@ -62,10 +62,20 @@ export function IncomeSourceCard({ source, onEdit, onDelete }: IncomeSourceCardP
             {source.kind === "active" ? "Active" : "Passive"}
           </Badge>
         </div>
-        <div className="flex items-end justify-between">
-          <div className="text-lg font-semibold font-data-tabular tabular-nums">
-            {formatThousands(source.monthly)} ₫{" "}
-            <span className="text-sm font-normal text-muted-foreground">/mo</span>
+        <div className="flex items-end justify-between gap-2">
+          <div className="min-w-0 flex flex-col gap-0.5">
+            <div className="text-lg font-semibold font-data-tabular tabular-nums">
+              {formatThousands(source.monthly)} ₫{" "}
+              <span className="text-sm font-normal text-muted-foreground">/mo</span>
+            </div>
+            {source.capital && source.capital > 0 ? (
+              <p className="text-xs text-muted-foreground font-data-tabular tabular-nums">
+                Capital{" "}
+                <span className="text-foreground font-medium">
+                  {formatThousands(source.capital)} ₫
+                </span>
+              </p>
+            ) : null}
           </div>
           <div className="flex items-center gap-1">
             <Button

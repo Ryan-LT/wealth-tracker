@@ -3,7 +3,7 @@ export {
   type AllocationsBandFilter,
   type NetWorthMonthSnapshot,
   type Preferences,
-} from "./model";
+} from "@/entities/preferences/model";
 export {
   buildNetWorthChartSeries,
   estimatedMonthlyNetCashflow,
@@ -12,4 +12,4 @@ export {
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
   syncNetWorthTracking,
-} from "./lib/finance";
+} from "@/entities/preferences/lib/finance";

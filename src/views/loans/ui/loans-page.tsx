@@ -164,7 +164,7 @@ export function LoansPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Card>
+          <Card className="card-hero">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
               <div>
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -210,7 +210,7 @@ export function LoansPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="card-hero">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
               <div>
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

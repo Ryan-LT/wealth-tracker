@@ -8,9 +8,11 @@ export {
   type GoalProfile,
   type GoalSeedLine,
   type GoalsState,
-} from "./model";
-export { buildGoalStartingOptions } from "./lib/starting-options";
-export type { GoalStartingOption } from "./lib/starting-options";
+} from "@/entities/goal/model";
+export {
+  buildGoalStartingOptions,
+  type GoalStartingOption,
+} from "@/entities/goal/lib/starting-options";
 export {
   appendGoalSeedLine,
   clampSeedLinesToAllocationPool,
@@ -26,14 +28,14 @@ export {
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
   type SourceGoalUsage,
-} from "./lib/seed-lines";
+} from "@/entities/goal/lib/seed-lines";
 export {
   computeGoalFeasibility,
   type GoalFeasibility,
   type GoalFeasibilityInput,
   type GoalFeasibilityTone,
-} from "./lib/feasibility";
+} from "@/entities/goal/lib/feasibility";
 export {
   cumulativeDueScheduleFromCheckpoints,
   normalizeStoredCheckpoints,
-} from "./lib/checkpoints";
+} from "@/entities/goal/lib/checkpoints";

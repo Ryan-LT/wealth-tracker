@@ -393,8 +393,8 @@ export function AssetManagementTable({
   }
 
   return (
-    <Card>
-      <div className="flex items-center justify-between border-b p-4">
+    <Card className="gap-0">
+      <div className="flex items-center justify-between border-b p-4 pt-0">
         <div className="flex items-center gap-2">
           <Building2 className="size-5 text-primary" />
           <h2 className="text-base font-semibold">Asset Management</h2>

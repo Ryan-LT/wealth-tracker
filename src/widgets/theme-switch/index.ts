@@ -1,1 +1,1 @@
-export { ThemeSwitch } from "./ui/theme-switch";
+export { ThemeSwitch } from "@/widgets/theme-switch/ui/theme-switch";

@@ -1,2 +1,2 @@
-export { Main } from "./ui/main";
-export { HydrationGate } from "./ui/hydration-gate";
+export { Main } from "@/widgets/page-shell/ui/main";
+export { HydrationGate } from "@/widgets/page-shell/ui/hydration-gate";

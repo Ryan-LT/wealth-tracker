@@ -19,9 +19,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import { useLayout } from "../lib/layout-provider";
-
-import { NavUser } from "./nav-user";
+import { cn } from "@/shared/lib";
+import { useLayout } from "@/widgets/app-sidebar/lib/layout-provider";
+import { NavUser } from "@/widgets/app-sidebar/ui/nav-user";
 import { NAV } from "@/shared/config";
 import { Wallet } from "lucide-react";
 
@@ -93,11 +93,32 @@ export function AppSidebar() {
                 const active = isActive(optimisticActive, item.href);
                 return (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={item.label}
+                      className={cn(
+                        "group/nav-item relative overflow-hidden transition-colors duration-200 ease-out",
+                        "[&>svg]:transition-transform [&>svg]:duration-300 [&>svg]:ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+                        "hover:[&>svg]:scale-110",
+                        active && "[&>svg]:scale-110",
+                      )}
+                    >
                       <Link
                         href={item.href}
                         onClick={(event) => handleNavigate(event, item.href)}
                       >
+                        {/* Active-state slide-in rail on the leading edge. */}
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "absolute inset-y-1 left-0 w-0.5 rounded-r-full bg-sidebar-primary origin-center",
+                            "transition-[opacity,transform] duration-300 ease-out",
+                            active
+                              ? "opacity-100 scale-y-100 animate-nav-rail-in"
+                              : "opacity-0 scale-y-50",
+                          )}
+                        />
                         <Icon />
                         <span>{item.label}</span>
                       </Link>

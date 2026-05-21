@@ -4,5 +4,5 @@ export {
   type CashAccount,
   type Investment,
   type RealEstateProperty,
-} from "./model";
-export { totalAssetValue } from "./lib/totals";
+} from "@/entities/asset/model";
+export { totalAssetValue } from "@/entities/asset/lib/totals";

@@ -21,7 +21,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
               "@container/content",
               "has-data-[layout=fixed]:h-svh",
               "peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
-              "pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-0",
+              "pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0",
             )}
           >
             {children}

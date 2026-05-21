@@ -1,4 +1,4 @@
-import type { GoalCheckpoint, GoalProfile } from "../model";
+import type { GoalCheckpoint, GoalProfile } from "@/entities/goal/model";
 
 function parseLocalDay(iso: string): Date | null {
   const day = String(iso).trim().split("T")[0];

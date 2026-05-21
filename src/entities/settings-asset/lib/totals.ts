@@ -1,4 +1,4 @@
-import type { SettingsAsset } from "../model";
+import type { SettingsAsset } from "@/entities/settings-asset/model";
 
 /** Sum of line items from Settings → Asset Management (flat catalog). */
 export function totalSettingsAssetsValue(items: SettingsAsset[]): number {

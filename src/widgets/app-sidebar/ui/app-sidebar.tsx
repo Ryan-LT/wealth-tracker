@@ -74,7 +74,7 @@ export function AppSidebar() {
                 <Wallet className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">WealthTracker</span>
+                <span className="truncate font-semibold">Wealth Tracker</span>
                 <span className="text-muted-foreground truncate text-xs">
                   Private Terminal
                 </span>

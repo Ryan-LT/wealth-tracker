@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/shared/lib";
 import {
   effectiveGoalSeedLineAmount,
@@ -141,7 +141,7 @@ export function GoalCreatorForm({
   const planName = profile.name.trim();
 
   return (
-    <Card>
+    <Card className="gap-0">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 border-b pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           Plan setup
@@ -486,35 +486,32 @@ export function GoalCreatorForm({
 
           {/* Monthly income */}
           <div className="rounded-lg border bg-muted/30 px-3 py-3">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <FieldLabel>Monthly income (from settings)</FieldLabel>
-                <p
-                  className={cn(
-                    "mt-1 text-lg font-semibold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400",
-                    !includesIncome && "opacity-45",
-                  )}
-                >
-                  {formatVnd(monthlyIncomeTotal)}{" "}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    / month
-                  </span>
-                </p>
-              </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <FieldLabel>Monthly income (from settings)</FieldLabel>
               {editMode ? (
-                <label className="flex shrink-0 items-center gap-2 text-sm">
-                  <span>Include in projection</span>
-                  <Switch
-                    checked={includesIncome}
-                    onCheckedChange={(checked) =>
-                      onChange({ ...profile, includeMonthlyIncome: checked })
-                    }
-                  />
-                </label>
+                <Tabs
+                  value={includesIncome ? "include" : "exclude"}
+                  onValueChange={(value) =>
+                    onChange({
+                      ...profile,
+                      includeMonthlyIncome: value === "include",
+                    })
+                  }
+                  className="shrink-0"
+                >
+                  <TabsList className="h-8">
+                    <TabsTrigger value="include" className="text-xs">
+                      Include
+                    </TabsTrigger>
+                    <TabsTrigger value="exclude" className="text-xs">
+                      Exclude
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               ) : (
                 <span
                   className={cn(
-                    "shrink-0 self-center rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider",
+                    "shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider",
                     includesIncome
                       ? "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                       : "border-border bg-muted text-muted-foreground",
@@ -524,6 +521,18 @@ export function GoalCreatorForm({
                 </span>
               )}
             </div>
+            {includesIncome ? (
+              <p className="mt-2 text-lg font-semibold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
+                {formatVnd(monthlyIncomeTotal)}{" "}
+                <span className="text-sm font-normal text-muted-foreground">
+                  / month
+                </span>
+              </p>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Monthly income is excluded from this plan.
+              </p>
+            )}
           </div>
 
           {editMode ? (

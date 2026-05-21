@@ -39,8 +39,8 @@ export function FeasibilityEngine({
   );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b pb-3">
+    <Card className="gap-0">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b pb-3 [.border-b]:pb-4">
         <CardTitle className="text-base font-semibold">Feasibility</CardTitle>
         <Icon className={cn("size-5", iconClass)} />
       </CardHeader>

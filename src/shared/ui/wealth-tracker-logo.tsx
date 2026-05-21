@@ -11,7 +11,7 @@ export function WealthTrackerLogo({
   size = 32,
   className,
   decorative = false,
-  "aria-label": ariaLabel = "WealthTracker",
+  "aria-label": ariaLabel = "Wealth Tracker",
 }: WealthTrackerLogoProps) {
   return (
     <svg

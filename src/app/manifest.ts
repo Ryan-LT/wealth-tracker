@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "WealthTracker — Private Terminal",
-    short_name: "WealthTracker",
+    name: "Wealth Tracker — Private Terminal",
+    short_name: "Wealth Tracker",
     description:
       "Private financial terminal for tracking net worth, assets, debts, income, and goals.",
     start_url: "/",

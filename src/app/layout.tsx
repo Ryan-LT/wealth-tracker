@@ -14,14 +14,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "WealthTracker — Private Terminal",
+  title: "Wealth Tracker — Private Terminal",
   description:
-    "WealthTracker — a private financial terminal for tracking net worth, assets, debts, income, and goals.",
-  applicationName: "WealthTracker",
+    "Wealth Tracker — a private financial terminal for tracking net worth, assets, debts, income, and goals.",
+  applicationName: "Wealth Tracker",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "WealthTracker",
+    title: "Wealth Tracker",
   },
   formatDetection: {
     telephone: false,

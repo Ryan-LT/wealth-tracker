@@ -1,11 +1,13 @@
 "use client";
 
+import { CheckCircle2, TriangleAlert } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Header } from "@/widgets/page-header";
 import { Main } from "@/widgets/page-shell";
 import { ProfileDropdown } from "@/widgets/profile-menu";
 import { ThemeSwitch } from "@/widgets/theme-switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   buildGoalStartingOptions,
@@ -41,6 +43,65 @@ function profileById(
   id: string,
 ): GoalProfile | undefined {
   return profiles.find((p) => p.id === id);
+}
+
+function GoalStatusIndicator({
+  startingBalance,
+  targetAmount,
+}: {
+  startingBalance: number;
+  targetAmount: number;
+}) {
+  const hasTarget = targetAmount > 0;
+  const met = hasTarget && startingBalance >= targetAmount;
+  const gap = hasTarget ? Math.max(0, targetAmount - startingBalance) : 0;
+  const surplus = hasTarget ? Math.max(0, startingBalance - targetAmount) : 0;
+
+  return (
+    <Card className="gap-0">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-semibold">Goal status</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Monthly income is excluded — comparing starting balance to target only.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="flex h-72 flex-col items-center justify-center gap-3 text-center">
+          {!hasTarget ? (
+            <>
+              <p className="text-lg font-semibold text-muted-foreground">
+                Add a target amount to evaluate
+              </p>
+            </>
+          ) : met ? (
+            <>
+              <CheckCircle2 className="size-12 text-emerald-500" />
+              <p className="text-2xl font-semibold">Goal met</p>
+              <p className="text-sm text-muted-foreground font-data-tabular tabular-nums">
+                {formatVnd(startingBalance)} starting vs {formatVnd(targetAmount)} target
+              </p>
+              {surplus > 0 ? (
+                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 font-data-tabular tabular-nums">
+                  Surplus {formatVnd(surplus)}
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <TriangleAlert className="size-12 text-destructive" />
+              <p className="text-2xl font-semibold">Goal not met</p>
+              <p className="text-sm text-muted-foreground font-data-tabular tabular-nums">
+                {formatVnd(startingBalance)} starting vs {formatVnd(targetAmount)} target
+              </p>
+              <p className="text-sm font-medium text-destructive font-data-tabular tabular-nums">
+                Short by {formatVnd(gap)}
+              </p>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 function resolvePlanEditorProfile(goals: GoalsState): GoalProfile {
@@ -320,14 +381,21 @@ export function GoalsPage() {
             />
           </div>
           <div className="flex min-w-0 flex-col gap-4 lg:col-span-8">
-            <ProjectionTimelineChart
-              targetAmount={draft.targetAmount}
-              startingAmount={startingBalance}
-              monthlyIncome={effectiveMonthlyIncome}
-              monthsToTarget={monthsToTarget}
-              targetDateIso={draft.targetDate}
-              checkpoints={draft.checkpoints ?? []}
-            />
+            {applyMonthlyIncome ? (
+              <ProjectionTimelineChart
+                targetAmount={draft.targetAmount}
+                startingAmount={startingBalance}
+                monthlyIncome={effectiveMonthlyIncome}
+                monthsToTarget={monthsToTarget}
+                targetDateIso={draft.targetDate}
+                checkpoints={draft.checkpoints ?? []}
+              />
+            ) : (
+              <GoalStatusIndicator
+                startingBalance={startingBalance}
+                targetAmount={draft.targetAmount}
+              />
+            )}
           </div>
         </div>
       </Main>

@@ -314,7 +314,7 @@ export function AllocationsPage() {
       </Header>
 
       <Main>
-        <Card className="card-hero mb-4 gap-0 w-fit">
+        <Card className="card-hero mb-4 gap-0 w-full md:w-fit">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Monthly income

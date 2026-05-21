@@ -97,7 +97,8 @@ export function DashboardPage() {
   const legacyPrimaryTarget =
     primaryProfile?.targetAmount ?? goals.primary.targetAmount;
   const legacyPrimaryName =
-    (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ?? "Primary Goal";
+    (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ??
+    "Primary Goal";
   const legacySavedTowardPrimary =
     goals.primary.saved > 0
       ? Math.min(goals.primary.saved, legacyPrimaryTarget)
@@ -109,7 +110,12 @@ export function DashboardPage() {
         key: plan.id,
         name: plan.name.trim() || "Untitled plan",
         targetAmount: plan.targetAmount,
-        saved: totalGoalStartingBalance(plan.seedLines, seedOptions, goals.profiles, plan),
+        saved: totalGoalStartingBalance(
+          plan.seedLines,
+          seedOptions,
+          goals.profiles,
+          plan,
+        ),
         savedCaption: "Allocated starting" as const,
         targetDate: plan.targetDate,
         includeMonthlyIncome: plan.includeMonthlyIncome !== false,
@@ -139,7 +145,9 @@ export function DashboardPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-lg font-semibold md:text-base md:font-medium">Dashboard</h1>
+        <h1 className="text-lg font-semibold md:text-xl md:font-medium">
+          Dashboard
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <ThemeSwitch />
           <ProfileDropdown />
@@ -147,15 +155,6 @@ export function DashboardPage() {
       </Header>
 
       <Main>
-        <div className="mb-4 flex items-center justify-between max-md:hidden">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
-            <p className="text-sm text-muted-foreground">
-              Your net worth, goal plans, and monthly trajectory.
-            </p>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <FinancialSummaryWidget
             totalAssets={financialBreakdown.totalAssets}

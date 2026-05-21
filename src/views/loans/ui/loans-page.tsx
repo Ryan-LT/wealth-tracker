@@ -33,7 +33,9 @@ import { LoanDialog } from "./loan-dialog";
 
 type DialogMode = "idle" | "create" | "edit";
 
-function emptyLoan(direction: PersonalLoanDirection = "lent_out"): PersonalLoan {
+function emptyLoan(
+  direction: PersonalLoanDirection = "lent_out",
+): PersonalLoan {
   return {
     id: `loan-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     person: "",
@@ -57,7 +59,10 @@ function sortLoans(loans: PersonalLoan[]): PersonalLoan[] {
 
 export function LoansPage() {
   const hydrated = useHydrated();
-  const [loans, setLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
+  const [loans, setLoans] = useTable<PersonalLoan[]>(
+    "personalLoans",
+    PERSONAL_LOANS_SEED,
+  );
 
   const [mode, setMode] = useState<DialogMode>("idle");
   const [draft, setDraft] = useState<PersonalLoan | null>(null);
@@ -78,14 +83,20 @@ export function LoansPage() {
     () =>
       lentOut
         .filter((l) => l.status === "open")
-        .reduce((sum, l) => sum + (Number.isFinite(l.amount) ? l.amount : 0), 0),
+        .reduce(
+          (sum, l) => sum + (Number.isFinite(l.amount) ? l.amount : 0),
+          0,
+        ),
     [lentOut],
   );
   const totalOpenBorrowed = useMemo(
     () =>
       borrowed
         .filter((l) => l.status === "open")
-        .reduce((sum, l) => sum + (Number.isFinite(l.amount) ? l.amount : 0), 0),
+        .reduce(
+          (sum, l) => sum + (Number.isFinite(l.amount) ? l.amount : 0),
+          0,
+        ),
     [borrowed],
   );
 
@@ -117,7 +128,9 @@ export function LoansPage() {
     if (mode === "create") {
       setLoans((prev) => [...prev, normalized]);
     } else if (mode === "edit") {
-      setLoans((prev) => prev.map((l) => (l.id === normalized.id ? normalized : l)));
+      setLoans((prev) =>
+        prev.map((l) => (l.id === normalized.id ? normalized : l)),
+      );
     }
     closeDialog();
   }
@@ -148,7 +161,9 @@ export function LoansPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-lg font-semibold md:text-base md:font-medium">Personal loans</h1>
+        <h1 className="text-lg font-semibold md:text-base md:font-medium">
+          Personal loans
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <ThemeSwitch />
           <ProfileDropdown />
@@ -156,13 +171,6 @@ export function LoansPage() {
       </Header>
 
       <Main>
-        <div className="mb-4 max-md:hidden">
-          <h1 className="text-2xl font-bold tracking-tight">Personal loans</h1>
-          <p className="text-sm text-muted-foreground">
-            A side notebook. <strong className="text-foreground">Not counted</strong> in net worth or any calculation.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card className="card-hero">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
@@ -178,7 +186,12 @@ export function LoansPage() {
                   )}
                 </p>
               </div>
-              <Button type="button" size="sm" onClick={() => openCreate("lent_out")} disabled={!hydrated}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => openCreate("lent_out")}
+                disabled={!hydrated}
+              >
                 <Plus className="size-4" />
                 Add
               </Button>
@@ -224,7 +237,12 @@ export function LoansPage() {
                   )}
                 </p>
               </div>
-              <Button type="button" size="sm" onClick={() => openCreate("borrowed")} disabled={!hydrated}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => openCreate("borrowed")}
+                disabled={!hydrated}
+              >
                 <Plus className="size-4" />
                 Add
               </Button>

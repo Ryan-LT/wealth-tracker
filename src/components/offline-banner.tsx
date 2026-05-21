@@ -6,6 +6,9 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { refetchTables, useLastSyncedAt } from "@/shared/storage/store";
 import { cn } from "@/shared/lib";
 
+const BANNER_HEIGHT = "1.75rem";
+const HEIGHT_VAR = "--offline-banner-h";
+
 function formatTime(ms: number): string {
   return new Date(ms).toLocaleTimeString([], {
     hour: "numeric",
@@ -42,6 +45,18 @@ export function OfflineBanner() {
     wasOfflineRef.current = !online;
   }, [online]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (online) {
+      root.style.removeProperty(HEIGHT_VAR);
+    } else {
+      root.style.setProperty(HEIGHT_VAR, BANNER_HEIGHT);
+    }
+    return () => {
+      root.style.removeProperty(HEIGHT_VAR);
+    };
+  }, [online]);
+
   if (online) return null;
 
   const label =
@@ -53,10 +68,11 @@ export function OfflineBanner() {
     <div
       role="status"
       aria-live="polite"
+      style={{ height: BANNER_HEIGHT }}
       className={cn(
-        "sticky top-0 z-30 flex items-center justify-center gap-2 border-b",
-        "border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs",
-        "text-amber-900 dark:text-amber-200",
+        "fixed top-0 right-0 left-0 z-50 flex items-center justify-center gap-2",
+        "border-b border-amber-500/30 bg-amber-500/15 px-4 text-xs",
+        "text-amber-900 backdrop-blur-md dark:text-amber-200",
       )}
     >
       <CloudOff className="size-3.5" />

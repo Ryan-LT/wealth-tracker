@@ -30,10 +30,14 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
 
   return (
     <>
-      <div aria-hidden className="h-14 shrink-0" />
+      <div
+        aria-hidden
+        className="shrink-0"
+        style={{ height: "calc(3.5rem + var(--offline-banner-h, 0px))" }}
+      />
       <header
         className={cn(
-          "fixed top-0 right-0 left-0 z-40 h-14",
+          "fixed right-0 left-0 z-40 h-14 top-(--offline-banner-h,0px)",
           "md:left-(--sidebar-width)",
           "bg-background/80 supports-backdrop-filter:bg-background/70 backdrop-blur-md",
           "border-b border-border/60",

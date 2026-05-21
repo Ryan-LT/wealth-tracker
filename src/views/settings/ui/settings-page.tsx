@@ -38,7 +38,9 @@ export function SettingsPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-lg font-semibold md:text-base md:font-medium">Asset configuration</h1>
+        <h1 className="text-lg font-semibold md:text-base md:font-medium">
+          Asset configuration
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <ThemeSwitch />
           <ProfileDropdown />
@@ -46,10 +48,6 @@ export function SettingsPage() {
       </Header>
 
       <Main>
-        <div className="mb-4 max-md:hidden">
-          <h1 className="text-2xl font-bold tracking-tight">Asset configuration</h1>
-        </div>
-
         <Separator className="my-4 hidden md:block" />
 
         <div className="flex flex-col gap-6">
@@ -60,13 +58,20 @@ export function SettingsPage() {
               setPrefs((p) => ({
                 ...p,
                 extraAssetCategories: [
-                  ...new Set([...(p.extraAssetCategories ?? []), category.trim()]),
+                  ...new Set([
+                    ...(p.extraAssetCategories ?? []),
+                    category.trim(),
+                  ]),
                 ],
               }))
             }
-            onDelete={(id) => setAssets((prev) => prev.filter((a) => a.id !== id))}
+            onDelete={(id) =>
+              setAssets((prev) => prev.filter((a) => a.id !== id))
+            }
             onUpdate={(next) =>
-              setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)))
+              setAssets((prev) =>
+                prev.map((a) => (a.id === next.id ? next : a)),
+              )
             }
             onAdd={(asset) => setAssets((prev) => [...prev, asset])}
             onReorder={(ordered) => setAssets(() => ordered)}
@@ -78,7 +83,9 @@ export function SettingsPage() {
             onUpdate={(debt) =>
               setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
             }
-            onDelete={(id) => setDebts((prev) => prev.filter((d) => d.id !== id))}
+            onDelete={(id) =>
+              setDebts((prev) => prev.filter((d) => d.id !== id))
+            }
             loading={!hydrated}
           />
           <IncomeSourcesGrid
@@ -87,9 +94,13 @@ export function SettingsPage() {
             settingsAssets={assets}
             onCreate={(source) => setSources((prev) => [...prev, source])}
             onUpdate={(source) =>
-              setSources((prev) => prev.map((s) => (s.id === source.id ? source : s)))
+              setSources((prev) =>
+                prev.map((s) => (s.id === source.id ? source : s)),
+              )
             }
-            onDelete={(id) => setSources((prev) => prev.filter((s) => s.id !== id))}
+            onDelete={(id) =>
+              setSources((prev) => prev.filter((s) => s.id !== id))
+            }
             loading={!hydrated}
           />
         </div>

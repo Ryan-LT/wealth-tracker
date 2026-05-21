@@ -271,7 +271,12 @@ export function AllocationsPage() {
   );
   const report = useMemo(
     () =>
-      buildAllocationReport(normalizedProfiles, seedOptions, settingsAssets, sources),
+      buildAllocationReport(
+        normalizedProfiles,
+        seedOptions,
+        settingsAssets,
+        sources,
+      ),
     [normalizedProfiles, seedOptions, settingsAssets, sources],
   );
   const incomeMonthly = useMemo(
@@ -309,12 +314,6 @@ export function AllocationsPage() {
       </Header>
 
       <Main>
-        <div className="mb-4 max-md:hidden">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Liquidity & commitments
-          </h1>
-        </div>
-
         <Card className="card-hero mb-4 gap-0 w-fit">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

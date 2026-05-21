@@ -36,7 +36,10 @@ import { GoalCreatorForm } from "./goal-creator-form";
 import { ProjectionTimelineChart } from "./projection-timeline-chart";
 import { SavedProfilesStrip } from "./saved-profiles-strip";
 
-function profileById(profiles: GoalProfile[], id: string): GoalProfile | undefined {
+function profileById(
+  profiles: GoalProfile[],
+  id: string,
+): GoalProfile | undefined {
   return profiles.find((p) => p.id === id);
 }
 
@@ -59,12 +62,16 @@ function normalizeGoalProfile(
 ): GoalProfile {
   const raw = migrateLegacySeedsToLines(p);
   let lines = sanitizeSeedLinesAgainstOptions(raw, seedKeys);
-  lines = ensureKeyedSeedDefaults(lines, seedOptions, savedPlans, { ...p, seedLines: lines });
+  lines = ensureKeyedSeedDefaults(lines, seedOptions, savedPlans, {
+    ...p,
+    seedLines: lines,
+  });
   return {
     ...p,
     seedLines: lines,
     checkpoints: normalizeStoredCheckpoints(p.checkpoints),
-    monthlyContribution: typeof p.monthlyContribution === "number" ? p.monthlyContribution : 0,
+    monthlyContribution:
+      typeof p.monthlyContribution === "number" ? p.monthlyContribution : 0,
     includeMonthlyIncome: p.includeMonthlyIncome !== false,
   };
 }
@@ -79,11 +86,22 @@ export function GoalsPage() {
     () => buildGoalStartingOptions(assets, settingsAssets),
     [assets, settingsAssets],
   );
-  const seedKeySet = useMemo(() => new Set(seedOptions.map((o) => o.key)), [seedOptions]);
-  const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
+  const seedKeySet = useMemo(
+    () => new Set(seedOptions.map((o) => o.key)),
+    [seedOptions],
+  );
+  const incomeMonthly = useMemo(
+    () => totalMonthlyIncomeFromSources(sources),
+    [sources],
+  );
 
   const [draft, setDraft] = useState<GoalProfile>(() =>
-    normalizeGoalProfile(resolvePlanEditorProfile(goals), seedKeySet, seedOptions, goals.profiles),
+    normalizeGoalProfile(
+      resolvePlanEditorProfile(goals),
+      seedKeySet,
+      seedOptions,
+      goals.profiles,
+    ),
   );
   const [lastLoadedKey, setLastLoadedKey] = useState(goals.activeProfileId);
   const [editMode, setEditMode] = useState(
@@ -146,10 +164,15 @@ export function GoalsPage() {
   );
 
   function saveCurrentSetup() {
-    const cleanLines = sanitizeSeedLinesAgainstOptions(draft.seedLines ?? [], seedKeySet);
+    const cleanLines = sanitizeSeedLinesAgainstOptions(
+      draft.seedLines ?? [],
+      seedKeySet,
+    );
     setGoals((prev) => {
       const existingById =
-        draft.id !== "" ? prev.profiles.find((p) => p.id === draft.id) : undefined;
+        draft.id !== ""
+          ? prev.profiles.find((p) => p.id === draft.id)
+          : undefined;
       const id = existingById ? draft.id : `goal-${Date.now()}`;
 
       const savedBase: GoalProfile = {
@@ -201,7 +224,13 @@ export function GoalsPage() {
   }, [draft.targetDate]);
 
   const startingBalance = useMemo(
-    () => totalGoalStartingBalance(draft.seedLines, seedOptions, goals.profiles, draft),
+    () =>
+      totalGoalStartingBalance(
+        draft.seedLines,
+        seedOptions,
+        goals.profiles,
+        draft,
+      ),
     [draft, goals.profiles, seedOptions],
   );
 
@@ -217,7 +246,11 @@ export function GoalsPage() {
     if (draft.targetAmount <= 0 || !draft.targetDate) {
       return "Add target, date, and starting sources.";
     }
-    if (applyMonthlyIncome && incomeMonthly <= 0 && projectedAtTarget < draft.targetAmount) {
+    if (
+      applyMonthlyIncome &&
+      incomeMonthly <= 0 &&
+      projectedAtTarget < draft.targetAmount
+    ) {
       return "No monthly income in settings — only starting allocations count.";
     }
     if (!applyMonthlyIncome && projectedAtTarget < draft.targetAmount) {
@@ -242,7 +275,9 @@ export function GoalsPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-lg font-semibold md:text-base md:font-medium">Goal Plan</h1>
+        <h1 className="text-lg font-semibold md:text-base md:font-medium">
+          Goal Plan
+        </h1>
         <div className="ml-auto flex items-center gap-2">
           <ThemeSwitch />
           <ProfileDropdown />
@@ -250,13 +285,6 @@ export function GoalsPage() {
       </Header>
 
       <Main>
-        <div className="mb-4 max-md:hidden">
-          <h1 className="text-2xl font-bold tracking-tight">Goal Plan</h1>
-          <p className="text-sm text-muted-foreground">
-            Set a target, allocate starting balances, and track feasibility.
-          </p>
-        </div>
-
         <SavedProfilesStrip
           profiles={goals.profiles}
           activeId={goals.activeProfileId}

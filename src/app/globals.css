@@ -5,16 +5,15 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  /* Page vs panel: enough contrast to scan, not harsh white-on-white. */
+  --background: oklch(0.965 0.006 248);
   --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
+  --card: oklch(0.993 0.003 248);
   --card-foreground: oklch(0.129 0.042 264.695);
-  /* Hero-tier surface: same white but with a soft cool-toned border + shadow. */
   --card-elevated: oklch(1 0 0);
-  --card-elevated-border: oklch(0.86 0.018 257);
-  /* Quiet-tier surface: faintly cooler than card, recedes into the page. */
-  --card-muted: oklch(0.979 0.005 248);
-  --card-muted-border: oklch(0.93 0.011 256 / 60%);
+  --card-elevated-border: oklch(0.88 0.02 257);
+  --card-muted: oklch(0.978 0.005 248);
+  --card-muted-border: oklch(0.92 0.01 256 / 70%);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
   --primary: oklch(0.208 0.042 265.755);
@@ -35,6 +34,22 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
 
+  --accent-teal: var(--chart-2);
+  --accent-amber: var(--chart-4);
+  --accent-risk: var(--destructive);
+  --surface-hero-bg: color-mix(in oklch, var(--accent-teal) 14%, var(--card-elevated));
+  --surface-hero-gradient: linear-gradient(
+    160deg,
+    color-mix(in oklch, var(--accent-teal) 22%, transparent) 0%,
+    var(--surface-hero-bg) 48%,
+    var(--card-elevated) 100%
+  );
+  --surface-hero-border: color-mix(in oklch, var(--accent-teal) 35%, var(--card-elevated-border));
+  --surface-primary-bg: color-mix(in oklch, var(--accent-teal) 10%, var(--card));
+  --surface-primary-border: color-mix(in oklch, var(--accent-teal) 28%, var(--border));
+  --accent-secondary-edge: color-mix(in oklch, var(--accent-amber) 55%, var(--border));
+  --accent-outflow-edge: color-mix(in oklch, var(--accent-risk) 50%, var(--border));
+
   --sidebar: var(--background);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -46,16 +61,14 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.14 0.04 259.21);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  /* Hero-tier surface (dark): a step brighter than --card, gentle accent border. */
-  --card-elevated: oklch(0.185 0.044 259.21);
-  --card-elevated-border: oklch(0.42 0.045 259.21 / 55%);
-  /* Quiet-tier surface (dark): just under --card, fades toward --background. */
-  --card-muted: oklch(0.158 0.038 259.21);
-  --card-muted-border: oklch(1 0 0 / 6%);
+  --background: oklch(0.115 0.038 264);
+  --foreground: oklch(0.94 0.01 247);
+  --card: oklch(0.165 0.038 259);
+  --card-foreground: oklch(0.94 0.01 247);
+  --card-elevated: oklch(0.19 0.04 259);
+  --card-elevated-border: oklch(0.38 0.04 259 / 55%);
+  --card-muted: oklch(0.145 0.036 259);
+  --card-muted-border: oklch(1 0 0 / 8%);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
   --primary: oklch(0.929 0.013 255.508);
@@ -75,6 +88,19 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+
+  --surface-hero-bg: color-mix(in oklch, var(--accent-teal) 18%, var(--card-elevated));
+  --surface-hero-gradient: linear-gradient(
+    160deg,
+    color-mix(in oklch, var(--accent-teal) 28%, transparent) 0%,
+    var(--surface-hero-bg) 45%,
+    var(--card-elevated) 100%
+  );
+  --surface-hero-border: color-mix(in oklch, var(--accent-teal) 42%, var(--card-elevated-border));
+  --surface-primary-bg: color-mix(in oklch, var(--accent-teal) 14%, var(--card));
+  --surface-primary-border: color-mix(in oklch, var(--accent-teal) 32%, var(--border));
+  --accent-secondary-edge: color-mix(in oklch, var(--accent-amber) 58%, var(--border));
+  --accent-outflow-edge: color-mix(in oklch, var(--accent-risk) 55%, var(--border));
 }
 
 @theme inline {
@@ -160,20 +186,45 @@
 }
 
 /**
- * Card importance tiers. Used to give the page a visual hierarchy so the eye
- * lands on hero KPIs first, then defaults, then quiet supporting metrics.
+ * Card tiers — purposeful hierarchy (use via `<Card variant="…">`):
  *
- * Apply as a className on a Card alongside any layout classes:
- *   <Card className="card-hero">       // primary KPI
- *   <Card>                             // default (no class needed)
- *   <Card className="card-quiet">      // supporting / less important
+ * hero     — page-level KPI: soft teal fill + shadow (max 1–2 per viewport)
+ * primary  — key section/metric: light fill only, no loud gradient
+ * secondary— supporting: neutral surface + amber left edge (no fill wash)
+ * outflow  — costs/debt: neutral surface + red left edge (no fill wash)
+ * quiet    — tables/lists: muted flat surface, minimal chrome
+ * default  — neutral panel
  */
 @utility card-hero {
-  background-color: var(--card-elevated);
-  border-color: var(--card-elevated-border);
+  background-color: var(--surface-hero-bg);
+  background-image: var(--surface-hero-gradient);
+  border-color: var(--surface-hero-border);
   box-shadow:
-    0 1px 2px 0 oklch(0 0 0 / 4%),
-    0 8px 24px -12px oklch(0 0 0 / 8%);
+    0 1px 2px 0 oklch(0 0 0 / 5%),
+    0 8px 24px -10px color-mix(in oklch, var(--accent-teal) 22%, transparent);
+}
+
+@utility card-primary {
+  background-color: var(--surface-primary-bg);
+  background-image: none;
+  border-color: var(--surface-primary-border);
+  box-shadow: 0 1px 2px 0 oklch(0 0 0 / 4%);
+}
+
+@utility card-secondary {
+  background-color: var(--card);
+  background-image: none;
+  border-color: var(--border);
+  border-left-width: 3px;
+  border-left-color: var(--accent-secondary-edge);
+}
+
+@utility card-outflow {
+  background-color: var(--card);
+  background-image: none;
+  border-color: var(--border);
+  border-left-width: 3px;
+  border-left-color: var(--accent-outflow-edge);
 }
 
 @utility card-quiet {

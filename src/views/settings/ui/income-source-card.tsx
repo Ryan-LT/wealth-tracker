@@ -12,7 +12,7 @@ import { Badge } from "@/shared/ui";
 export function IncomeSourceCardSkeleton() {
   return (
     <Card>
-      <CardContent className="p-3">
+      <CardContent className="pt-6">
         <div className="mb-3 flex items-start justify-between">
           <div className="min-w-0 flex flex-col gap-1">
             <Skeleton className="h-4 w-32" />
@@ -44,7 +44,7 @@ export function IncomeSourceCard({ source, onEdit, onDelete }: IncomeSourceCardP
   const capitalLineCount = source.capitalLines?.length ?? 0;
   return (
     <Card>
-      <CardContent className="p-3 py-0">
+      <CardContent className="pt-6">
         <div className="mb-3 flex items-start justify-between">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold">{source.name}</h3>

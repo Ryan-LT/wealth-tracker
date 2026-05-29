@@ -1,4 +1,10 @@
-export { readTable, writeTable, useTable, useHydrated } from "./store";
+export {
+  flushTablesNow,
+  readTable,
+  writeTable,
+  useTable,
+  useHydrated,
+} from "./store";
 
 export { TABLE_KEYS, isTableKey, type TableKey } from "./table-keys";
 

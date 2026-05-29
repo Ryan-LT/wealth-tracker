@@ -1,5 +1,21 @@
 import type { NetWorthMonthSnapshot, Preferences } from "@/entities/preferences/model";
 
+export type SpendingPrefs = Pick<
+  Preferences,
+  "averageMonthlySpending" | "monthOutflow"
+>;
+
+export type CashflowPrefs = Pick<
+  Preferences,
+  "monthInflow" | "monthOutflow" | "netMonthIncome" | "averageMonthlySpending"
+>;
+
+/** Resolved average monthly spending (new field or legacy `monthOutflow`). */
+export function resolveAverageMonthlySpending(prefs: SpendingPrefs): number {
+  const raw = prefs.averageMonthlySpending ?? prefs.monthOutflow ?? 0;
+  return Math.max(0, Number.isFinite(raw) ? raw : 0);
+}
+
 export function monthCalendarKey(d: Date): string {
   const y = d.getFullYear();
   const m = d.getMonth() + 1;
@@ -16,30 +32,35 @@ export function fractionalMonthsUntilYearEnd(now: Date = new Date()): number {
 
 /**
  * Estimated monthly net cash flow for projections.
- * Uses explicit inflow/outflow from preferences when set; otherwise stored net or income − outflow.
+ * Default: income sources − average monthly spending.
+ * Legacy override only when both explicit month inflow and outflow are set (and not
+ * using the settings spending field as the outflow source).
  */
 export function estimatedMonthlyNetCashflow(
-  prefs: Pick<
-    Preferences,
-    "monthInflow" | "monthOutflow" | "netMonthIncome"
-  >,
+  prefs: CashflowPrefs,
   totalMonthlyIncomeFromSources: number,
 ): number {
-  if (prefs.monthInflow !== 0 || prefs.monthOutflow !== 0) {
+  const spending = resolveAverageMonthlySpending(prefs);
+  const usesSettingsSpending =
+    prefs.averageMonthlySpending !== undefined &&
+    prefs.averageMonthlySpending !== null;
+
+  if (
+    !usesSettingsSpending &&
+    prefs.monthInflow !== 0 &&
+    prefs.monthOutflow !== 0
+  ) {
     return prefs.monthInflow - prefs.monthOutflow;
   }
   if (prefs.netMonthIncome !== 0) {
     return prefs.netMonthIncome;
   }
-  return totalMonthlyIncomeFromSources - prefs.monthOutflow;
+  return totalMonthlyIncomeFromSources - spending;
 }
 
 export function projectNetWorthEndOfYear(
   netWorth: number,
-  prefs: Pick<
-    Preferences,
-    "monthInflow" | "monthOutflow" | "netMonthIncome"
-  >,
+  prefs: CashflowPrefs,
   totalMonthlyIncomeFromSources: number,
 ): number {
   const monthlyNet = estimatedMonthlyNetCashflow(prefs, totalMonthlyIncomeFromSources);

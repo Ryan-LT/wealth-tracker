@@ -141,7 +141,7 @@ export function DebtsSection({ debts, onAdd, onUpdate, onDelete, loading = false
   }
 
   return (
-    <Card className="gap-2">
+    <Card variant="outflow">
       <CardHeader className="flex flex-row items-end justify-between gap-4 space-y-0 border-b">
         <div className="min-w-0">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">

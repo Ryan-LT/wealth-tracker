@@ -170,7 +170,7 @@ export function IncomeSourcesGrid({
   }
 
   return (
-    <Card className="gap-0">
+    <Card variant="secondary">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b [.border-b]:pb-4">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <Receipt className="size-4 text-primary" />

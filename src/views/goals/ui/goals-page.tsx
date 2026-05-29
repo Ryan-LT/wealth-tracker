@@ -18,6 +18,7 @@ import {
   normalizeStoredCheckpoints,
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
+  estimatedMonthlyNetCashflow,
   totalMonthlyIncomeFromSources,
   type GoalStartingOption,
 } from "@/shared/lib";
@@ -27,9 +28,11 @@ import {
   GOAL_PLAN_NEW_SENTINEL,
   GOALS_SEED,
   INCOME_SOURCES_SEED,
+  PREFERENCES_SEED,
   SETTINGS_ASSETS_SEED,
   type GoalProfile,
   type GoalsState,
+  flushTablesNow,
   useTable,
 } from "@/shared/storage";
 
@@ -58,8 +61,8 @@ function GoalStatusIndicator({
   const surplus = hasTarget ? Math.max(0, startingBalance - targetAmount) : 0;
 
   return (
-    <Card className="gap-0">
-      <CardHeader className="pb-2">
+    <Card variant="secondary">
+      <CardHeader>
         <CardTitle className="text-base font-semibold">Goal status</CardTitle>
         <p className="text-xs text-muted-foreground">
           Monthly income is excluded — comparing starting balance to target only.
@@ -142,6 +145,7 @@ export function GoalsPage() {
   const [assets] = useTable("assets", ASSETS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [prefs] = useTable("preferences", PREFERENCES_SEED);
 
   const seedOptions = useMemo(
     () => buildGoalStartingOptions(assets, settingsAssets),
@@ -165,8 +169,16 @@ export function GoalsPage() {
     ),
   );
   const [lastLoadedKey, setLastLoadedKey] = useState(goals.activeProfileId);
-  const [editMode, setEditMode] = useState(
-    () => goals.activeProfileId === GOAL_PLAN_NEW_SENTINEL,
+
+  const savedProfile = useMemo(
+    () =>
+      normalizeGoalProfile(
+        resolvePlanEditorProfile(goals),
+        seedKeySet,
+        seedOptions,
+        goals.profiles,
+      ),
+    [goals, seedKeySet, seedOptions],
   );
 
   if (lastLoadedKey !== goals.activeProfileId) {
@@ -179,21 +191,7 @@ export function GoalsPage() {
         goals.profiles,
       ),
     );
-    // New plans auto-enter edit mode; loading a saved plan starts in view mode.
-    setEditMode(goals.activeProfileId === GOAL_PLAN_NEW_SENTINEL);
   }
-
-  const cancelEdit = useCallback(() => {
-    setDraft(
-      normalizeGoalProfile(
-        resolvePlanEditorProfile(goals),
-        seedKeySet,
-        seedOptions,
-        goals.profiles,
-      ),
-    );
-    setEditMode(false);
-  }, [goals, seedKeySet, seedOptions]);
 
   const loadProfile = useCallback(
     (id: string) => setGoals((prev) => ({ ...prev, activeProfileId: id })),
@@ -224,7 +222,7 @@ export function GoalsPage() {
     [setGoals],
   );
 
-  function saveCurrentSetup() {
+  const persistPlan = useCallback(async () => {
     const cleanLines = sanitizeSeedLinesAgainstOptions(
       draft.seedLines ?? [],
       seedKeySet,
@@ -267,8 +265,8 @@ export function GoalsPage() {
         activeProfileId: id,
       };
     });
-    setEditMode(false);
-  }
+    await flushTablesNow();
+  }, [draft, incomeMonthly, seedKeySet, seedOptions, setGoals]);
 
   function simulate() {
     setDraft((d) => ({ ...d }));
@@ -296,11 +294,15 @@ export function GoalsPage() {
   );
 
   const applyMonthlyIncome = draft.includeMonthlyIncome !== false;
-  const effectiveMonthlyIncome = applyMonthlyIncome ? incomeMonthly : 0;
+  const householdMonthlyNet = useMemo(
+    () => estimatedMonthlyNetCashflow(prefs, incomeMonthly),
+    [prefs, incomeMonthly],
+  );
+  const effectiveMonthlyContribution = applyMonthlyIncome ? householdMonthlyNet : 0;
 
   const projectedAtTarget = useMemo(
-    () => startingBalance + effectiveMonthlyIncome * monthsToTarget,
-    [startingBalance, effectiveMonthlyIncome, monthsToTarget],
+    () => startingBalance + effectiveMonthlyContribution * monthsToTarget,
+    [startingBalance, effectiveMonthlyContribution, monthsToTarget],
   );
 
   const note = useMemo(() => {
@@ -313,6 +315,14 @@ export function GoalsPage() {
       projectedAtTarget < draft.targetAmount
     ) {
       return "No monthly income in settings — only starting allocations count.";
+    }
+    if (
+      applyMonthlyIncome &&
+      incomeMonthly > 0 &&
+      effectiveMonthlyContribution <= 0 &&
+      projectedAtTarget < draft.targetAmount
+    ) {
+      return "Monthly net is zero or negative after spending — increase income or lower average spending in settings.";
     }
     if (!applyMonthlyIncome && projectedAtTarget < draft.targetAmount) {
       const gap = draft.targetAmount - projectedAtTarget;
@@ -328,6 +338,7 @@ export function GoalsPage() {
     applyMonthlyIncome,
     draft.targetAmount,
     draft.targetDate,
+    effectiveMonthlyContribution,
     incomeMonthly,
     projectedAtTarget,
     startingBalance,
@@ -356,23 +367,22 @@ export function GoalsPage() {
 
         <Separator className="my-4" />
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           <div className="flex flex-col gap-4 lg:col-span-4">
             <GoalCreatorForm
               profile={draft}
+              savedProfile={savedProfile}
               savedPlans={goals.profiles}
               seedOptions={seedOptions}
               monthlyIncomeTotal={incomeMonthly}
-              editMode={editMode}
+              monthlyNetContribution={householdMonthlyNet}
               onChange={setDraft}
               onSimulate={simulate}
-              onSave={saveCurrentSetup}
-              onEnterEdit={() => setEditMode(true)}
-              onCancelEdit={cancelEdit}
+              onPersist={persistPlan}
             />
             <FeasibilityEngine
-              monthlyIncome={effectiveMonthlyIncome}
-              incomeConfiguredTotal={incomeMonthly}
+              monthlyNetContribution={effectiveMonthlyContribution}
+              monthlyIncomeTotal={incomeMonthly}
               startingBalance={startingBalance}
               projectedBalanceAtTarget={projectedAtTarget}
               targetAmount={draft.targetAmount}
@@ -385,7 +395,7 @@ export function GoalsPage() {
               <ProjectionTimelineChart
                 targetAmount={draft.targetAmount}
                 startingAmount={startingBalance}
-                monthlyIncome={effectiveMonthlyIncome}
+                monthlyNetContribution={effectiveMonthlyContribution}
                 monthsToTarget={monthsToTarget}
                 targetDateIso={draft.targetDate}
                 checkpoints={draft.checkpoints ?? []}

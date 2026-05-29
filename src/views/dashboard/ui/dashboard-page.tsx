@@ -11,6 +11,7 @@ import {
   estimatedMonthlyNetCashflow,
   monthlyIncomeByKind,
   projectNetWorthEndOfYear,
+  resolveAverageMonthlySpending,
   syncNetWorthTracking,
   totalAssetValue,
   totalDebtBalance,
@@ -71,6 +72,7 @@ export function DashboardPage() {
       totalDebt: -liabilities,
       eoyProjection: projectNetWorthEndOfYear(nw, prefs, incomeTotal),
       monthlyNet: estimatedMonthlyNetCashflow(prefs, incomeTotal),
+      averageSpending: resolveAverageMonthlySpending(prefs),
     };
   }, [assets, debts, sources, prefs, settingsAssets]);
 
@@ -170,8 +172,8 @@ export function DashboardPage() {
           />
         </div>
 
-        <section className="mt-6">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <section className="mt-8">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/90">
             Goal plans
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -200,11 +202,13 @@ export function DashboardPage() {
           </div>
         </section>
 
-        <section className="mt-6">
+        <section className="mt-8">
           <MetricGrid
             totalAssets={summary.totalAssets}
             activeIncome={summary.activeIncome}
             passiveIncome={summary.passiveIncome}
+            averageMonthlySpending={summary.averageSpending}
+            monthlyNetSavings={summary.monthlyNet}
             totalDebt={summary.totalDebt}
             eoyProjection={summary.eoyProjection}
             loading={!hydrated}

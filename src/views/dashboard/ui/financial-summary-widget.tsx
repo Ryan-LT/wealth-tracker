@@ -19,13 +19,13 @@ export function FinancialSummaryWidget({
   loading = false,
 }: FinancialSummaryWidgetProps) {
   return (
-    <Card className="card-hero h-full gap-4">
+    <Card variant="hero" className="h-full">
       <CardHeader>
         <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
           Financial summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2 text-sm">
+      <CardContent className="flex flex-col gap-3 text-sm">
         <Row
           label="Asset configuration"
           value={formatVnd(assetConfigurationTotal)}

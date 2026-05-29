@@ -405,6 +405,9 @@ function ModalSeedLineRow({
     savedPlans,
     planDraft,
   );
+  const allocatedNow = Math.max(0, line.amount);
+  /** Headroom left on this row after the current allocate field value. */
+  const availableToPlan = Math.max(0, maxAlloc - allocatedNow);
   const over = !isCustom && line.amount > maxAlloc;
   const usage: SourceGoalUsage[] = !isCustom
     ? goalUsageForSourceKey(line.sourceKey, savedPlans, planDraft)
@@ -442,7 +445,7 @@ function ModalSeedLineRow({
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-5 sm:py-5">
         <div className="w-full sm:max-w-xs">
           <MoneyInput
             label={isCustom ? "Amount (₫)" : "Allocate from this source (₫)"}
@@ -465,12 +468,14 @@ function ModalSeedLineRow({
             <dd
               className={cn(
                 "font-data-tabular tabular-nums sm:text-end",
-                maxAlloc < live
-                  ? "text-amber-600 dark:text-amber-400"
-                  : undefined,
+                availableToPlan === 0 && maxAlloc > 0
+                  ? "text-destructive"
+                  : maxAlloc < live
+                    ? "text-amber-600 dark:text-amber-400"
+                    : undefined,
               )}
             >
-              {formatVnd(maxAlloc)}
+              {formatVnd(availableToPlan)}
             </dd>
 
             <dt className="text-muted-foreground">Counts toward plan</dt>

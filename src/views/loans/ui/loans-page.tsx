@@ -172,8 +172,8 @@ export function LoansPage() {
 
       <Main>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Card className="card-hero">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+          <Card variant="secondary">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2">
               <div>
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Owed to you
@@ -223,8 +223,8 @@ export function LoansPage() {
             </CardContent>
           </Card>
 
-          <Card className="card-hero">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+          <Card variant="outflow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2">
               <div>
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   You owe

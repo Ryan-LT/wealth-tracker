@@ -2,6 +2,12 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import {
+  notifySaveFailed,
+  notifySaveStarted,
+  notifySaveSucceeded,
+} from "@/shared/lib/save-toast";
+
 import { TABLE_KEYS, type TableKey } from "./table-keys";
 
 const tablesUrl = "/api/tables";
@@ -18,6 +24,7 @@ const valueCache = new Map<string, unknown>();
 const dirty = new Set<string>();
 
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+let flushInFlight: Promise<void> | null = null;
 let hydrateState: "pending" | "ok" | "error" = "pending";
 let hydratePromise: Promise<void> | null = null;
 let syncInFlight: Promise<void> | null = null;
@@ -164,28 +171,58 @@ async function flushDirty(): Promise<void> {
   if (dirty.size === 0) {
     return;
   }
+  if (flushInFlight) {
+    return flushInFlight;
+  }
+
+  const keysToFlush = [...dirty];
   const tables: Record<string, unknown> = {};
-  for (const k of dirty) {
+  for (const k of keysToFlush) {
     tables[k] = valueCache.get(k);
   }
-  const keysToFlush = [...dirty];
-  dirty.clear();
-  try {
-    const res = await fetch(tablesUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tables }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => null) as { error?: string } | null;
-      throw new Error(err?.error ?? `PUT ${tablesUrl} ${res.status}`);
+
+  notifySaveStarted();
+  flushInFlight = (async () => {
+    try {
+      const res = await fetch(tablesUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tables }),
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(err?.error ?? `PUT ${tablesUrl} ${res.status}`);
+      }
+      for (const k of keysToFlush) {
+        dirty.delete(k);
+      }
+      notifySaveSucceeded();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Save failed";
+      console.error("[wealthtracker] persist to Neon failed", e);
+      notifySaveFailed(message);
+      scheduleFlush();
+    } finally {
+      flushInFlight = null;
+      if (dirty.size > 0) {
+        scheduleFlush();
+      }
     }
-  } catch (e) {
-    console.error("[wealthtracker] persist to Neon failed", e);
-    for (const k of keysToFlush) {
-      dirty.add(k);
-    }
-    scheduleFlush();
+  })();
+
+  return flushInFlight;
+}
+
+/** Wait for any pending debounced writes to reach the server. */
+export async function flushTablesNow(): Promise<void> {
+  if (!isBrowser()) return;
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+  while (dirty.size > 0) {
+    await flushDirty();
   }
 }
 

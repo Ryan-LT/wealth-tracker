@@ -45,7 +45,7 @@ export function SavedProfilesStrip({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Saved plans
+            Plans
           </span>
         </div>
         <div className="flex min-h-10 flex-wrap items-center gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-1 sm:pb-0">

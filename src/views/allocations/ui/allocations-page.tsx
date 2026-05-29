@@ -24,6 +24,8 @@ import {
   formatVnd,
   migrateLegacySeedsToLines,
   sanitizeSeedLinesAgainstOptions,
+  estimatedMonthlyNetCashflow,
+  resolveAverageMonthlySpending,
   totalMonthlyIncomeFromSources,
 } from "@/shared/lib";
 import {
@@ -150,7 +152,7 @@ function SourceCard({
 }) {
   return (
     <Card>
-      <CardContent className="p-3 sm:p-4">
+      <CardContent className="pt-6">
         <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-sm">{row.label}</p>
@@ -283,6 +285,14 @@ export function AllocationsPage() {
     () => totalMonthlyIncomeFromSources(sources),
     [sources],
   );
+  const spendingMonthly = useMemo(
+    () => resolveAverageMonthlySpending(prefs),
+    [prefs],
+  );
+  const monthlyNet = useMemo(
+    () => estimatedMonthlyNetCashflow(prefs, incomeMonthly),
+    [prefs, incomeMonthly],
+  );
   const plansForCards = useMemo(
     () => report.plans.map((p) => ({ id: p.id, name: p.name })),
     [report.plans],
@@ -314,38 +324,80 @@ export function AllocationsPage() {
       </Header>
 
       <Main>
-        <Card className="card-hero mb-4 gap-0 w-full md:w-fit">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Monthly income
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight leading-8">
-              {hydrated ? (
-                formatVnd(incomeMonthly)
-              ) : (
-                <Skeleton className="h-7 w-40 inline-block align-middle" />
-              )}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground leading-4">
-              {hydrated ? (
-                "Plans can include or exclude this in their projection."
-              ) : (
-                <Skeleton className="h-3 w-64 inline-block align-middle" />
-              )}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card variant="secondary">
+            <CardHeader>
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Monthly income
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight leading-8 text-emerald-600 dark:text-emerald-400">
+                {hydrated ? (
+                  formatVnd(incomeMonthly)
+                ) : (
+                  <Skeleton className="h-7 w-40 inline-block align-middle" />
+                )}
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="outflow">
+            <CardHeader>
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Avg monthly spending
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight leading-8 text-destructive">
+                {hydrated ? (
+                  formatVnd(spendingMonthly)
+                ) : (
+                  <Skeleton className="h-7 w-40 inline-block align-middle" />
+                )}
+              </p>
+            </CardContent>
+          </Card>
+          <Card variant="primary">
+            <CardHeader>
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Monthly net savings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p
+                className={cn(
+                  "text-2xl font-bold font-data-tabular tabular-nums tracking-tight leading-8",
+                  monthlyNet >= 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-destructive",
+                )}
+              >
+                {hydrated ? (
+                  formatVnd(monthlyNet)
+                ) : (
+                  <Skeleton className="h-7 w-40 inline-block align-middle" />
+                )}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground leading-4">
+                {hydrated ? (
+                  "Used when a plan includes monthly income in its projection."
+                ) : (
+                  <Skeleton className="h-3 w-48 inline-block align-middle" />
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         {!hydrated ? (
-          <Card className="mb-4 overflow-hidden">
+          <Card variant="quiet" className="mb-4 overflow-hidden">
+            <CardContent className="px-6 pb-6 pt-5">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Plan</TableHead>
                   <TableHead>Starting (capped)</TableHead>
-                  <TableHead>Monthly income in projection</TableHead>
+                  <TableHead>Monthly net in projection</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -364,10 +416,11 @@ export function AllocationsPage() {
                 ))}
               </TableBody>
             </Table>
+            </CardContent>
           </Card>
         ) : report.plans.length === 0 ? (
-          <Card className="mb-4">
-            <CardContent className="px-4 py-8 text-center">
+          <Card variant="quiet" className="mb-4">
+            <CardContent className="py-10 text-center">
               <p className="text-sm">No saved goal plans yet.</p>
               <p className="mt-2 text-xs text-muted-foreground">
                 Save a plan under Goal Plan to see cross-goal reservations here.
@@ -375,13 +428,14 @@ export function AllocationsPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="mb-4 overflow-hidden py-0">
+          <Card variant="quiet" className="mb-4 overflow-hidden">
+            <CardContent className="px-6 pb-6 pt-5">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Plan</TableHead>
                   <TableHead>Starting (capped)</TableHead>
-                  <TableHead>Monthly income in projection</TableHead>
+                  <TableHead>Monthly net in projection</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -397,7 +451,7 @@ export function AllocationsPage() {
                           category="Cash"
                           className="text-[10px]"
                         >
-                          {`On — ${formatVnd(incomeMonthly)}/mo`}
+                          {`On — ${formatVnd(monthlyNet)}/mo net`}
                         </AssetCategoryBadge>
                       ) : (
                         <span
@@ -414,13 +468,14 @@ export function AllocationsPage() {
                 ))}
               </TableBody>
             </Table>
+            </CardContent>
           </Card>
         )}
 
         <section className="mb-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="card-quiet gap-2">
-              <CardHeader className="pb-2">
+            <Card variant="quiet">
+              <CardHeader>
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Instant pool left
                 </CardTitle>
@@ -442,8 +497,8 @@ export function AllocationsPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="card-quiet gap-2">
-              <CardHeader className="pb-2">
+            <Card variant="quiet">
+              <CardHeader>
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Not-instant pool left
                 </CardTitle>
@@ -465,8 +520,8 @@ export function AllocationsPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="card-quiet gap-2">
-              <CardHeader className="pb-2">
+            <Card variant="quiet">
+              <CardHeader>
                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Custom amounts (modelled)
                 </CardTitle>
@@ -513,7 +568,8 @@ export function AllocationsPage() {
             </Tabs>
           </div>
           {!hydrated ? (
-            <Card className="overflow-hidden">
+            <Card variant="quiet" className="overflow-hidden">
+              <CardContent className="px-6 pb-6 pt-5">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -552,10 +608,11 @@ export function AllocationsPage() {
                   </TableBody>
                 </Table>
               </div>
+              </CardContent>
             </Card>
           ) : report.sources.length === 0 ? (
             <Card>
-              <CardContent className="py-4 text-center">
+              <CardContent className="py-10 text-center">
                 <p className="text-xs text-muted-foreground">
                   No keyed starting sources with balances or reservations.
                 </p>
@@ -563,7 +620,7 @@ export function AllocationsPage() {
             </Card>
           ) : visibleMatrixSources.length === 0 ? (
             <Card>
-              <CardContent className="py-4 text-center">
+              <CardContent className="py-10 text-center">
                 <p className="text-xs text-muted-foreground">
                   No sources match this liquidity filter.
                 </p>
@@ -572,7 +629,8 @@ export function AllocationsPage() {
           ) : (
             <>
               <div className="hidden md:block">
-                <Card className="overflow-hidden">
+                <Card variant="quiet" className="overflow-hidden">
+                  <CardContent className="px-6 pb-6 pt-5">
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
@@ -678,6 +736,7 @@ export function AllocationsPage() {
                       </TableBody>
                     </Table>
                   </div>
+                  </CardContent>
                 </Card>
               </div>
 

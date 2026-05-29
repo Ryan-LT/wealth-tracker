@@ -1,7 +1,7 @@
 "use client";
 
 import { format, parse } from "date-fns";
-import { CheckCircle2, CircleDashed, Lock, Pencil, X } from "lucide-react";
+import { CheckCircle2, CircleDashed } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -34,22 +34,27 @@ import type {
   GoalProfile,
   GoalSeedLine,
 } from "@/shared/storage";
+
 import { AssetCategoryBadge, MoneyInput } from "@/shared/ui";
 
 import { CheckpointsModal } from "./checkpoints-modal";
+import { SectionEditActions } from "./section-edit-actions";
 import { StartingBalancesModal } from "./starting-balances-modal";
+
+type PlanSection = "basics" | "checkpoints" | "starting" | "income";
 
 type GoalCreatorFormProps = {
   profile: GoalProfile;
+  /** Last persisted plan used to cancel section edits. */
+  savedProfile: GoalProfile;
   savedPlans: GoalProfile[];
   seedOptions: GoalStartingOption[];
   monthlyIncomeTotal: number;
-  editMode: boolean;
+  /** Household income − average spending (settings). */
+  monthlyNetContribution: number;
   onChange: (next: GoalProfile) => void;
   onSimulate: () => void;
-  onSave: () => void;
-  onEnterEdit: () => void;
-  onCancelEdit: () => void;
+  onPersist: () => void | Promise<void>;
 };
 
 function formatTargetDate(iso: string | undefined): string {
@@ -70,16 +75,16 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 
 export function GoalCreatorForm({
   profile,
+  savedProfile,
   savedPlans,
   seedOptions,
   monthlyIncomeTotal,
-  editMode,
+  monthlyNetContribution,
   onChange,
   onSimulate,
-  onSave,
-  onEnterEdit,
-  onCancelEdit,
+  onPersist,
 }: GoalCreatorFormProps) {
+  const [editingSection, setEditingSection] = useState<PlanSection | null>(null);
   const [startingBalancesOpen, setStartingBalancesOpen] = useState(false);
   const [checkpointsOpen, setCheckpointsOpen] = useState(false);
   const [paidToggleConfirm, setPaidToggleConfirm] = useState<{
@@ -114,6 +119,14 @@ export function GoalCreatorForm({
     paidToggleConfirm &&
     sortedCheckpointsDisplay.find((c) => c.id === paidToggleConfirm.id);
 
+  const includesIncome = profile.includeMonthlyIncome !== false;
+  const planName = profile.name.trim();
+
+  const editingBasics = editingSection === "basics";
+  const editingCheckpoints = editingSection === "checkpoints";
+  const editingStarting = editingSection === "starting";
+  const editingIncome = editingSection === "income";
+
   function applyCheckpoints(next: GoalCheckpoint[]) {
     onChange({ ...profile, checkpoints: next });
     onSimulate();
@@ -137,149 +150,155 @@ export function GoalCreatorForm({
     setPaidToggleConfirm(null);
   }
 
-  const includesIncome = profile.includeMonthlyIncome !== false;
-  const planName = profile.name.trim();
+  function cancelSection(section: PlanSection) {
+    switch (section) {
+      case "basics":
+        onChange({
+          ...profile,
+          name: savedProfile.name,
+          targetAmount: savedProfile.targetAmount,
+          targetDate: savedProfile.targetDate,
+        });
+        break;
+      case "checkpoints":
+        onChange({ ...profile, checkpoints: savedProfile.checkpoints ?? [] });
+        setCheckpointsOpen(false);
+        break;
+      case "starting":
+        onChange({ ...profile, seedLines: savedProfile.seedLines ?? [] });
+        setStartingBalancesOpen(false);
+        break;
+      case "income":
+        onChange({
+          ...profile,
+          includeMonthlyIncome: savedProfile.includeMonthlyIncome,
+        });
+        break;
+    }
+    onSimulate();
+    setEditingSection(null);
+  }
+
+  async function saveSection(section: PlanSection) {
+    await onPersist();
+    setEditingSection(null);
+    if (section === "checkpoints") setCheckpointsOpen(false);
+    if (section === "starting") setStartingBalancesOpen(false);
+  }
+
+  function startEdit(section: PlanSection) {
+    setEditingSection(section);
+    if (section === "checkpoints") setCheckpointsOpen(true);
+    if (section === "starting") setStartingBalancesOpen(true);
+  }
 
   return (
-    <Card className="gap-0">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 border-b pb-3">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          Plan setup
-          {editMode ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-              <Pencil className="size-3" />
-              Editing
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Lock className="size-3" />
-              View
-            </span>
-          )}
-        </CardTitle>
-        {editMode ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={onCancelEdit}
-          >
-            <X className="size-3.5" />
-            Cancel
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={onEnterEdit}
-          >
-            <Pencil className="size-3.5" />
-            Edit
-          </Button>
-        )}
+    <Card variant="primary">
+      <CardHeader className="border-b pb-3">
+        <CardTitle className="text-base font-semibold">Plan setup</CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!editMode) return;
-            onSimulate();
-          }}
-        >
-          {/* Plan name */}
-          <div className="flex flex-col gap-1.5">
-            <Label
-              htmlFor={editMode ? "goal-name" : undefined}
-              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-            >
-              Plan name
-            </Label>
-            {editMode ? (
-              <Input
-                id="goal-name"
-                placeholder="e.g., Vacation Home"
-                value={profile.name}
-                onChange={(e) => onChange({ ...profile, name: e.target.value })}
+        <div className="flex flex-col gap-4">
+          {/* Plan basics */}
+          <div className="rounded-lg border bg-muted/30 p-4 md:p-5">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <FieldLabel>Plan details</FieldLabel>
+              <SectionEditActions
+                editing={editingBasics}
+                onEdit={() => startEdit("basics")}
+                onSave={() => void saveSection("basics")}
+                onCancel={() => cancelSection("basics")}
+                saveLabel="Save plan details"
               />
-            ) : (
-              <p className="text-base font-medium">
-                {planName || (
-                  <span className="text-muted-foreground">Untitled plan</span>
-                )}
-              </p>
-            )}
-          </div>
-
-          {/* Target amount */}
-          {editMode ? (
-            <MoneyInput
-              label="Target Amount (₫)"
-              value={profile.targetAmount}
-              onChange={(targetAmount) =>
-                onChange({ ...profile, targetAmount })
-              }
-              placeholder="0"
-            />
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              <FieldLabel>Target Amount</FieldLabel>
-              <p className="text-base font-semibold font-data-tabular tabular-nums">
-                {profile.targetAmount > 0 ? (
-                  formatVnd(profile.targetAmount)
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </p>
             </div>
-          )}
-
-          {/* Target date */}
-          <div className="flex flex-col gap-1.5">
-            <Label
-              htmlFor={editMode ? "goal-target-date" : undefined}
-              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-            >
-              Target Date
-            </Label>
-            {editMode ? (
-              <DatePicker
-                id="goal-target-date"
-                value={profile.targetDate || ""}
-                onChange={(targetDate) => onChange({ ...profile, targetDate })}
-              />
-            ) : (
-              <p className="text-base font-medium font-data-tabular tabular-nums">
-                {profile.targetDate ? (
-                  formatTargetDate(profile.targetDate)
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label
+                  htmlFor={editingBasics ? "goal-name" : undefined}
+                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                >
+                  Plan name
+                </Label>
+                {editingBasics ? (
+                  <Input
+                    id="goal-name"
+                    placeholder="e.g., Vacation Home"
+                    value={profile.name}
+                    onChange={(e) => onChange({ ...profile, name: e.target.value })}
+                  />
                 ) : (
-                  <span className="text-muted-foreground">—</span>
+                  <p className="text-base font-medium">
+                    {planName || (
+                      <span className="text-muted-foreground">Untitled plan</span>
+                    )}
+                  </p>
                 )}
-              </p>
-            )}
+              </div>
+
+              {editingBasics ? (
+                <MoneyInput
+                  label="Target Amount (₫)"
+                  value={profile.targetAmount}
+                  onChange={(targetAmount) =>
+                    onChange({ ...profile, targetAmount })
+                  }
+                  placeholder="0"
+                />
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  <FieldLabel>Target Amount</FieldLabel>
+                  <p className="text-base font-semibold font-data-tabular tabular-nums">
+                    {profile.targetAmount > 0 ? (
+                      formatVnd(profile.targetAmount)
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <Label
+                  htmlFor={editingBasics ? "goal-target-date" : undefined}
+                  className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                >
+                  Target Date
+                </Label>
+                {editingBasics ? (
+                  <DatePicker
+                    id="goal-target-date"
+                    value={profile.targetDate || ""}
+                    onChange={(targetDate) => onChange({ ...profile, targetDate })}
+                  />
+                ) : (
+                  <p className="text-base font-medium font-data-tabular tabular-nums">
+                    {profile.targetDate ? (
+                      formatTargetDate(profile.targetDate)
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Checkpoints */}
-          <div className="min-w-0 rounded-lg border bg-muted/30 px-3 py-3">
-            <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+          <div className="min-w-0 rounded-lg border bg-muted/30 p-4 md:p-5">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <FieldLabel>Checkpoints</FieldLabel>
-              {editMode ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCheckpointsOpen(true)}
-                >
-                  <Pencil className="size-3.5" />
-                  Configure
-                </Button>
-              ) : null}
+              <SectionEditActions
+                editing={editingCheckpoints}
+                onEdit={() => startEdit("checkpoints")}
+                onSave={() => void saveSection("checkpoints")}
+                onCancel={() => cancelSection("checkpoints")}
+                saveLabel="Save checkpoints"
+              />
             </div>
             {sortedCheckpointsDisplay.length === 0 ? (
               <p className="rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
-                {editMode
-                  ? "No checkpoints — open Configure"
+                {editingCheckpoints
+                  ? "No checkpoints — use the editor to add rows"
                   : "No checkpoints set."}
               </p>
             ) : (
@@ -303,7 +322,7 @@ export function GoalCreatorForm({
                     return (
                       <li
                         key={cp.id}
-                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_auto] items-center gap-x-2 px-2 py-2 sm:gap-x-3 sm:px-3 text-sm"
+                        className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_auto] items-center gap-x-2 px-2 py-2 text-sm sm:gap-x-3 sm:px-3"
                       >
                         <span className="min-w-0 font-data-tabular tabular-nums">
                           {formatDisplayDate(cp.date)}
@@ -315,7 +334,7 @@ export function GoalCreatorForm({
                           <div className="text-foreground">{formatVnd(running)}</div>
                         </div>
                         <div className="flex shrink-0 justify-end sm:w-[7.5rem]">
-                          {editMode ? (
+                          {editingCheckpoints ? (
                             <Button
                               type="button"
                               variant="ghost"
@@ -399,33 +418,29 @@ export function GoalCreatorForm({
           </AlertDialog>
 
           <CheckpointsModal
-            open={checkpointsOpen && editMode}
+            open={checkpointsOpen && editingCheckpoints}
             onClose={() => setCheckpointsOpen(false)}
             profile={profile}
             onApply={applyCheckpoints}
           />
 
           {/* Starting balances */}
-          <div>
-            <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+          <div className="rounded-lg border bg-muted/30 p-4 md:p-5">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <FieldLabel>Starting balances</FieldLabel>
-              {editMode ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setStartingBalancesOpen(true)}
-                >
-                  <Pencil className="size-3.5" />
-                  Configure
-                </Button>
-              ) : null}
+              <SectionEditActions
+                editing={editingStarting}
+                onEdit={() => startEdit("starting")}
+                onSave={() => void saveSection("starting")}
+                onCancel={() => cancelSection("starting")}
+                saveLabel="Save starting balances"
+              />
             </div>
 
             {lines.length === 0 ? (
               <p className="mb-2 rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
-                {editMode
-                  ? "No sources — open Configure"
+                {editingStarting
+                  ? "No sources — use the editor to add allocations"
                   : "No sources allocated."}
               </p>
             ) : (
@@ -465,7 +480,7 @@ export function GoalCreatorForm({
               </ul>
             )}
 
-            <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+            <div className="rounded-md border bg-card px-3 py-2 text-sm">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Combined allocated starting
               </span>
@@ -476,7 +491,7 @@ export function GoalCreatorForm({
           </div>
 
           <StartingBalancesModal
-            open={startingBalancesOpen && editMode}
+            open={startingBalancesOpen && editingStarting}
             onClose={() => setStartingBalancesOpen(false)}
             profile={profile}
             savedPlans={savedPlans}
@@ -485,10 +500,19 @@ export function GoalCreatorForm({
           />
 
           {/* Monthly income */}
-          <div className="rounded-lg border bg-muted/30 px-3 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="rounded-lg border bg-muted/30 p-4 md:p-5">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <FieldLabel>Monthly income (from settings)</FieldLabel>
-              {editMode ? (
+              <SectionEditActions
+                editing={editingIncome}
+                onEdit={() => startEdit("income")}
+                onSave={() => void saveSection("income")}
+                onCancel={() => cancelSection("income")}
+                saveLabel="Save income setting"
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {editingIncome ? (
                 <Tabs
                   value={includesIncome ? "include" : "exclude"}
                   onValueChange={(value) =>
@@ -522,32 +546,35 @@ export function GoalCreatorForm({
               )}
             </div>
             {includesIncome ? (
-              <p className="mt-2 text-lg font-semibold font-data-tabular tabular-nums text-emerald-600 dark:text-emerald-400">
-                {formatVnd(monthlyIncomeTotal)}{" "}
-                <span className="text-sm font-normal text-muted-foreground">
-                  / month
-                </span>
-              </p>
+              <div className="mt-2 flex flex-col gap-1">
+                <p className="text-sm text-muted-foreground">
+                  Income{" "}
+                  <span className="font-data-tabular tabular-nums font-medium text-foreground">
+                    {formatVnd(monthlyIncomeTotal)}
+                  </span>
+                  /mo − spending → net
+                </p>
+                <p
+                  className={cn(
+                    "text-lg font-semibold font-data-tabular tabular-nums",
+                    monthlyNetContribution >= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-destructive",
+                  )}
+                >
+                  {formatVnd(monthlyNetContribution)}{" "}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    / month in projection
+                  </span>
+                </p>
+              </div>
             ) : (
               <p className="mt-2 text-sm text-muted-foreground">
                 Monthly income is excluded from this plan.
               </p>
             )}
           </div>
-
-          {editMode ? (
-            <div className="flex flex-col gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={onSave}
-              >
-                Save plan
-              </Button>
-            </div>
-          ) : null}
-        </form>
+        </div>
       </CardContent>
     </Card>
   );

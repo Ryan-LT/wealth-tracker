@@ -8,8 +8,9 @@ import { cn } from "@/shared/lib";
 import { formatVnd } from "@/shared/lib";
 
 type FeasibilityEngineProps = {
-  monthlyIncome: number;
-  incomeConfiguredTotal?: number;
+  /** Net monthly contribution in projection (income − spending when enabled). */
+  monthlyNetContribution: number;
+  monthlyIncomeTotal?: number;
   startingBalance: number;
   projectedBalanceAtTarget: number;
   targetAmount: number;
@@ -18,8 +19,8 @@ type FeasibilityEngineProps = {
 };
 
 export function FeasibilityEngine({
-  monthlyIncome,
-  incomeConfiguredTotal,
+  monthlyNetContribution,
+  monthlyIncomeTotal,
   startingBalance,
   projectedBalanceAtTarget,
   targetAmount,
@@ -39,8 +40,8 @@ export function FeasibilityEngine({
   );
 
   return (
-    <Card className="gap-0">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b pb-3 [.border-b]:pb-4">
+    <Card variant="secondary">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b">
         <CardTitle className="text-base font-semibold">Feasibility</CardTitle>
         <Icon className={cn("size-5", iconClass)} />
       </CardHeader>
@@ -50,15 +51,24 @@ export function FeasibilityEngine({
             {targetAmount <= 0 ? "—" : onTrack ? "Feasible" : "Shortfall"}
           </Badge>
         </Row>
-        <div className="flex flex-col gap-0.5">
-          <Row label="Monthly income (in projection)">
-            <Money value={monthlyIncome} accent />
+        {monthlyIncomeTotal !== undefined && monthlyIncomeTotal > 0 ? (
+          <Row label="Household income (settings)">
+            <Money value={monthlyIncomeTotal} />
           </Row>
-          {incomeConfiguredTotal !== undefined &&
-          monthlyIncome === 0 &&
-          incomeConfiguredTotal > 0 ? (
+        ) : null}
+        <div className="flex flex-col gap-0.5">
+          <Row label="Monthly net in projection">
+            <Money
+              value={monthlyNetContribution}
+              accent={monthlyNetContribution > 0}
+              negative={monthlyNetContribution < 0}
+            />
+          </Row>
+          {monthlyIncomeTotal !== undefined &&
+          monthlyNetContribution === 0 &&
+          monthlyIncomeTotal > 0 ? (
             <p className="text-xs text-muted-foreground">
-              Off — settings still {formatVnd(incomeConfiguredTotal)}/mo.
+              Income is offset by average monthly spending in settings.
             </p>
           ) : null}
         </div>
@@ -75,7 +85,9 @@ export function FeasibilityEngine({
           <Money value={targetAmount} />
         </Row>
         {note ? (
-          <p className="mt-2 rounded bg-muted p-2 text-xs text-muted-foreground">{note}</p>
+          <p className="mt-2 rounded-md bg-muted px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+            {note}
+          </p>
         ) : null}
       </CardContent>
     </Card>
@@ -91,12 +103,24 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function Money({ value, accent }: { value: number; accent?: boolean }) {
+function Money({
+  value,
+  accent,
+  negative,
+}: {
+  value: number;
+  accent?: boolean;
+  negative?: boolean;
+}) {
   return (
     <span
       className={cn(
-        "text-sm font-data-tabular tabular-nums shrink-0",
-        accent ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "font-medium",
+        "text-sm font-data-tabular tabular-nums shrink-0 font-medium",
+        negative
+          ? "text-destructive font-semibold"
+          : accent
+            ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+            : undefined,
       )}
     >
       {formatVnd(value)}

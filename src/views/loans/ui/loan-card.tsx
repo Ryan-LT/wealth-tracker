@@ -57,8 +57,11 @@ export function LoanCard({ loan, onEdit, onDelete, onToggleSettled }: LoanCardPr
   const settled = loan.status === "settled";
 
   return (
-    <Card className={cn("transition-colors", settled && "opacity-60")}>
-      <div className="flex items-start gap-3 p-3">
+    <Card
+      variant="quiet"
+      className={cn("transition-colors", settled && "opacity-60")}
+    >
+      <div className="flex items-start gap-3 p-4 md:p-5">
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <h4 className="truncate text-sm font-medium leading-tight">{loan.person || "—"}</h4>

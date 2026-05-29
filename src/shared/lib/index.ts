@@ -28,6 +28,7 @@ export {
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
+  resolveAverageMonthlySpending,
   syncNetWorthTracking,
   type NetWorthMonthSnapshot,
 } from "@/entities/preferences";

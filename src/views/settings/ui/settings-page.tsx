@@ -9,6 +9,7 @@ import { ThemeSwitch } from "@/widgets/theme-switch";
 import { Separator } from "@/components/ui/separator";
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { mergeAssetCategoryOptions } from "@/shared/config";
+import { totalMonthlyIncomeFromSources } from "@/shared/lib";
 import {
   DEBTS_SEED,
   INCOME_SOURCES_SEED,
@@ -18,6 +19,7 @@ import {
   useTable,
 } from "@/shared/storage";
 
+import { AverageMonthlySpendingSection } from "./average-monthly-spending-section";
 import { AssetManagementTable } from "./asset-management-table";
 import { DebtsSection } from "./debts-section";
 import { IncomeSourcesGrid } from "./income-sources-grid";
@@ -35,6 +37,21 @@ export function SettingsPage() {
     [prefs, assets],
   );
 
+  const incomeMonthly = useMemo(
+    () => totalMonthlyIncomeFromSources(sources),
+    [sources],
+  );
+
+  function setAverageMonthlySpending(amount: number) {
+    const value = Math.max(0, Number.isFinite(amount) ? amount : 0);
+    setPrefs((p) => ({
+      ...p,
+      averageMonthlySpending: value,
+      // Clear legacy outflow so it does not override income − spending math.
+      monthOutflow: 0,
+    }));
+  }
+
   return (
     <>
       <Header fixed>
@@ -50,7 +67,7 @@ export function SettingsPage() {
       <Main>
         <Separator className="my-4 hidden md:block" />
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-7">
           <AssetManagementTable
             assets={assets}
             categoryOptions={assetCategoryOptions}
@@ -77,17 +94,6 @@ export function SettingsPage() {
             onReorder={(ordered) => setAssets(() => ordered)}
             loading={!hydrated}
           />
-          <DebtsSection
-            debts={debts}
-            onAdd={(debt) => setDebts((prev) => [...prev, debt])}
-            onUpdate={(debt) =>
-              setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
-            }
-            onDelete={(id) =>
-              setDebts((prev) => prev.filter((d) => d.id !== id))
-            }
-            loading={!hydrated}
-          />
           <IncomeSourcesGrid
             sources={sources}
             assets={richAssets}
@@ -101,6 +107,23 @@ export function SettingsPage() {
             onDelete={(id) =>
               setSources((prev) => prev.filter((s) => s.id !== id))
             }
+            loading={!hydrated}
+          />
+          <DebtsSection
+            debts={debts}
+            onAdd={(debt) => setDebts((prev) => [...prev, debt])}
+            onUpdate={(debt) =>
+              setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
+            }
+            onDelete={(id) =>
+              setDebts((prev) => prev.filter((d) => d.id !== id))
+            }
+            loading={!hydrated}
+          />
+          <AverageMonthlySpendingSection
+            prefs={prefs}
+            totalMonthlyIncome={incomeMonthly}
+            onSpendingChange={setAverageMonthlySpending}
             loading={!hydrated}
           />
         </div>

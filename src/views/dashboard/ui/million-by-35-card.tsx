@@ -90,17 +90,48 @@ function feasibilityChipClass(tone: GoalFeasibilityTone): string {
   }
 }
 
-function Chip({ tone, label, title }: { tone: GoalFeasibilityTone; label: string; title?: string }) {
+function formatAheadOfTarget(projected: number, target: number): {
+  surplus: number;
+  pctLabel: string;
+  moneyLabel: string;
+} {
+  const surplus = projected - target;
+  const pct = target > 0 ? (surplus / target) * 100 : 0;
+  return {
+    surplus,
+    pctLabel: `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`,
+    moneyLabel: formatVnd(Math.abs(surplus), { showSign: surplus >= 0 }),
+  };
+}
+
+function Chip({
+  tone,
+  label,
+  detail,
+  title,
+}: {
+  tone: GoalFeasibilityTone;
+  label: string;
+  detail?: string;
+  title?: string;
+}) {
   return (
     <span
       title={title}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+        "inline-flex max-w-[min(100%,14rem)] flex-col items-end gap-0.5 rounded-lg border px-3 py-1.5 text-end",
         feasibilityChipClass(tone),
       )}
     >
-      <MaterialIcon name={feasibilityIcon(tone)} size={12} />
-      <span className="truncate">{label}</span>
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide">
+        <MaterialIcon name={feasibilityIcon(tone)} size={12} />
+        <span className="truncate">{label}</span>
+      </span>
+      {detail ? (
+        <span className="truncate text-[10px] font-semibold normal-case tracking-normal font-data-tabular tabular-nums">
+          {detail}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -165,6 +196,7 @@ export function MillionBy35Card({
       targetVnd === 0 ? 0 : Math.min(100, Math.round((currentNetWorth / targetVnd) * 100));
 
     if (currentNetWorth >= targetVnd) {
+      const ahead = formatAheadOfTarget(currentNetWorth, targetVnd);
       return {
         kind: "achieved" as const,
         targetUsd: config.targetUsd,
@@ -172,6 +204,7 @@ export function MillionBy35Card({
         pct,
         pastDeadline,
         deadline,
+        chipDetail: `${ahead.pctLabel} · ${ahead.moneyLabel}`,
       };
     }
 
@@ -197,19 +230,22 @@ export function MillionBy35Card({
     let label: string;
     let hint: string;
 
+    const ahead = formatAheadOfTarget(projectedEndingNetWorth, targetVnd);
+
     if (feasible && monthsRemaining > 1) {
       tone = "on_track";
       label = "On track";
-      hint = `Projected ${formatVnd(projectedEndingNetWorth)} at age ${MILESTONE_TARGET_AGE} from current monthly net meets the ${formatUsd(config.targetUsd)} goal (≈ ${formatVnd(targetVnd)}).`;
+      hint = `Projected ${formatVnd(projectedEndingNetWorth)} at age ${MILESTONE_TARGET_AGE} — ${ahead.pctLabel} (${ahead.moneyLabel}) above the ${formatUsd(config.targetUsd)} goal (≈ ${formatVnd(targetVnd)}).`;
     } else if (feasible) {
       tone = "steady";
       label = "Tight but possible";
-      hint = "Very little runway left.";
+      hint = `Projected ${formatVnd(projectedEndingNetWorth)} — ${ahead.pctLabel} (${ahead.moneyLabel}) above target with very little runway left.`;
     } else {
       tone = "at_risk";
       const gap = targetVnd - projectedEndingNetWorth;
+      const shortPct = targetVnd > 0 ? ((gap / targetVnd) * 100).toFixed(1) : "0";
       label = "Below projection";
-      hint = `Trajectory lands near ${formatVnd(projectedEndingNetWorth)} — about ${formatVnd(gap)} shy.`;
+      hint = `Trajectory lands near ${formatVnd(projectedEndingNetWorth)} — about ${formatVnd(gap)} (${shortPct}%) below target.`;
     }
 
     return {
@@ -223,20 +259,21 @@ export function MillionBy35Card({
       tone,
       label,
       hint,
+      chipDetail: feasible ? `${ahead.pctLabel} · ${ahead.moneyLabel}` : undefined,
       deadline,
     };
   }, [config, loadError, currentNetWorth, monthlyNetContribution]);
 
   if (loading) {
     return (
-      <Card className="card-hero h-full">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+      <Card variant="hero" className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
           <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Skeleton className="h-5 w-20 rounded-full" />
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-3">
           <p className="text-2xl font-bold leading-8">
             <Skeleton className="h-7 w-40 inline-block align-middle" />
           </p>
@@ -254,7 +291,7 @@ export function MillionBy35Card({
 
   if (loadError) {
     return (
-      <Card className="card-hero h-full">
+      <Card variant="hero" className="h-full">
         <CardHeader>
           <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
@@ -269,7 +306,7 @@ export function MillionBy35Card({
 
   if (!config || !analysis) {
     return (
-      <Card className="card-hero h-full">
+      <Card variant="hero" className="h-full">
         <CardHeader>
           <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
             Milestone
@@ -286,7 +323,7 @@ export function MillionBy35Card({
 
   if (analysis.kind === "incomplete") {
     return (
-      <Card className="card-hero h-full">
+      <Card variant="hero" className="h-full">
         <CardHeader>
           <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
@@ -306,14 +343,23 @@ export function MillionBy35Card({
 
   if (analysis.kind === "achieved") {
     return (
-      <Card className="card-hero h-full">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+      <Card variant="hero" className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
           <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
-          <Chip tone="achieved" label="Target met" />
+          <Chip
+            tone="achieved"
+            label="Target met"
+            detail={analysis.chipDetail}
+            title={
+              analysis.chipDetail
+                ? `Already ${analysis.chipDetail} above the ${goalTitle} target.`
+                : undefined
+            }
+          />
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-3">
           <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight">
             {formatVnd(currentNetWorth)}
           </p>
@@ -325,14 +371,14 @@ export function MillionBy35Card({
 
   if (analysis.kind === "past_deadline") {
     return (
-      <Card className="card-hero h-full">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+      <Card variant="hero" className="h-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
           <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Chip tone="at_risk" label="Past milestone" title="Age 35 deadline passed." />
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-3">
           <Progress value={analysis.pct} />
           <p className="text-xs text-muted-foreground">
             At deadline you were tracking {analysis.pct}% of {formatVnd(analysis.targetVnd)} (≈ {goalTitle}).
@@ -342,17 +388,18 @@ export function MillionBy35Card({
     );
   }
 
-  const { tone, label, hint, pct, projectedEndingNetWorth, monthsRemaining } = analysis;
+  const { tone, label, hint, pct, projectedEndingNetWorth, monthsRemaining, chipDetail } =
+    analysis;
 
   return (
-    <Card className="card-hero h-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-2">
+    <Card variant="hero" className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
         <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
           {goalTitle} by age {MILESTONE_TARGET_AGE}
         </CardTitle>
-        <Chip tone={tone} label={label} title={hint} />
+        <Chip tone={tone} label={label} detail={chipDetail} title={hint} />
       </CardHeader>
-      <CardContent className="flex flex-col gap-2">
+      <CardContent className="flex flex-col gap-3">
         <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight">
           {formatVnd(currentNetWorth)}
         </p>

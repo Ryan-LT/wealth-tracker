@@ -12,7 +12,7 @@ export function Main({ fixed, className, children, ...props }: MainProps) {
       data-layout={fixed ? "fixed" : "auto"}
       className={cn(
         "@container/main",
-        "flex-1 p-4",
+        "flex-1 p-5 md:p-6",
         fixed && "flex flex-col overflow-hidden",
         className,
       )}

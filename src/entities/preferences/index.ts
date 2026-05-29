@@ -11,5 +11,6 @@ export {
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
+  resolveAverageMonthlySpending,
   syncNetWorthTracking,
 } from "@/entities/preferences/lib/finance";

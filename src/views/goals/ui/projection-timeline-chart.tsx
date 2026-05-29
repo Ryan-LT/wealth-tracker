@@ -27,7 +27,8 @@ const MS_PER_AVG_MONTH = (1000 * 60 * 60 * 24 * 365.25) / 12;
 type ProjectionTimelineChartProps = {
   targetAmount: number;
   startingAmount: number;
-  monthlyIncome: number;
+  /** Monthly net contribution (income − average spending when plan includes income). */
+  monthlyNetContribution: number;
   monthsToTarget: number;
   targetDateIso?: string;
   checkpoints?: GoalCheckpoint[];
@@ -161,6 +162,35 @@ type ChartRow = {
 
 type PaidCheckpointDot = { id: string; label: string; cumulative: number };
 
+type ProjectedMeetTarget =
+  | { kind: "none" }
+  | { kind: "already"; date: Date }
+  | { kind: "unreachable" }
+  | { kind: "date"; date: Date; months: number; label: string };
+
+function computeProjectedMeetTarget(
+  today: Date,
+  startingAmount: number,
+  monthlyNetContribution: number,
+  targetAmount: number,
+): ProjectedMeetTarget {
+  if (targetAmount <= 0) return { kind: "none" };
+  if (startingAmount >= targetAmount) {
+    return { kind: "already", date: localDay(today) };
+  }
+  if (monthlyNetContribution <= 0) return { kind: "unreachable" };
+
+  const monthsNeeded = (targetAmount - startingAmount) / monthlyNetContribution;
+  const meet = new Date(today.getTime() + monthsNeeded * MS_PER_AVG_MONTH);
+  const meetDay = localDay(meet);
+  return {
+    kind: "date",
+    date: meetDay,
+    months: monthsNeeded,
+    label: formatXAxisLabel(meetDay),
+  };
+}
+
 function paidCheckpointDots(checkpoints: GoalCheckpoint[]): PaidCheckpointDot[] {
   const sorted = [...checkpoints]
     .filter((c) => String(c.date).trim())
@@ -189,27 +219,66 @@ function paidCheckpointDots(checkpoints: GoalCheckpoint[]): PaidCheckpointDot[] 
 export function ProjectionTimelineChart({
   targetAmount,
   startingAmount,
-  monthlyIncome,
+  monthlyNetContribution,
   monthsToTarget,
   targetDateIso,
   checkpoints = [],
 }: ProjectionTimelineChartProps) {
-  const { rows, hasSchedule, paidDots } = useMemo(() => {
+  const { rows, hasSchedule, paidDots, meetTarget, afterGoalDate } = useMemo(() => {
     const today = atLocalDate(new Date());
     const schedule = cumulativeDueScheduleFromCheckpoints(checkpoints);
     const hasSched = schedule.length > 0;
     const paidMarkers = paidCheckpointDots(checkpoints);
+    const meetTarget = computeProjectedMeetTarget(
+      today,
+      startingAmount,
+      monthlyNetContribution,
+      targetAmount,
+    );
 
-    const axisDates = buildAxisColumnDates(
+    let axisDates = buildAxisColumnDates(
       today,
       targetDateIso,
       checkpoints,
       monthsToTarget,
     );
 
+    if (meetTarget.kind === "date") {
+      const extra: Date[] = [meetTarget.date];
+      const lastAxis = axisDates[axisDates.length - 1];
+      if (lastAxis && meetTarget.date.getTime() > lastAxis.getTime()) {
+        const cursor = startOfMonth(
+          new Date(lastAxis.getFullYear(), lastAxis.getMonth() + 1, 1),
+        );
+        while (cursor.getTime() < meetTarget.date.getTime()) {
+          extra.push(new Date(cursor));
+          cursor.setMonth(cursor.getMonth() + 1);
+        }
+      }
+      const seen = new Set<string>();
+      axisDates = [...axisDates, ...extra]
+        .map(localDay)
+        .filter((d) => {
+          const k = dayKey(d);
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        })
+        .sort((a, b) => a.getTime() - b.getTime());
+    }
+
+    const goalDate =
+      targetDateIso && meetTarget.kind === "date"
+        ? parseGoalDateLocal(targetDateIso)
+        : null;
+    const afterGoalDate =
+      goalDate !== null &&
+      meetTarget.kind === "date" &&
+      meetTarget.date.getTime() > localDay(goalDate).getTime();
+
     const data: ChartRow[] = axisDates.map((d) => {
       const months = fractionalMonthsBetween(today, d);
-      const projected = startingAmount + monthlyIncome * months;
+      const projected = startingAmount + monthlyNetContribution * months;
       const endOfDay = new Date(
         d.getFullYear(),
         d.getMonth(),
@@ -229,17 +298,64 @@ export function ProjectionTimelineChart({
       };
     });
 
-    return { rows: data, hasSchedule: hasSched, paidDots: paidMarkers };
-  }, [targetAmount, startingAmount, monthlyIncome, monthsToTarget, targetDateIso, checkpoints]);
+    return {
+      rows: data,
+      hasSchedule: hasSched,
+      paidDots: paidMarkers,
+      meetTarget,
+      afterGoalDate,
+    };
+  }, [
+    targetAmount,
+    startingAmount,
+    monthlyNetContribution,
+    monthsToTarget,
+    targetDateIso,
+    checkpoints,
+  ]);
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card variant="secondary">
+      <CardHeader>
         <CardTitle className="text-base font-semibold">Projection</CardTitle>
         <p className="text-xs text-muted-foreground">
           X: month starts; checkpoint / goal days when needed. Filled dots: paid
           checkpoints (cumulative after that payment).
         </p>
+        {meetTarget.kind === "date" ? (
+          <p
+            className={
+              afterGoalDate
+                ? "text-sm font-medium text-amber-600 dark:text-amber-400"
+                : "text-sm font-medium text-emerald-600 dark:text-emerald-400"
+            }
+          >
+            Projected reaches target on{" "}
+            <span className="font-data-tabular tabular-nums">
+              {formatChartAxisDate(meetTarget.date)}
+            </span>{" "}
+            (~{meetTarget.months.toFixed(1)} mo from today)
+            {afterGoalDate && targetDateIso ? (
+              <span className="font-normal text-muted-foreground">
+                {" "}
+                — after goal date (
+                {(() => {
+                  const g = parseGoalDateLocal(targetDateIso);
+                  return g ? formatChartAxisDate(localDay(g)) : targetDateIso;
+                })()}
+                )
+              </span>
+            ) : null}
+          </p>
+        ) : meetTarget.kind === "already" ? (
+          <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+            Starting balance already meets the target.
+          </p>
+        ) : meetTarget.kind === "unreachable" ? (
+          <p className="text-sm font-medium text-destructive">
+            Projected won&apos;t reach the target at the current monthly net.
+          </p>
+        ) : null}
       </CardHeader>
       <CardContent>
         <div className="relative h-72 w-full">
@@ -247,7 +363,7 @@ export function ProjectionTimelineChart({
             Target: {formatVnd(targetAmount)}
           </span>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={rows} margin={{ top: 12, right: 16, bottom: 0, left: 0 }}>
+            <LineChart data={rows} margin={{ top: 16, right: 20, bottom: 8, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="label"
@@ -309,6 +425,31 @@ export function ProjectionTimelineChart({
                   ifOverflow="discard"
                 />
               ))}
+              {meetTarget.kind === "date" ? (
+                <>
+                  <ReferenceLine
+                    x={meetTarget.label}
+                    stroke="var(--chart-2)"
+                    strokeDasharray="4 4"
+                    strokeOpacity={0.85}
+                    label={{
+                      value: "Target met",
+                      position: "insideTopLeft",
+                      fontSize: 10,
+                      fill: "var(--chart-2)",
+                    }}
+                  />
+                  <ReferenceDot
+                    x={meetTarget.label}
+                    y={targetAmount}
+                    r={6}
+                    fill="var(--chart-2)"
+                    stroke="var(--background)"
+                    strokeWidth={2}
+                    ifOverflow="discard"
+                  />
+                </>
+              ) : null}
               <ReferenceLine
                 y={targetAmount}
                 stroke="var(--destructive)"

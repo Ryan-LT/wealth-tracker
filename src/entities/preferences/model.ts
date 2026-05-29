@@ -12,7 +12,10 @@ export type Preferences = {
   netMonthIncome: number;
   /** Inflow / outflow for resolved monthly cash flow when both are set. */
   monthInflow: number;
+  /** @deprecated Prefer {@link averageMonthlySpending}; kept in sync on write. */
   monthOutflow: number;
+  /** Average monthly living expenses (settings → household cash flow). */
+  averageMonthlySpending?: number;
 
   /** Calendar month key `YYYY-MM` aligned with MTD net-worth baseline. */
   netWorthMonthKey?: string;

@@ -4,6 +4,10 @@ import * as React from 'react'
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import { cn } from '@/shared/lib'
 import { buttonVariants } from '@/components/ui/button'
+import {
+  ResponsiveModalHandle,
+  responsiveModalContentClass,
+} from '@/components/ui/responsive-modal'
 
 function AlertDialog({
   ...props
@@ -45,6 +49,7 @@ function AlertDialogOverlay({
 
 function AlertDialogContent({
   className,
+  children,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
   return (
@@ -52,12 +57,12 @@ function AlertDialogContent({
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         data-slot='alert-dialog-content'
-        className={cn(
-          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg',
-          className
-        )}
+        className={responsiveModalContentClass(className)}
         {...props}
-      />
+      >
+        <ResponsiveModalHandle />
+        {children}
+      </AlertDialogPrimitive.Content>
     </AlertDialogPortal>
   )
 }
@@ -69,7 +74,7 @@ function AlertDialogHeader({
   return (
     <div
       data-slot='alert-dialog-header'
-      className={cn('flex flex-col gap-2 text-center sm:text-start', className)}
+      className={cn('flex flex-col gap-2 text-start', className)}
       {...props}
     />
   )
@@ -123,7 +128,7 @@ function AlertDialogAction({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Action>) {
   return (
     <AlertDialogPrimitive.Action
-      className={cn(buttonVariants(), className)}
+      className={cn(buttonVariants(), 'w-full sm:w-auto', className)}
       {...props}
     />
   )
@@ -135,7 +140,7 @@ function AlertDialogCancel({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
   return (
     <AlertDialogPrimitive.Cancel
-      className={cn(buttonVariants({ variant: 'outline' }), className)}
+      className={cn(buttonVariants({ variant: 'outline' }), 'w-full sm:w-auto', className)}
       {...props}
     />
   )

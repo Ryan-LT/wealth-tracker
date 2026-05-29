@@ -196,7 +196,7 @@ export function LoansPage() {
                 Add
               </Button>
             </CardHeader>
-            <CardContent className="pt-2">
+            <CardContent>
               {!hydrated ? (
                 <div className="flex flex-col gap-2">
                   {Array.from({ length: 2 }).map((_, i) => (

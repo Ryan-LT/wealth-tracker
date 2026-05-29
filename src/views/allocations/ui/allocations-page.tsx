@@ -429,7 +429,7 @@ export function AllocationsPage() {
           </Card>
         ) : (
           <Card variant="quiet" className="mb-4 overflow-hidden">
-            <CardContent className="px-6 pb-6 pt-5">
+            <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>

@@ -333,7 +333,7 @@ export function GoalCreatorForm({
                           </div>
                           <div className="text-foreground">{formatVnd(running)}</div>
                         </div>
-                        <div className="flex shrink-0 justify-end sm:w-[7.5rem]">
+                        <div className="flex shrink-0 justify-end min-w-[60px]">
                           {editingCheckpoints ? (
                             <Button
                               type="button"

@@ -24,11 +24,11 @@ export function MetricGrid({
   loading = false,
 }: MetricGridProps) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4 sm:gap-5">
       <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80">
         Key figures
       </p>
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           variant="primary"
           icon="account_balance"
@@ -57,10 +57,10 @@ export function MetricGrid({
         />
       </div>
 
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80">
+      <p className="pt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 sm:pt-0">
         Breakdown
       </p>
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <MetricCard
           variant="secondary"
           icon="work"

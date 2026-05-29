@@ -37,14 +37,11 @@ export function MetricCard({
   const cardVariant: CardVariant = variant;
 
   return (
-    <Card
-      variant={cardVariant}
-      className={cn("min-w-[9.5rem] flex-1", isPrimary && "min-w-[11rem]")}
-    >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-3">
+    <Card variant={cardVariant} className="min-w-0 w-full">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 gap-3 pb-3">
         <CardTitle
           className={cn(
-            "text-[11px] font-semibold uppercase tracking-wider",
+            "min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wider leading-snug",
             isPrimary ? "text-foreground/85" : "text-muted-foreground",
           )}
         >
@@ -54,6 +51,7 @@ export function MetricCard({
           name={icon}
           size={16}
           className={cn(
+            "mt-0.5 shrink-0",
             variantIcon[variant],
             highlight && variant === "quiet" && "text-chart-2",
           )}
@@ -62,8 +60,10 @@ export function MetricCard({
       <CardContent className="pt-0">
         <div
           className={cn(
-            "font-bold font-data-tabular tabular-nums tracking-tight leading-8",
-            isPrimary ? "text-2xl text-foreground" : "text-xl",
+            "max-w-full min-w-0 overflow-x-auto font-bold font-data-tabular tabular-nums tracking-tight leading-tight [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            isPrimary
+              ? "text-[1.125rem] sm:text-xl md:text-2xl text-foreground"
+              : "text-base sm:text-lg md:text-xl",
             negative && "text-destructive",
             !negative && variant === "secondary" && "text-foreground/95",
           )}

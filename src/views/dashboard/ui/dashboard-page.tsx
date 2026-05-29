@@ -202,7 +202,7 @@ export function DashboardPage() {
           </div>
         </section>
 
-        <section className="mt-8">
+        <section className="mt-8 min-w-0">
           <MetricGrid
             totalAssets={summary.totalAssets}
             activeIncome={summary.activeIncome}

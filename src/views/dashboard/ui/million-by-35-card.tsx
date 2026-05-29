@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/shared/lib";
+import { onAppForeground } from "@/shared/lib/app-foreground";
 import {
   DEFAULT_MILESTONE_USD,
   evaluateMilestone35Feasibility,
@@ -114,9 +115,12 @@ export function MillionBy35Card({
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    const loadConfig = async () => {
       try {
-        const res = await fetch("/api/finance/milestone-35-config");
+        const res = await fetch("/api/finance/milestone-35-config", {
+          cache: "no-store",
+        });
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
@@ -130,9 +134,15 @@ export function MillionBy35Card({
           setLoadError(e instanceof Error ? e.message : "Could not load milestone settings");
         }
       }
-    })();
+    };
+
+    void loadConfig();
+    const removeForeground = onAppForeground(() => {
+      void loadConfig();
+    });
     return () => {
       cancelled = true;
+      removeForeground();
     };
   }, []);
 

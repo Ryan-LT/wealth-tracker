@@ -20,6 +20,7 @@ const dirty = new Set<string>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let hydrateState: "pending" | "ok" | "error" = "pending";
 let hydratePromise: Promise<void> | null = null;
+let syncInFlight: Promise<void> | null = null;
 let localCacheLoaded = false;
 let lastSyncedAt: number | null = null;
 
@@ -92,16 +93,16 @@ function notify(): void {
   listeners.forEach((l) => l());
 }
 
-function ensureHydrated(): Promise<void> {
+function syncFromServer(): Promise<void> {
   if (!isBrowser()) {
     return Promise.resolve();
   }
-  if (hydratePromise) {
-    return hydratePromise;
+  if (syncInFlight) {
+    return syncInFlight;
   }
-  hydratePromise = (async () => {
+  syncInFlight = (async () => {
     try {
-      const res = await fetch(tablesUrl);
+      const res = await fetch(tablesUrl, { cache: "no-store" });
       if (!res.ok) {
         throw new Error(`GET ${tablesUrl} ${res.status}`);
       }
@@ -129,7 +130,20 @@ function ensureHydrated(): Promise<void> {
         scheduleFlush();
       }
     }
-  })();
+  })().finally(() => {
+    syncInFlight = null;
+  });
+  return syncInFlight;
+}
+
+function ensureHydrated(): Promise<void> {
+  if (!isBrowser()) {
+    return Promise.resolve();
+  }
+  if (hydratePromise) {
+    return hydratePromise;
+  }
+  hydratePromise = syncFromServer();
   return hydratePromise;
 }
 
@@ -257,9 +271,9 @@ export function useLastSyncedAt(): number | null {
 }
 
 /**
- * Force a re-fetch from Neon. Used by the offline banner when the network comes back.
+ * Force a re-fetch from Neon. Shows cached/local data immediately; network updates
+ * merge when the request completes. Safe to call on every foreground resume.
  */
 export function refetchTables(): Promise<void> {
-  hydratePromise = null;
-  return ensureHydrated();
+  return syncFromServer();
 }

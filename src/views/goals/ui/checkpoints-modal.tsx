@@ -21,7 +21,7 @@ export type CheckpointsModalProps = {
   open: boolean;
   onClose: () => void;
   profile: GoalProfile;
-  onApply: (checkpoints: GoalCheckpoint[]) => void;
+  onApply: (checkpoints: GoalCheckpoint[]) => void | Promise<void>;
 };
 
 function newCheckpointId(): string {
@@ -58,8 +58,8 @@ export function CheckpointsModal({ open, onClose, profile, onApply }: Checkpoint
     setWorking((prev) => prev.filter((c) => c.id !== id));
   }
 
-  function handleApply() {
-    onApply(normalizeStoredCheckpoints(working));
+  async function handleApply() {
+    await onApply(normalizeStoredCheckpoints(working));
     onClose();
   }
 
@@ -129,7 +129,7 @@ export function CheckpointsModal({ open, onClose, profile, onApply }: Checkpoint
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleApply}>Apply to plan</Button>
+          <Button onClick={() => void handleApply()}>Apply to plan</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

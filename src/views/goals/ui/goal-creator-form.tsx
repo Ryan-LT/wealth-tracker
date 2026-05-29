@@ -1,7 +1,7 @@
 "use client";
 
 import { format, parse } from "date-fns";
-import { CheckCircle2, CircleDashed } from "lucide-react";
+import { CheckCircle2, CircleDashed, Pencil } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -123,8 +123,6 @@ export function GoalCreatorForm({
   const planName = profile.name.trim();
 
   const editingBasics = editingSection === "basics";
-  const editingCheckpoints = editingSection === "checkpoints";
-  const editingStarting = editingSection === "starting";
   const editingIncome = editingSection === "income";
 
   function applyCheckpoints(next: GoalCheckpoint[]) {
@@ -137,7 +135,19 @@ export function GoalCreatorForm({
     onSimulate();
   }
 
-  function commitCheckpointPaidToggle() {
+  async function applyCheckpointsAndSave(next: GoalCheckpoint[]) {
+    applyCheckpoints(next);
+    await onPersist();
+    setCheckpointsOpen(false);
+  }
+
+  async function applyStartingBalancesAndSave(seedLines: GoalSeedLine[]) {
+    applyStartingBalances(seedLines);
+    await onPersist();
+    setStartingBalancesOpen(false);
+  }
+
+  async function commitCheckpointPaidToggle() {
     if (!paidToggleConfirm) return;
     const { id, nextPaid } = paidToggleConfirm;
     applyCheckpoints(
@@ -147,6 +157,7 @@ export function GoalCreatorForm({
         return { id: c.id, date: c.date, amount: c.amount };
       }),
     );
+    await onPersist();
     setPaidToggleConfirm(null);
   }
 
@@ -159,14 +170,6 @@ export function GoalCreatorForm({
           targetAmount: savedProfile.targetAmount,
           targetDate: savedProfile.targetDate,
         });
-        break;
-      case "checkpoints":
-        onChange({ ...profile, checkpoints: savedProfile.checkpoints ?? [] });
-        setCheckpointsOpen(false);
-        break;
-      case "starting":
-        onChange({ ...profile, seedLines: savedProfile.seedLines ?? [] });
-        setStartingBalancesOpen(false);
         break;
       case "income":
         onChange({
@@ -182,14 +185,10 @@ export function GoalCreatorForm({
   async function saveSection(section: PlanSection) {
     await onPersist();
     setEditingSection(null);
-    if (section === "checkpoints") setCheckpointsOpen(false);
-    if (section === "starting") setStartingBalancesOpen(false);
   }
 
   function startEdit(section: PlanSection) {
     setEditingSection(section);
-    if (section === "checkpoints") setCheckpointsOpen(true);
-    if (section === "starting") setStartingBalancesOpen(true);
   }
 
   return (
@@ -287,19 +286,20 @@ export function GoalCreatorForm({
           <div className="min-w-0 rounded-lg border bg-muted/30 p-4 md:p-5">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <FieldLabel>Checkpoints</FieldLabel>
-              <SectionEditActions
-                editing={editingCheckpoints}
-                onEdit={() => startEdit("checkpoints")}
-                onSave={() => void saveSection("checkpoints")}
-                onCancel={() => cancelSection("checkpoints")}
-                saveLabel="Save checkpoints"
-              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                aria-label="Edit checkpoints"
+                onClick={() => setCheckpointsOpen(true)}
+              >
+                <Pencil className="size-4" />
+              </Button>
             </div>
             {sortedCheckpointsDisplay.length === 0 ? (
               <p className="rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
-                {editingCheckpoints
-                  ? "No checkpoints — use the editor to add rows"
-                  : "No checkpoints set."}
+                No checkpoints set.
               </p>
             ) : (
               <>
@@ -334,42 +334,30 @@ export function GoalCreatorForm({
                           <div className="text-foreground">{formatVnd(running)}</div>
                         </div>
                         <div className="flex shrink-0 justify-end min-w-[60px]">
-                          {editingCheckpoints ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 gap-1 px-2 text-xs"
-                              onClick={() =>
-                                setPaidToggleConfirm({
-                                  id: cp.id,
-                                  nextPaid: !isPaid,
-                                })
-                              }
-                            >
-                              {isPaid ? (
-                                <>
-                                  <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                                  Paid
-                                </>
-                              ) : (
-                                <>
-                                  <CircleDashed className="size-3.5 text-muted-foreground" />
-                                  Unpaid
-                                </>
-                              )}
-                            </Button>
-                          ) : isPaid ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="size-3.5" />
-                              Paid
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                              <CircleDashed className="size-3.5" />
-                              Unpaid
-                            </span>
-                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 gap-1 px-2 text-xs"
+                            onClick={() =>
+                              setPaidToggleConfirm({
+                                id: cp.id,
+                                nextPaid: !isPaid,
+                              })
+                            }
+                          >
+                            {isPaid ? (
+                              <>
+                                <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                Paid
+                              </>
+                            ) : (
+                              <>
+                                <CircleDashed className="size-3.5 text-muted-foreground" />
+                                Unpaid
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </li>
                     );
@@ -410,7 +398,10 @@ export function GoalCreatorForm({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
-                <AlertDialogAction type="button" onClick={commitCheckpointPaidToggle}>
+                <AlertDialogAction
+                  type="button"
+                  onClick={() => void commitCheckpointPaidToggle()}
+                >
                   Confirm
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -418,30 +409,31 @@ export function GoalCreatorForm({
           </AlertDialog>
 
           <CheckpointsModal
-            open={checkpointsOpen && editingCheckpoints}
+            open={checkpointsOpen}
             onClose={() => setCheckpointsOpen(false)}
             profile={profile}
-            onApply={applyCheckpoints}
+            onApply={applyCheckpointsAndSave}
           />
 
           {/* Starting balances */}
           <div className="rounded-lg border bg-muted/30 p-4 md:p-5">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <FieldLabel>Starting balances</FieldLabel>
-              <SectionEditActions
-                editing={editingStarting}
-                onEdit={() => startEdit("starting")}
-                onSave={() => void saveSection("starting")}
-                onCancel={() => cancelSection("starting")}
-                saveLabel="Save starting balances"
-              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                aria-label="Edit starting balances"
+                onClick={() => setStartingBalancesOpen(true)}
+              >
+                <Pencil className="size-4" />
+              </Button>
             </div>
 
             {lines.length === 0 ? (
               <p className="mb-2 rounded-md border border-dashed px-2 py-2 text-center text-xs text-muted-foreground">
-                {editingStarting
-                  ? "No sources — use the editor to add allocations"
-                  : "No sources allocated."}
+                No sources allocated.
               </p>
             ) : (
               <ul className="mb-3 divide-y divide-border/60 rounded-md border bg-card">
@@ -491,12 +483,12 @@ export function GoalCreatorForm({
           </div>
 
           <StartingBalancesModal
-            open={startingBalancesOpen && editingStarting}
+            open={startingBalancesOpen}
             onClose={() => setStartingBalancesOpen(false)}
             profile={profile}
             savedPlans={savedPlans}
             seedOptions={seedOptions}
-            onApply={applyStartingBalances}
+            onApply={applyStartingBalancesAndSave}
           />
 
           {/* Monthly income */}

@@ -52,7 +52,7 @@ export type StartingBalancesModalProps = {
   profile: GoalProfile;
   savedPlans: GoalProfile[];
   seedOptions: GoalStartingOption[];
-  onApply: (seedLines: GoalSeedLine[]) => void;
+  onApply: (seedLines: GoalSeedLine[]) => void | Promise<void>;
 };
 
 export function StartingBalancesModal({
@@ -124,8 +124,8 @@ export function StartingBalancesModal({
     );
   }
 
-  function handleApply() {
-    onApply(workingLines);
+  async function handleApply() {
+    await onApply(workingLines);
     onClose();
   }
 
@@ -200,7 +200,7 @@ export function StartingBalancesModal({
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleApply}>Apply to plan</Button>
+          <Button onClick={() => void handleApply()}>Apply to plan</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

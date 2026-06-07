@@ -1,15 +1,12 @@
+import type { AllocationsMatrixColumnSort } from "@/entities/preferences";
+
 import type { AllocationSourceRow, LiquidityBand } from "./compute-cross-goal-allocations";
 
-/** Column-driven sort; `null` = instant access first, then A–Z within band. */
-export type MatrixColumnSort =
-  | null
-  | { kind: "source"; dir: "asc" | "desc" }
-  | { kind: "reserved"; dir: "asc" | "desc" }
-  | { kind: "live"; dir: "asc" | "desc" }
-  | { kind: "pool"; dir: "asc" | "desc" }
-  | { kind: "plan"; planId: string; dir: "asc" | "desc" };
-
-export const MATRIX_COLUMN_SORT_STORAGE_KEY = "wealthtracker-allocations-matrix-col-sort";
+/**
+ * Column-driven sort; `null` = instant access first, then A–Z within band.
+ * Persisted in user preferences (Neon) — see {@link AllocationsMatrixColumnSort}.
+ */
+export type MatrixColumnSort = AllocationsMatrixColumnSort;
 
 export type MatrixColumnClick =
   | { type: "source" }
@@ -132,33 +129,18 @@ export function sortMatrixByColumn(rows: AllocationSourceRow[], sort: MatrixColu
   return copy;
 }
 
-export function readStoredMatrixColumnSort(): MatrixColumnSort | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.sessionStorage.getItem(MATRIX_COLUMN_SORT_STORAGE_KEY);
-    if (!raw || raw === "null") return null;
-    const v = JSON.parse(raw) as MatrixColumnSort;
-    if (v == null) return null;
-    if (v.kind === "source" || v.kind === "reserved" || v.kind === "live" || v.kind === "pool") {
-      if (v.dir === "asc" || v.dir === "desc") return v;
-      return null;
-    }
-    if (v.kind === "plan" && typeof v.planId === "string" && (v.dir === "asc" || v.dir === "desc")) {
-      return v;
-    }
-    return null;
-  } catch {
-    return null;
+/** Validate a persisted sort descriptor (from prefs) before applying it. */
+export function normalizeMatrixColumnSort(value: unknown): MatrixColumnSort {
+  if (value == null || typeof value !== "object") return null;
+  const v = value as { kind?: unknown; dir?: unknown; planId?: unknown };
+  if (v.dir !== "asc" && v.dir !== "desc") return null;
+  if (v.kind === "source" || v.kind === "reserved" || v.kind === "live" || v.kind === "pool") {
+    return { kind: v.kind, dir: v.dir };
   }
-}
-
-export function writeStoredMatrixColumnSort(sort: MatrixColumnSort): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.sessionStorage.setItem(MATRIX_COLUMN_SORT_STORAGE_KEY, JSON.stringify(sort));
-  } catch {
-    /* ignore */
+  if (v.kind === "plan" && typeof v.planId === "string") {
+    return { kind: "plan", planId: v.planId, dir: v.dir };
   }
+  return null;
 }
 
 export function sortIndicator(sort: MatrixColumnSort, click: MatrixColumnClick): "asc" | "desc" | null {

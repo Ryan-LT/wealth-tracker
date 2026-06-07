@@ -7,6 +7,18 @@ export type NetWorthMonthSnapshot = {
 /** Liquidity-band visibility for the allocations matrix switcher. */
 export type AllocationsBandFilter = "both" | "instant" | "not_instant";
 
+/**
+ * Persisted column sort for the allocations Source × plan matrix.
+ * `null` = default order (instant access first, then source name A–Z).
+ */
+export type AllocationsMatrixColumnSort =
+  | null
+  | { kind: "source"; dir: "asc" | "desc" }
+  | { kind: "reserved"; dir: "asc" | "desc" }
+  | { kind: "live"; dir: "asc" | "desc" }
+  | { kind: "pool"; dir: "asc" | "desc" }
+  | { kind: "plan"; planId: string; dir: "asc" | "desc" };
+
 export type Preferences = {
   /** Net income fallback when month inflow/outflow are unset. */
   netMonthIncome: number;
@@ -31,6 +43,8 @@ export type Preferences = {
 
   /** Liquidity-band visibility on the allocations matrix; defaults to `"both"`. */
   allocationsBandFilter?: AllocationsBandFilter;
+  /** Column sort on the allocations matrix; `null`/unset = default order. */
+  allocationsMatrixColumnSort?: AllocationsMatrixColumnSort;
 };
 
 export const PREFERENCES_SEED: Preferences = {

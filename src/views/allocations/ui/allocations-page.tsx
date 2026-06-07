@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { Header } from "@/widgets/page-header";
 import { Main } from "@/widgets/page-shell";
@@ -48,10 +48,9 @@ import {
 } from "@/views/allocations/lib/compute-cross-goal-allocations";
 import {
   cycleMatrixColumnSort,
-  readStoredMatrixColumnSort,
+  normalizeMatrixColumnSort,
   sortIndicator,
   sortMatrixByColumn,
-  writeStoredMatrixColumnSort,
   type MatrixColumnClick,
   type MatrixColumnSort,
 } from "@/views/allocations/lib/matrix-column-sort";
@@ -241,22 +240,14 @@ export function AllocationsPage() {
   const bandFilter: AllocationsBandFilter =
     prefs.allocationsBandFilter ?? "both";
 
-  const [matrixColSort, setMatrixColSort] = useState<MatrixColumnSort>(null);
-
-  useEffect(() => {
-    const stored = readStoredMatrixColumnSort();
-    if (stored) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMatrixColSort(stored);
-    }
-  }, []);
+  const matrixColSort: MatrixColumnSort = useMemo(
+    () => normalizeMatrixColumnSort(prefs.allocationsMatrixColumnSort),
+    [prefs.allocationsMatrixColumnSort],
+  );
 
   const bumpMatrixSort = (click: MatrixColumnClick) => {
-    setMatrixColSort((prev) => {
-      const next = cycleMatrixColumnSort(prev, click);
-      writeStoredMatrixColumnSort(next);
-      return next;
-    });
+    const next = cycleMatrixColumnSort(matrixColSort, click);
+    setPrefs((p) => ({ ...p, allocationsMatrixColumnSort: next }));
   };
 
   const seedOptions = useMemo(

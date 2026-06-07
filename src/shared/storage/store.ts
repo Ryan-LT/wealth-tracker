@@ -2,12 +2,6 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-import {
-  notifySaveFailed,
-  notifySaveStarted,
-  notifySaveSucceeded,
-} from "@/shared/lib/save-toast";
-
 import { TABLE_KEYS, type TableKey } from "./table-keys";
 
 const tablesUrl = "/api/tables";
@@ -181,7 +175,6 @@ async function flushDirty(): Promise<void> {
     tables[k] = valueCache.get(k);
   }
 
-  notifySaveStarted();
   flushInFlight = (async () => {
     try {
       const res = await fetch(tablesUrl, {
@@ -197,11 +190,8 @@ async function flushDirty(): Promise<void> {
       for (const k of keysToFlush) {
         dirty.delete(k);
       }
-      notifySaveSucceeded();
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Save failed";
       console.error("[wealthtracker] persist to Neon failed", e);
-      notifySaveFailed(message);
       scheduleFlush();
     } finally {
       flushInFlight = null;

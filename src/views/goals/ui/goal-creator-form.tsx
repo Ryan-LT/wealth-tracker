@@ -54,7 +54,8 @@ type GoalCreatorFormProps = {
   monthlyNetContribution: number;
   onChange: (next: GoalProfile) => void;
   onSimulate: () => void;
-  onPersist: () => void | Promise<void>;
+  /** Persist the plan. Pass `override` to save edits made in the same tick. */
+  onPersist: (override?: GoalProfile) => void | Promise<void>;
 };
 
 function formatTargetDate(iso: string | undefined): string {
@@ -125,39 +126,34 @@ export function GoalCreatorForm({
   const editingBasics = editingSection === "basics";
   const editingIncome = editingSection === "income";
 
-  function applyCheckpoints(next: GoalCheckpoint[]) {
-    onChange({ ...profile, checkpoints: next });
-    onSimulate();
-  }
-
-  function applyStartingBalances(seedLines: GoalSeedLine[]) {
-    onChange({ ...profile, seedLines });
-    onSimulate();
-  }
-
   async function applyCheckpointsAndSave(next: GoalCheckpoint[]) {
-    applyCheckpoints(next);
-    await onPersist();
+    const updated = { ...profile, checkpoints: next };
+    onChange(updated);
+    onSimulate();
+    await onPersist(updated);
     setCheckpointsOpen(false);
   }
 
   async function applyStartingBalancesAndSave(seedLines: GoalSeedLine[]) {
-    applyStartingBalances(seedLines);
-    await onPersist();
+    const updated = { ...profile, seedLines };
+    onChange(updated);
+    onSimulate();
+    await onPersist(updated);
     setStartingBalancesOpen(false);
   }
 
   async function commitCheckpointPaidToggle() {
     if (!paidToggleConfirm) return;
     const { id, nextPaid } = paidToggleConfirm;
-    applyCheckpoints(
-      checkpoints.map((c) => {
-        if (c.id !== id) return c;
-        if (nextPaid) return { ...c, paid: true };
-        return { id: c.id, date: c.date, amount: c.amount };
-      }),
-    );
-    await onPersist();
+    const nextCheckpoints = checkpoints.map((c) => {
+      if (c.id !== id) return c;
+      if (nextPaid) return { ...c, paid: true };
+      return { id: c.id, date: c.date, amount: c.amount };
+    });
+    const updated = { ...profile, checkpoints: nextCheckpoints };
+    onChange(updated);
+    onSimulate();
+    await onPersist(updated);
     setPaidToggleConfirm(null);
   }
 
@@ -183,7 +179,7 @@ export function GoalCreatorForm({
   }
 
   async function saveSection(section: PlanSection) {
-    await onPersist();
+    await onPersist(profile);
     setEditingSection(null);
   }
 

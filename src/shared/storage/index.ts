@@ -47,6 +47,7 @@ export {
 export {
   PREFERENCES_SEED,
   type AllocationsBandFilter,
+  type AllocationsMatrixColumnSort,
   type NetWorthMonthSnapshot,
   type Preferences,
 } from "@/entities/preferences";

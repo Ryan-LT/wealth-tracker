@@ -222,28 +222,32 @@ export function GoalsPage() {
     [setGoals],
   );
 
-  const persistPlan = useCallback(async () => {
+  const persistPlan = useCallback(
+    async (override?: GoalProfile) => {
+    // `override` carries edits made in the same tick (e.g. a checkpoint paid
+    // toggle) that `draft` state has not re-rendered with yet.
+    const source = override ?? draft;
     const cleanLines = sanitizeSeedLinesAgainstOptions(
-      draft.seedLines ?? [],
+      source.seedLines ?? [],
       seedKeySet,
     );
     setGoals((prev) => {
       const existingById =
-        draft.id !== ""
-          ? prev.profiles.find((p) => p.id === draft.id)
+        source.id !== ""
+          ? prev.profiles.find((p) => p.id === source.id)
           : undefined;
-      const id = existingById ? draft.id : `goal-${Date.now()}`;
+      const id = existingById ? source.id : `goal-${Date.now()}`;
 
       const savedBase: GoalProfile = {
         ...(existingById ?? {}),
         id,
-        name: draft.name.trim() || "Untitled plan",
-        targetAmount: draft.targetAmount,
-        targetDate: draft.targetDate,
+        name: source.name.trim() || "Untitled plan",
+        targetAmount: source.targetAmount,
+        targetDate: source.targetDate,
         monthlyContribution: incomeMonthly,
-        includeMonthlyIncome: draft.includeMonthlyIncome !== false,
+        includeMonthlyIncome: source.includeMonthlyIncome !== false,
         seedLines: cleanLines,
-        checkpoints: normalizeStoredCheckpoints(draft.checkpoints),
+        checkpoints: normalizeStoredCheckpoints(source.checkpoints),
       };
 
       const clampedLines = clampSeedLinesToAllocationPool(
@@ -264,9 +268,11 @@ export function GoalsPage() {
         profiles,
         activeProfileId: id,
       };
-    });
-    await flushTablesNow();
-  }, [draft, incomeMonthly, seedKeySet, seedOptions, setGoals]);
+      });
+      await flushTablesNow();
+    },
+    [draft, incomeMonthly, seedKeySet, seedOptions, setGoals],
+  );
 
   function simulate() {
     setDraft((d) => ({ ...d }));

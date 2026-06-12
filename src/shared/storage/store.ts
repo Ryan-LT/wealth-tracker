@@ -56,10 +56,6 @@ function loadLocalCache(): void {
     if (typeof parsed.lastSyncedAt === "number") {
       lastSyncedAt = parsed.lastSyncedAt;
     }
-    // We have *some* data to render — flip hydrate to ok so consumers don't show a full-screen spinner.
-    if (valueCache.size > 0) {
-      hydrateState = "ok";
-    }
   } catch {
     // Corrupt cache — ignore.
   }
@@ -121,8 +117,9 @@ function syncFromServer(): Promise<void> {
       lastSyncedAt = Date.now();
       persistLocalCache();
     } catch {
-      // Keep prior hydrateState if we already loaded from localStorage; otherwise mark error.
-      if (hydrateState === "pending") {
+      if (valueCache.size > 0) {
+        hydrateState = "ok";
+      } else if (hydrateState === "pending") {
         hydrateState = "error";
       }
     } finally {
@@ -270,9 +267,9 @@ export function useTable<T>(name: string, seed: T) {
 }
 
 /**
- * Global hydration flag. `false` until either the local cache restores any data
- * or the initial Neon fetch resolves (success or error). Then stays `true` for
- * the rest of the session.
+ * Global hydration flag. `false` until the current Neon fetch resolves (success,
+ * offline cache fallback, or error). Returns `false` again while a foreground
+ * re-sync is in flight.
  *
  * Mounting this hook also kicks off hydration, so it can gate the first
  * render before any `useTable` subscribes.
@@ -298,9 +295,16 @@ export function useLastSyncedAt(): number | null {
 }
 
 /**
- * Force a re-fetch from Neon. Shows cached/local data immediately; network updates
- * merge when the request completes. Safe to call on every foreground resume.
+ * Force a re-fetch from Neon. Resets hydration until the request finishes so the
+ * shell can show a loading screen. Safe to call on every foreground resume.
  */
 export function refetchTables(): Promise<void> {
+  if (!isBrowser()) {
+    return Promise.resolve();
+  }
+  hydrateState = "pending";
+  hydratePromise = null;
+  syncInFlight = null;
+  notify();
   return syncFromServer();
 }

@@ -20,17 +20,17 @@ const OFFLINE_URL = "/offline";
 const SHELL_ROUTES = ["/", "/loans", "/goals", "/allocations", "/settings"];
 
 /**
- * Override the default `/api/*` NetworkFirst handler with StaleWhileRevalidate for
- * the read-only endpoints the dashboard depends on. This makes repeat visits
- * paint immediately from cache while the network revalidates in the background.
+ * Prefer the network for API reads so each app open gets fresh data; fall back
+ * to cache only when offline.
  */
 const apiCaching: RuntimeCaching[] = [
   {
     matcher: ({ sameOrigin, url: { pathname }, request }) =>
       sameOrigin && request.method === "GET" && pathname === "/api/tables",
     method: "GET",
-    handler: new StaleWhileRevalidate({
+    handler: new NetworkFirst({
       cacheName: "wealthtracker-tables",
+      networkTimeoutSeconds: 10,
       plugins: [
         new ExpirationPlugin({
           maxEntries: 4,
@@ -46,8 +46,9 @@ const apiCaching: RuntimeCaching[] = [
       request.method === "GET" &&
       pathname.startsWith("/api/finance/"),
     method: "GET",
-    handler: new StaleWhileRevalidate({
+    handler: new NetworkFirst({
       cacheName: "wealthtracker-finance",
+      networkTimeoutSeconds: 10,
       plugins: [
         new ExpirationPlugin({
           maxEntries: 16,
@@ -83,8 +84,9 @@ const navigationCaching: RuntimeCaching[] = [
       sameOrigin &&
       !pathname.startsWith("/api/") &&
       request.headers.get("RSC") === "1",
-    handler: new StaleWhileRevalidate({
+    handler: new NetworkFirst({
       cacheName: "pages-rsc",
+      networkTimeoutSeconds: 5,
       plugins: [
         new ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 }),
       ],

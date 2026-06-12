@@ -1,6 +1,7 @@
 export {
   flushTablesNow,
   readTable,
+  refetchTables,
   writeTable,
   useTable,
   useHydrated,

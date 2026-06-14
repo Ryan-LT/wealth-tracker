@@ -92,7 +92,7 @@ export function MobileBottomNav() {
       <nav
         aria-label="Primary"
         className={cn(
-          "pointer-events-auto relative mx-auto w-full max-w-md",
+          "pointer-events-auto relative mx-auto w-full max-w-[400px]",
           "rounded-full border border-border/40 bg-card/95",
           "shadow-[0_8px_32px_-8px_oklch(0.25_0.04_265_/_18%)]",
           "supports-backdrop-filter:bg-card/90 backdrop-blur-md",
@@ -104,7 +104,7 @@ export function MobileBottomNav() {
             {LEFT_NAV.map(renderSideItem)}
           </div>
 
-          <div className="relative flex w-[4.5rem] shrink-0 flex-col items-center justify-end">
+          <div className="relative flex w-[4rem] shrink-0 flex-col items-center justify-end">
             <Link
               href={HOME_ITEM.href}
               onClick={(event) => handleNavigate(event, HOME_ITEM.href)}
@@ -112,7 +112,7 @@ export function MobileBottomNav() {
               aria-label={HOME_ITEM.label}
               title={HOME_ITEM.label}
               className={cn(
-                "absolute -top-6 inline-flex size-14 items-center justify-center rounded-full",
+                "absolute -top-16 inline-flex size-14 items-center justify-center rounded-full",
                 "bg-primary text-primary-foreground",
                 "shadow-[var(--shadow-fab)]",
                 "transition-transform duration-200 ease-out active:scale-95",
@@ -130,16 +130,7 @@ export function MobileBottomNav() {
                 <HomeIcon className="size-[26px] stroke-[1.85]" />
               </span>
             </Link>
-            <span
-              className={cn(
-                "flex h-9 items-end justify-center pb-0.5 text-[10px] font-semibold leading-none",
-                homeActive ? "text-primary" : "text-foreground/55",
-              )}
-            >
-              {HOME_ITEM.short}
-            </span>
           </div>
-
           <div className="flex min-w-0 flex-1 justify-around">
             {RIGHT_NAV.map(renderSideItem)}
           </div>

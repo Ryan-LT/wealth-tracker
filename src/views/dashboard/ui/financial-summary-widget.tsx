@@ -20,9 +20,7 @@ export function FinancialSummaryWidget({
   return (
     <Card variant="hero" className="h-full">
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
-          Financial summary
-        </CardTitle>
+        <CardTitle className="text-sm font-semibold">Financial summary</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 text-sm">
         <Row
@@ -35,7 +33,7 @@ export function FinancialSummaryWidget({
           value={formatVnd(portfolioDetailTotal)}
           loading={loading}
         />
-        <div className="my-1 h-px bg-[var(--surface-hero-muted)]/25" />
+        <div className="my-1 h-px bg-[var(--surface-hero-subtle)]/40" />
         <Row label="Total assets" value={formatVnd(totalAssets)} emphasized loading={loading} />
         <Row
           label="Liabilities"
@@ -66,17 +64,17 @@ function Row({
       <span
         className={
           emphasized
-            ? "font-medium text-[var(--surface-hero-fg)]"
-            : "text-[var(--surface-hero-muted)]"
+            ? "font-semibold text-[var(--surface-hero-fg)]"
+            : "font-medium text-[var(--surface-hero-subtle)]"
         }
       >
         {label}
       </span>
       <span
         className={[
-          "font-data-tabular tabular-nums shrink-0",
-          emphasized ? "font-semibold text-[var(--surface-hero-fg)]" : "font-medium",
-          destructive ? "text-white/90" : "text-[var(--surface-hero-fg)]",
+          "font-data-tabular tabular-nums shrink-0 text-[var(--surface-hero-fg)]",
+          emphasized ? "font-bold" : "font-semibold",
+          destructive && "text-[color-mix(in_oklch,var(--surface-hero-fg)_92%,#fecaca)]",
         ].join(" ")}
       >
         {loading ? <Skeleton className="h-4 w-24 inline-block align-middle" /> : value}

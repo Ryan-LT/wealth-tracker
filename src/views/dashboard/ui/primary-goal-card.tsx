@@ -78,7 +78,7 @@ export function PrimaryGoalCard({
   return (
     <Card variant="secondary" className="flex h-full flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-sm font-semibold text-foreground/75">
           {cardLabel}
         </CardTitle>
         {loading ? (
@@ -100,7 +100,7 @@ export function PrimaryGoalCard({
         <p className="line-clamp-2 text-base font-semibold leading-6 min-h-12">
           {loading ? <Skeleton className="h-5 w-3/4 inline-block align-middle" /> : name}
         </p>
-        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums leading-4">
+        <p className="text-xs text-foreground/70 font-data-tabular tabular-nums leading-4">
           {loading ? (
             <Skeleton className="h-3 w-32 inline-block align-middle" />
           ) : (
@@ -113,7 +113,7 @@ export function PrimaryGoalCard({
             {loading ? <Skeleton className="h-3 w-6 inline-block align-middle" /> : `${pct}%`}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums leading-4">
+        <p className="text-xs text-foreground/70 font-data-tabular tabular-nums leading-4">
           {loading ? (
             <Skeleton className="h-3 w-40 inline-block align-middle" />
           ) : (

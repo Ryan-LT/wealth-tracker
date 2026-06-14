@@ -75,7 +75,7 @@ export function AppSidebar() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Wealth Tracker</span>
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-xs text-foreground/70">
                   Your personal finance hub
                 </span>
               </div>

@@ -12,8 +12,14 @@ export type CardVariant =
   | "outflow"
   | "quiet";
 
-const heroText =
-  "text-[var(--surface-hero-fg)] [&_[data-slot=card-description]]:text-[var(--surface-hero-muted)] [&_[data-slot=card-title]]:text-[var(--surface-hero-fg)]";
+const heroText = cn(
+  "text-[var(--surface-hero-fg)]",
+  "[&_[data-slot=card-title]]:text-[var(--surface-hero-muted)]",
+  "[&_[data-slot=card-content]]:text-[var(--surface-hero-fg)]",
+  "[&_.text-muted-foreground]:text-[var(--surface-hero-subtle)]",
+  "[&_.text-foreground]:text-[var(--surface-hero-fg)]",
+  "[&_.hero-caption]:text-[var(--surface-hero-subtle)]",
+);
 
 const variantClass: Record<CardVariant, string> = {
   default: "bg-card border-transparent shadow-soft",

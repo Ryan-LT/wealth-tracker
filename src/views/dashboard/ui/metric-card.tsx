@@ -41,8 +41,8 @@ export function MetricCard({
       <CardHeader className="flex flex-row items-start justify-between space-y-0 gap-3 pb-3">
         <CardTitle
           className={cn(
-            "min-w-0 flex-1 text-sm font-medium leading-snug",
-            isPrimary ? "text-foreground" : "text-muted-foreground",
+            "min-w-0 flex-1 text-sm font-semibold leading-snug",
+            isPrimary ? "text-foreground" : "text-foreground/75",
           )}
         >
           {label}
@@ -71,7 +71,7 @@ export function MetricCard({
           {loading ? <Skeleton className="h-7 w-32" /> : value}
         </div>
         {hint ? (
-          <p className="mt-1.5 text-xs text-muted-foreground leading-4">
+          <p className="mt-1.5 text-xs text-foreground/70 leading-4">
             {loading ? <Skeleton className="h-3 w-28" /> : hint}
           </p>
         ) : null}

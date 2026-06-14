@@ -58,7 +58,7 @@ export function NavUser() {
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Owner</span>
-                <span className="text-muted-foreground truncate text-xs">
+                <span className="truncate text-xs text-foreground/70">
                   Private session
                 </span>
               </div>
@@ -80,7 +80,7 @@ export function NavUser() {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Owner</span>
-                  <span className="text-muted-foreground truncate text-xs">
+                  <span className="truncate text-xs text-foreground/70">
                     Local session
                   </span>
                 </div>

@@ -268,7 +268,7 @@ export function MillionBy35Card({
     return (
       <Card variant="heroBlue" className="h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
-          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
+          <CardTitle className="text-sm font-semibold">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Skeleton className="h-5 w-20 rounded-full" />
@@ -277,11 +277,11 @@ export function MillionBy35Card({
           <p className="text-2xl font-bold leading-8">
             <Skeleton className="h-7 w-40 inline-block align-middle" />
           </p>
-          <p className="text-xs text-muted-foreground leading-4">
+          <p className="hero-caption text-xs leading-4">
             <Skeleton className="h-3 w-48 inline-block align-middle" />
           </p>
           <Progress value={0} />
-          <p className="text-xs text-muted-foreground leading-4">
+          <p className="hero-caption text-xs leading-4">
             <Skeleton className="h-3 w-56 inline-block align-middle" />
           </p>
         </CardContent>
@@ -293,7 +293,7 @@ export function MillionBy35Card({
     return (
       <Card variant="heroBlue" className="h-full">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
+          <CardTitle className="text-sm font-semibold">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
           </CardTitle>
         </CardHeader>
@@ -308,12 +308,12 @@ export function MillionBy35Card({
     return (
       <Card variant="heroBlue" className="h-full">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
+          <CardTitle className="text-sm font-semibold">
             Milestone
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="animate-pulse text-sm text-muted-foreground">Loading…</p>
+          <p className="animate-pulse text-sm hero-caption">Loading…</p>
         </CardContent>
       </Card>
     );
@@ -325,12 +325,12 @@ export function MillionBy35Card({
     return (
       <Card variant="heroBlue" className="h-full">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
+          <CardTitle className="text-sm font-semibold">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm hero-caption">
             {analysis.missing === "USER_DATE_OF_BIRTH" &&
               "Add USER_DATE_OF_BIRTH=YYYY-MM-DD to .env.local for your age-35 deadline."}
             {analysis.missing === "FX_RATE" &&
@@ -345,7 +345,7 @@ export function MillionBy35Card({
     return (
       <Card variant="heroBlue" className="h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
-          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
+          <CardTitle className="text-sm font-semibold">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Chip
@@ -373,14 +373,14 @@ export function MillionBy35Card({
     return (
       <Card variant="heroBlue" className="h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
-          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
+          <CardTitle className="text-sm font-semibold">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Chip tone="at_risk" label="Past milestone" title="Age 35 deadline passed." />
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Progress value={analysis.pct} />
-          <p className="text-xs text-muted-foreground">
+          <p className="hero-caption text-xs">
             At deadline you were tracking {analysis.pct}% of {formatVnd(analysis.targetVnd)} (≈ {goalTitle}).
           </p>
         </CardContent>
@@ -403,13 +403,13 @@ export function MillionBy35Card({
         <p className="text-2xl font-bold font-data-tabular tabular-nums tracking-tight">
           {formatVnd(currentNetWorth)}
         </p>
-        <p className="text-xs text-muted-foreground font-data-tabular tabular-nums">
+        <p className="hero-caption text-xs font-data-tabular tabular-nums">
           Target ≈ {formatVnd(analysis.targetVnd)} ({goalTitle})
         </p>
         <Progress value={pct} />
-        <p className="text-xs text-muted-foreground">
+        <p className="hero-caption text-xs">
           Projected at {MILESTONE_TARGET_AGE}:{" "}
-          <span className="font-semibold text-foreground font-data-tabular tabular-nums">
+          <span className="font-semibold text-[var(--surface-hero-fg)] font-data-tabular tabular-nums">
             {formatVnd(projectedEndingNetWorth)}
           </span>{" "}
           · {monthsRemaining.toFixed(1)} mo left

@@ -16,11 +16,11 @@ type MetricCardProps = {
   loading?: boolean;
 };
 
-const variantIcon: Record<MetricVariant, string> = {
-  primary: "text-chart-2",
-  secondary: "text-chart-4/90",
-  outflow: "text-destructive/85",
-  quiet: "text-muted-foreground",
+const iconWellClass: Record<MetricVariant, string> = {
+  primary: "bg-[color-mix(in_oklch,var(--accent-blue)_16%,white)] text-[var(--accent-blue)]",
+  secondary: "bg-[var(--surface-secondary-icon)] text-[var(--accent-orange)]",
+  outflow: "bg-[var(--surface-outflow-icon)] text-destructive",
+  quiet: "bg-muted text-muted-foreground",
 };
 
 export function MetricCard({
@@ -41,21 +41,21 @@ export function MetricCard({
       <CardHeader className="flex flex-row items-start justify-between space-y-0 gap-3 pb-3">
         <CardTitle
           className={cn(
-            "min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wider leading-snug",
-            isPrimary ? "text-foreground/85" : "text-muted-foreground",
+            "min-w-0 flex-1 text-sm font-semibold leading-snug",
+            isPrimary ? "text-foreground" : "text-foreground/75",
           )}
         >
           {label}
         </CardTitle>
-        <MaterialIcon
-          name={icon}
-          size={16}
+        <span
           className={cn(
-            "mt-0.5 shrink-0",
-            variantIcon[variant],
-            highlight && variant === "quiet" && "text-chart-2",
+            "icon-well mt-0.5",
+            iconWellClass[variant],
+            highlight && variant === "quiet" && "bg-[color-mix(in_oklch,var(--accent-green)_16%,white)] text-[var(--accent-green)]",
           )}
-        />
+        >
+          <MaterialIcon name={icon} size={18} />
+        </span>
       </CardHeader>
       <CardContent className="pt-0">
         <div
@@ -71,7 +71,7 @@ export function MetricCard({
           {loading ? <Skeleton className="h-7 w-32" /> : value}
         </div>
         {hint ? (
-          <p className="mt-1 text-xs text-muted-foreground/90 leading-4">
+          <p className="mt-1.5 text-xs text-foreground/70 leading-4">
             {loading ? <Skeleton className="h-3 w-28" /> : hint}
           </p>
         ) : null}

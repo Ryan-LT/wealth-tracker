@@ -5,7 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { startTransition, useOptimistic } from "react";
 
 import { cn } from "@/shared/lib";
-import { NAV } from "@/shared/config";
+import { NAV, type NavItem } from "@/shared/config";
+
+const [HOME_ITEM, ...SIDE_NAV] = NAV;
+const LEFT_NAV = SIDE_NAV.slice(0, 2);
+const RIGHT_NAV = SIDE_NAV.slice(2);
 
 function isActive(activeHref: string, href: string) {
   if (href === "/") return activeHref === "/";
@@ -39,82 +43,98 @@ export function MobileBottomNav() {
     });
   };
 
+  const renderSideItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const active = isActive(optimisticActive, item.href);
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={(event) => handleNavigate(event, item.href)}
+        aria-current={active ? "page" : undefined}
+        aria-label={item.label}
+        title={item.label}
+        className={cn(
+          "group flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-1.5",
+          "transition-colors duration-200 ease-out",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
+          active ? "text-primary" : "text-foreground/55 hover:text-foreground/80",
+        )}
+      >
+        <span
+          key={active ? "on" : "off"}
+          className={cn(
+            "inline-flex items-center justify-center",
+            active && "animate-nav-pop",
+          )}
+        >
+          <Icon className="size-[22px] stroke-[1.75]" />
+        </span>
+        <span className="max-w-full truncate text-[10px] font-medium leading-none">
+          {item.short}
+        </span>
+      </Link>
+    );
+  };
+
+  const homeActive = isActive(optimisticActive, HOME_ITEM.href);
+  const HomeIcon = HOME_ITEM.icon;
+
   return (
     <div
       className={cn(
-        "md:hidden",
-        "pointer-events-none fixed inset-x-0 z-40 flex justify-center",
-        "bottom-[max(1.5rem,calc(env(safe-area-inset-bottom)+0.75rem))]",
+        "pointer-events-none fixed inset-x-0 z-40 md:hidden",
         "px-4",
+        "bottom-[max(1rem,env(safe-area-inset-bottom))]",
       )}
     >
       <nav
         aria-label="Primary"
         className={cn(
-          "pointer-events-auto",
-          "flex items-center gap-2",
-          "rounded-full border border-border/60",
-          "bg-sidebar/95 supports-backdrop-filter:bg-sidebar/75 backdrop-blur-xs",
-          "shadow-[0_8px_24px_-4px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)]",
-          "px-2.5 py-2",
+          "pointer-events-auto relative mx-auto w-full max-w-[400px]",
+          "rounded-full border border-border/40 bg-card/95",
+          "shadow-[0_8px_32px_-8px_oklch(0.25_0.04_265_/_18%)]",
+          "supports-backdrop-filter:bg-card/90 backdrop-blur-md",
+          "px-2 py-1.5",
         )}
       >
-        {NAV.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(optimisticActive, item.href);
-          return (
+        <div className="flex items-end justify-between">
+          <div className="flex min-w-0 flex-1 justify-around">
+            {LEFT_NAV.map(renderSideItem)}
+          </div>
+
+          <div className="relative flex w-[4rem] shrink-0 flex-col items-center justify-end">
             <Link
-              key={item.href}
-              href={item.href}
-              onClick={(event) => handleNavigate(event, item.href)}
-              aria-current={active ? "page" : undefined}
-              aria-label={item.label}
-              title={item.label}
+              href={HOME_ITEM.href}
+              onClick={(event) => handleNavigate(event, HOME_ITEM.href)}
+              aria-current={homeActive ? "page" : undefined}
+              aria-label={HOME_ITEM.label}
+              title={HOME_ITEM.label}
               className={cn(
-                "group relative inline-flex items-center justify-center",
-                "size-12 shrink-0 rounded-full overflow-hidden isolate",
-                "transition-[color,box-shadow] duration-200 ease-out",
-                "active:scale-[0.92]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-                active
-                  ? "text-sidebar-primary-foreground shadow-md shadow-sidebar-primary/40 ring-4 ring-sidebar-primary/15"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground",
+                "absolute -top-16 inline-flex size-14 items-center justify-center rounded-full",
+                "bg-primary text-primary-foreground",
+                "shadow-[var(--shadow-fab)]",
+                "transition-transform duration-200 ease-out active:scale-95",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
+                homeActive && "ring-4 ring-primary/15",
               )}
             >
-              {/* Animated pill background. Always rendered; opacity + scale react to active state. */}
               <span
-                aria-hidden
-                className={cn(
-                  "absolute inset-0 -z-10 rounded-full",
-                  "bg-sidebar-primary",
-                  "transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-                  active ? "opacity-100 scale-100" : "opacity-0 scale-75",
-                )}
-              />
-              {/* Hover tint for inactive items only. */}
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute inset-0 -z-10 rounded-full bg-sidebar-accent/40",
-                  "transition-opacity duration-200 ease-out",
-                  active ? "opacity-0" : "opacity-0 group-hover:opacity-100",
-                )}
-              />
-              {/* Icon: re-keyed on active to re-trigger the pop animation each route change. */}
-              <span
-                key={active ? "on" : "off"}
+                key={homeActive ? "on" : "off"}
                 className={cn(
                   "inline-flex items-center justify-center",
-                  "transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-                  active && "animate-nav-pop",
+                  homeActive && "animate-nav-pop",
                 )}
               >
-                <Icon className="size-[22px]" />
+                <HomeIcon className="size-[26px] stroke-[1.85]" />
               </span>
-              <span className="sr-only">{item.label}</span>
             </Link>
-          );
-        })}
+          </div>
+          <div className="flex min-w-0 flex-1 justify-around">
+            {RIGHT_NAV.map(renderSideItem)}
+          </div>
+        </div>
       </nav>
     </div>
   );

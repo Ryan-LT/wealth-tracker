@@ -14,9 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Wealth Tracker — Private Terminal",
+  title: "Wealth Tracker",
   description:
-    "Wealth Tracker — a private financial terminal for tracking net worth, assets, debts, income, and goals.",
+    "Wealth Tracker — track net worth, assets, debts, income, and goals.",
   applicationName: "Wealth Tracker",
   appleWebApp: {
     capable: true,
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0b14" },
+    { media: "(prefers-color-scheme: light)", color: "#5d8bf4" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1d2e" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -47,7 +47,7 @@ export default function RootLayout({
       <body className="bg-background text-foreground min-h-svh">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

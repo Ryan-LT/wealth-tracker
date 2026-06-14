@@ -25,9 +25,7 @@ export function MetricGrid({
 }: MetricGridProps) {
   return (
     <div className="flex flex-col gap-4 sm:gap-5">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80">
-        Key figures
-      </p>
+      <p className="section-label">Key figures</p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           variant="primary"
@@ -57,9 +55,7 @@ export function MetricGrid({
         />
       </div>
 
-      <p className="pt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 sm:pt-0">
-        Breakdown
-      </p>
+      <p className="section-label pt-1 sm:pt-0">Breakdown</p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <MetricCard
           variant="secondary"

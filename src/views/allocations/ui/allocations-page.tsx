@@ -305,12 +305,14 @@ export function AllocationsPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-lg font-semibold md:text-base md:font-medium">
+        <h1 className="text-xl font-bold tracking-tight md:text-2xl">
           Liquidity & commitments
         </h1>
         <div className="ml-auto flex items-center gap-2">
-          <ThemeSwitch />
-          <ProfileDropdown />
+          <div className="flex items-center gap-1.5 rounded-full bg-card p-1 shadow-soft">
+            <ThemeSwitch />
+            <ProfileDropdown />
+          </div>
         </div>
       </Header>
 

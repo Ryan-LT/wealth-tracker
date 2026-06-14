@@ -2,7 +2,6 @@
 
 import * as React from "react";
 
-import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/shared/lib";
 
@@ -20,9 +19,11 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
   const inset = useFixedHeaderInset();
 
   const inner = (
-    <div className="relative flex h-full items-center gap-3 p-4 sm:gap-4">
-      <SidebarTrigger variant="outline" className="hidden md:inline-flex" />
-      <Separator orientation="vertical" className="hidden h-6 md:block" />
+    <div className="relative flex h-full items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5">
+      <SidebarTrigger
+        variant="outline"
+        className="hidden size-10 rounded-full border-border/50 bg-card shadow-soft md:inline-flex"
+      />
       {children}
     </div>
   );
@@ -40,15 +41,15 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
       <div
         aria-hidden
         className="shrink-0"
-        style={{ height: "calc(3.5rem + var(--offline-banner-h, 0px))" }}
+        style={{ height: "calc(3.75rem + var(--offline-banner-h, 0px))" }}
       />
       <header
         style={{ left: inset.left, right: inset.right }}
         className={cn(
-          "fixed z-40 h-14 top-(--offline-banner-h,0px)",
+          "fixed z-40 h-[3.75rem] top-(--offline-banner-h,0px)",
           "transition-[left,right] duration-200 ease-linear",
-          "bg-background/80 supports-backdrop-filter:bg-background/70 backdrop-blur-md",
-          "border-b border-border/60",
+          "bg-background/85 supports-backdrop-filter:bg-background/75 backdrop-blur-md",
+          "shadow-soft",
           className,
         )}
         {...props}

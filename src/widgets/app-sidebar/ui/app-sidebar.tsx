@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { startTransition, useOptimistic } from "react";
+import { Wallet } from "lucide-react";
 
 import {
   Sidebar,
@@ -23,7 +24,6 @@ import { cn } from "@/shared/lib";
 import { useLayout } from "@/widgets/app-sidebar/lib/layout-provider";
 import { NavUser } from "@/widgets/app-sidebar/ui/nav-user";
 import { NAV } from "@/shared/config";
-import { Wallet } from "lucide-react";
 
 function isActive(activeHref: string, href: string) {
   if (href === "/") return activeHref === "/";
@@ -66,17 +66,17 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
-      <SidebarHeader>
+      <SidebarHeader className="pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent">
-              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+              <div className="flex aspect-square size-9 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
                 <Wallet className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Wealth Tracker</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  Private Terminal
+                <span className="truncate text-xs text-foreground/70">
+                  Your personal finance hub
                 </span>
               </div>
             </SidebarMenuButton>
@@ -85,7 +85,9 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>General</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground">
+            Menu
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV.map((item) => {
@@ -98,27 +100,16 @@ export function AppSidebar() {
                       isActive={active}
                       tooltip={item.label}
                       className={cn(
-                        "group/nav-item relative overflow-hidden transition-colors duration-200 ease-out",
+                        "group/nav-item rounded-xl transition-all duration-200 ease-out",
                         "[&>svg]:transition-transform [&>svg]:duration-300 [&>svg]:ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-                        "hover:[&>svg]:scale-110",
-                        active && "[&>svg]:scale-110",
+                        "hover:[&>svg]:scale-105",
+                        active && "bg-primary/10 text-primary hover:bg-primary/12 [&>svg]:scale-105",
                       )}
                     >
                       <Link
                         href={item.href}
                         onClick={(event) => handleNavigate(event, item.href)}
                       >
-                        {/* Active-state slide-in rail on the leading edge. */}
-                        <span
-                          aria-hidden
-                          className={cn(
-                            "absolute inset-y-1 left-0 w-0.5 rounded-r-full bg-sidebar-primary origin-center",
-                            "transition-[opacity,transform] duration-300 ease-out",
-                            active
-                              ? "opacity-100 scale-y-100 animate-nav-rail-in"
-                              : "opacity-0 scale-y-50",
-                          )}
-                        />
                         <Icon />
                         <span>{item.label}</span>
                       </Link>

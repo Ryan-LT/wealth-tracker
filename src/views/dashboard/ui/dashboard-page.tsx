@@ -147,12 +147,14 @@ export function DashboardPage() {
   return (
     <>
       <Header fixed>
-        <h1 className="text-lg font-semibold md:text-xl md:font-medium">
+        <h1 className="text-xl font-bold tracking-tight md:text-2xl">
           Dashboard
         </h1>
         <div className="ml-auto flex items-center gap-2">
-          <ThemeSwitch />
-          <ProfileDropdown />
+          <div className="flex items-center gap-1.5 rounded-full bg-card p-1 shadow-soft">
+            <ThemeSwitch />
+            <ProfileDropdown />
+          </div>
         </div>
       </Header>
 
@@ -173,9 +175,7 @@ export function DashboardPage() {
         </div>
 
         <section className="mt-8">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/90">
-            Goal plans
-          </h2>
+          <h2 className="section-label mb-3">Goal plans</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {hydrated
               ? goalPlanCards.map((g) => (

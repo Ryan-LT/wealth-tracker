@@ -6,20 +6,29 @@ import { cn } from "@/shared/lib";
 export type CardVariant =
   | "default"
   | "hero"
+  | "heroBlue"
   | "primary"
   | "secondary"
   | "outflow"
   | "quiet";
 
+const heroText = cn(
+  "text-[var(--surface-hero-fg)]",
+  "[&_[data-slot=card-title]]:text-[var(--surface-hero-muted)]",
+  "[&_[data-slot=card-content]]:text-[var(--surface-hero-fg)]",
+  "[&_.text-muted-foreground]:text-[var(--surface-hero-subtle)]",
+  "[&_.text-foreground]:text-[var(--surface-hero-fg)]",
+  "[&_.hero-caption]:text-[var(--surface-hero-subtle)]",
+);
+
 const variantClass: Record<CardVariant, string> = {
-  default: "bg-card border-border shadow-sm",
-  hero: "card-hero bg-transparent",
-  primary: "card-primary bg-transparent shadow-sm",
-  secondary:
-    "card-secondary shadow-sm [&_[data-slot=card-header]]:pl-7 [&_[data-slot=card-content]]:pl-7 [&_[data-slot=card-footer]]:pl-7",
-  outflow:
-    "card-outflow shadow-sm [&_[data-slot=card-header]]:pl-7 [&_[data-slot=card-content]]:pl-7 [&_[data-slot=card-footer]]:pl-7",
-  quiet: "card-quiet bg-transparent shadow-none",
+  default: "bg-card border-transparent shadow-soft",
+  hero: cn("card-hero border-transparent", heroText),
+  heroBlue: cn("card-hero-blue border-transparent", heroText),
+  primary: "card-primary border-transparent",
+  secondary: "card-secondary border-transparent",
+  outflow: "card-outflow border-transparent",
+  quiet: "card-quiet border-transparent shadow-none",
 };
 
 type CardProps = React.ComponentProps<"div"> & {
@@ -32,7 +41,7 @@ function Card({ className, variant = "default", ...props }: CardProps) {
       data-slot="card"
       data-variant={variant}
       className={cn(
-        "flex flex-col gap-0 rounded-xl border text-card-foreground",
+        "flex flex-col gap-0 rounded-2xl border text-card-foreground",
         variantClass[variant],
         className,
       )}
@@ -46,7 +55,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 pt-4 pb-4",
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 pt-5 pb-4",
         "has-data-[slot=card-action]:grid-cols-[1fr_auto]",
         "[.border-b]:pb-4",
         className,
@@ -60,7 +69,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
+      className={cn("text-base leading-tight font-semibold", className)}
       {...props}
     />
   );
@@ -93,7 +102,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-content"
-      className={cn("lg:p-6 p-3", className)}
+      className={cn("px-5 pb-5 pt-0 lg:px-6 lg:pb-6", className)}
       {...props}
     />
   );

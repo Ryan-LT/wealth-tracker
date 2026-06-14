@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Plus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { startTransition, useOptimistic } from "react";
 
 import { cn } from "@/shared/lib";
-import { NAV } from "@/shared/config";
+import { NAV, type NavItem } from "@/shared/config";
 
-const FAB_HREF = "/goals";
+const [HOME_ITEM, ...SIDE_NAV] = NAV;
+const LEFT_NAV = SIDE_NAV.slice(0, 2);
+const RIGHT_NAV = SIDE_NAV.slice(2);
 
 function isActive(activeHref: string, href: string) {
   if (href === "/") return activeHref === "/";
@@ -19,9 +20,6 @@ export function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname() ?? "/";
   const [optimisticActive, setOptimisticActive] = useOptimistic(pathname);
-
-  const leftNav = NAV.slice(0, 2);
-  const rightNav = NAV.slice(2);
 
   const handleNavigate = (
     event: React.MouseEvent<HTMLAnchorElement>,
@@ -45,7 +43,7 @@ export function MobileBottomNav() {
     });
   };
 
-  const renderNavItem = (item: (typeof NAV)[number]) => {
+  const renderSideItem = (item: NavItem) => {
     const Icon = item.icon;
     const active = isActive(optimisticActive, item.href);
 
@@ -58,10 +56,10 @@ export function MobileBottomNav() {
         aria-label={item.label}
         title={item.label}
         className={cn(
-          "group flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2",
+          "group flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-1.5",
           "transition-colors duration-200 ease-out",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
-          active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+          active ? "text-primary" : "text-foreground/55 hover:text-foreground/80",
         )}
       >
         <span
@@ -80,48 +78,70 @@ export function MobileBottomNav() {
     );
   };
 
-  const fabActive = isActive(optimisticActive, FAB_HREF);
+  const homeActive = isActive(optimisticActive, HOME_ITEM.href);
+  const HomeIcon = HOME_ITEM.icon;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 md:hidden">
+    <div
+      className={cn(
+        "pointer-events-none fixed inset-x-0 z-40 md:hidden",
+        "px-4",
+        "bottom-[max(1rem,env(safe-area-inset-bottom))]",
+      )}
+    >
       <nav
         aria-label="Primary"
         className={cn(
-          "pointer-events-auto relative",
-          "rounded-t-3xl bg-card shadow-[0_-6px_32px_-8px_oklch(0.25_0.04_265_/_12%)]",
-          "border-t border-border/30",
-          "px-3 pt-2",
-          "pb-[max(0.625rem,env(safe-area-inset-bottom))]",
+          "pointer-events-auto relative mx-auto w-full max-w-md",
+          "rounded-full border border-border/40 bg-card/95",
+          "shadow-[0_8px_32px_-8px_oklch(0.25_0.04_265_/_18%)]",
+          "supports-backdrop-filter:bg-card/90 backdrop-blur-md",
+          "px-2 py-1.5",
         )}
       >
         <div className="flex items-end justify-between">
           <div className="flex min-w-0 flex-1 justify-around">
-            {leftNav.map(renderNavItem)}
+            {LEFT_NAV.map(renderSideItem)}
           </div>
 
-          <div className="relative flex w-16 shrink-0 justify-center">
+          <div className="relative flex w-[4.5rem] shrink-0 flex-col items-center justify-end">
             <Link
-              href={FAB_HREF}
-              onClick={(event) => handleNavigate(event, FAB_HREF)}
-              aria-current={fabActive ? "page" : undefined}
-              aria-label="Goal Plan"
-              title="Goal Plan"
+              href={HOME_ITEM.href}
+              onClick={(event) => handleNavigate(event, HOME_ITEM.href)}
+              aria-current={homeActive ? "page" : undefined}
+              aria-label={HOME_ITEM.label}
+              title={HOME_ITEM.label}
               className={cn(
-                "absolute -top-7 inline-flex size-14 items-center justify-center rounded-full",
+                "absolute -top-6 inline-flex size-14 items-center justify-center rounded-full",
                 "bg-primary text-primary-foreground",
                 "shadow-[var(--shadow-fab)]",
                 "transition-transform duration-200 ease-out active:scale-95",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
-                fabActive && "ring-4 ring-primary/15",
+                homeActive && "ring-4 ring-primary/15",
               )}
             >
-              <Plus className="size-7 stroke-[2.25]" />
+              <span
+                key={homeActive ? "on" : "off"}
+                className={cn(
+                  "inline-flex items-center justify-center",
+                  homeActive && "animate-nav-pop",
+                )}
+              >
+                <HomeIcon className="size-[26px] stroke-[1.85]" />
+              </span>
             </Link>
-            <span aria-hidden className="h-10" />
+            <span
+              className={cn(
+                "flex h-9 items-end justify-center pb-0.5 text-[10px] font-semibold leading-none",
+                homeActive ? "text-primary" : "text-foreground/55",
+              )}
+            >
+              {HOME_ITEM.short}
+            </span>
           </div>
 
           <div className="flex min-w-0 flex-1 justify-around">
-            {rightNav.map(renderNavItem)}
+            {RIGHT_NAV.map(renderSideItem)}
           </div>
         </div>
       </nav>

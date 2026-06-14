@@ -95,7 +95,7 @@ export function MobileBottomNav() {
           "pointer-events-auto relative mx-auto w-full max-w-[400px]",
           "rounded-full border border-border/40 bg-card/95",
           "shadow-[0_8px_32px_-8px_oklch(0.25_0.04_265_/_18%)]",
-          "supports-backdrop-filter:bg-card/90 backdrop-blur-md",
+          "supports-backdrop-filter:bg-card/10 backdrop-blur-md",
           "px-2 py-1.5",
         )}
       >

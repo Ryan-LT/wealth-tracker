@@ -266,9 +266,9 @@ export function MillionBy35Card({
 
   if (loading) {
     return (
-      <Card variant="hero" className="h-full">
+      <Card variant="heroBlue" className="h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Skeleton className="h-5 w-20 rounded-full" />
@@ -291,9 +291,9 @@ export function MillionBy35Card({
 
   if (loadError) {
     return (
-      <Card variant="hero" className="h-full">
+      <Card variant="heroBlue" className="h-full">
         <CardHeader>
-          <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
             {formatUsd(DEFAULT_MILESTONE_USD)} by {MILESTONE_TARGET_AGE}
           </CardTitle>
         </CardHeader>
@@ -306,9 +306,9 @@ export function MillionBy35Card({
 
   if (!config || !analysis) {
     return (
-      <Card variant="hero" className="h-full">
+      <Card variant="heroBlue" className="h-full">
         <CardHeader>
-          <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
             Milestone
           </CardTitle>
         </CardHeader>
@@ -323,9 +323,9 @@ export function MillionBy35Card({
 
   if (analysis.kind === "incomplete") {
     return (
-      <Card variant="hero" className="h-full">
+      <Card variant="heroBlue" className="h-full">
         <CardHeader>
-          <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
         </CardHeader>
@@ -343,9 +343,9 @@ export function MillionBy35Card({
 
   if (analysis.kind === "achieved") {
     return (
-      <Card variant="hero" className="h-full">
+      <Card variant="heroBlue" className="h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Chip
@@ -371,9 +371,9 @@ export function MillionBy35Card({
 
   if (analysis.kind === "past_deadline") {
     return (
-      <Card variant="hero" className="h-full">
+      <Card variant="heroBlue" className="h-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
-          <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
             {goalTitle} by age {MILESTONE_TARGET_AGE}
           </CardTitle>
           <Chip tone="at_risk" label="Past milestone" title="Age 35 deadline passed." />
@@ -392,9 +392,9 @@ export function MillionBy35Card({
     analysis;
 
   return (
-    <Card variant="hero" className="h-full">
+    <Card variant="heroBlue" className="h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-3 pb-3">
-        <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
           {goalTitle} by age {MILESTONE_TARGET_AGE}
         </CardTitle>
         <Chip tone={tone} label={label} detail={chipDetail} title={hint} />

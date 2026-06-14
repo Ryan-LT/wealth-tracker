@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { startTransition, useOptimistic } from "react";
 
 import { cn } from "@/shared/lib";
 import { NAV } from "@/shared/config";
+
+const FAB_HREF = "/goals";
 
 function isActive(activeHref: string, href: string) {
   if (href === "/") return activeHref === "/";
@@ -16,6 +19,9 @@ export function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname() ?? "/";
   const [optimisticActive, setOptimisticActive] = useOptimistic(pathname);
+
+  const leftNav = NAV.slice(0, 2);
+  const rightNav = NAV.slice(2);
 
   const handleNavigate = (
     event: React.MouseEvent<HTMLAnchorElement>,
@@ -39,82 +45,85 @@ export function MobileBottomNav() {
     });
   };
 
+  const renderNavItem = (item: (typeof NAV)[number]) => {
+    const Icon = item.icon;
+    const active = isActive(optimisticActive, item.href);
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={(event) => handleNavigate(event, item.href)}
+        aria-current={active ? "page" : undefined}
+        aria-label={item.label}
+        title={item.label}
+        className={cn(
+          "group flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2",
+          "transition-colors duration-200 ease-out",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
+          active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        <span
+          key={active ? "on" : "off"}
+          className={cn(
+            "inline-flex items-center justify-center",
+            active && "animate-nav-pop",
+          )}
+        >
+          <Icon className="size-[22px] stroke-[1.75]" />
+        </span>
+        <span className="max-w-full truncate text-[10px] font-medium leading-none">
+          {item.short}
+        </span>
+      </Link>
+    );
+  };
+
+  const fabActive = isActive(optimisticActive, FAB_HREF);
+
   return (
-    <div
-      className={cn(
-        "md:hidden",
-        "pointer-events-none fixed inset-x-0 z-40 flex justify-center",
-        "bottom-[max(1.5rem,calc(env(safe-area-inset-bottom)+0.75rem))]",
-        "px-4",
-      )}
-    >
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 md:hidden">
       <nav
         aria-label="Primary"
         className={cn(
-          "pointer-events-auto",
-          "flex items-center gap-2",
-          "rounded-full border border-border/60",
-          "bg-sidebar/95 supports-backdrop-filter:bg-sidebar/75 backdrop-blur-xs",
-          "shadow-[0_8px_24px_-4px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)]",
-          "px-2.5 py-2",
+          "pointer-events-auto relative",
+          "rounded-t-3xl bg-card shadow-[0_-6px_32px_-8px_oklch(0.25_0.04_265_/_12%)]",
+          "border-t border-border/30",
+          "px-3 pt-2",
+          "pb-[max(0.625rem,env(safe-area-inset-bottom))]",
         )}
       >
-        {NAV.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(optimisticActive, item.href);
-          return (
+        <div className="flex items-end justify-between">
+          <div className="flex min-w-0 flex-1 justify-around">
+            {leftNav.map(renderNavItem)}
+          </div>
+
+          <div className="relative flex w-16 shrink-0 justify-center">
             <Link
-              key={item.href}
-              href={item.href}
-              onClick={(event) => handleNavigate(event, item.href)}
-              aria-current={active ? "page" : undefined}
-              aria-label={item.label}
-              title={item.label}
+              href={FAB_HREF}
+              onClick={(event) => handleNavigate(event, FAB_HREF)}
+              aria-current={fabActive ? "page" : undefined}
+              aria-label="Goal Plan"
+              title="Goal Plan"
               className={cn(
-                "group relative inline-flex items-center justify-center",
-                "size-12 shrink-0 rounded-full overflow-hidden isolate",
-                "transition-[color,box-shadow] duration-200 ease-out",
-                "active:scale-[0.92]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-                active
-                  ? "text-sidebar-primary-foreground shadow-md shadow-sidebar-primary/40 ring-4 ring-sidebar-primary/15"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground",
+                "absolute -top-7 inline-flex size-14 items-center justify-center rounded-full",
+                "bg-primary text-primary-foreground",
+                "shadow-[var(--shadow-fab)]",
+                "transition-transform duration-200 ease-out active:scale-95",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
+                fabActive && "ring-4 ring-primary/15",
               )}
             >
-              {/* Animated pill background. Always rendered; opacity + scale react to active state. */}
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute inset-0 -z-10 rounded-full",
-                  "bg-sidebar-primary",
-                  "transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-                  active ? "opacity-100 scale-100" : "opacity-0 scale-75",
-                )}
-              />
-              {/* Hover tint for inactive items only. */}
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute inset-0 -z-10 rounded-full bg-sidebar-accent/40",
-                  "transition-opacity duration-200 ease-out",
-                  active ? "opacity-0" : "opacity-0 group-hover:opacity-100",
-                )}
-              />
-              {/* Icon: re-keyed on active to re-trigger the pop animation each route change. */}
-              <span
-                key={active ? "on" : "off"}
-                className={cn(
-                  "inline-flex items-center justify-center",
-                  "transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-                  active && "animate-nav-pop",
-                )}
-              >
-                <Icon className="size-[22px]" />
-              </span>
-              <span className="sr-only">{item.label}</span>
+              <Plus className="size-7 stroke-[2.25]" />
             </Link>
-          );
-        })}
+            <span aria-hidden className="h-10" />
+          </div>
+
+          <div className="flex min-w-0 flex-1 justify-around">
+            {rightNav.map(renderNavItem)}
+          </div>
+        </div>
       </nav>
     </div>
   );

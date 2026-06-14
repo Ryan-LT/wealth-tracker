@@ -4,59 +4,85 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.625rem;
-  /* Page vs panel: enough contrast to scan, not harsh white-on-white. */
-  --background: oklch(0.965 0.006 248);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(0.993 0.003 248);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --radius: 1rem;
+
+  /* Friendly light canvas — soft gray, approachable accents */
+  --background: oklch(0.965 0.004 250);
+  --foreground: oklch(0.22 0.03 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.03 265);
   --card-elevated: oklch(1 0 0);
-  --card-elevated-border: oklch(0.88 0.02 257);
-  --card-muted: oklch(0.978 0.005 248);
-  --card-muted-border: oklch(0.92 0.01 256 / 70%);
+  --card-elevated-border: oklch(0.92 0.01 250);
+  --card-muted: oklch(0.985 0.003 250);
+  --card-muted-border: oklch(0.94 0.008 250 / 70%);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --popover-foreground: oklch(0.22 0.03 265);
 
-  --accent-teal: var(--chart-2);
-  --accent-amber: var(--chart-4);
+  /* Cornflower blue primary */
+  --primary: oklch(0.62 0.16 260);
+  --primary-foreground: oklch(0.99 0.003 250);
+
+  --secondary: oklch(0.96 0.012 250);
+  --secondary-foreground: oklch(0.28 0.04 265);
+  --muted: oklch(0.955 0.008 250);
+  --muted-foreground: oklch(0.52 0.03 260);
+  --accent: oklch(0.955 0.02 250);
+  --accent-foreground: oklch(0.28 0.04 265);
+  --destructive: oklch(0.58 0.2 25);
+  --border: oklch(0.93 0.01 250);
+  --input: oklch(0.93 0.01 250);
+  --ring: oklch(0.62 0.16 260);
+
+  /* Semantic palette — blue, seafoam, coral */
+  --chart-1: oklch(0.62 0.16 260);
+  --chart-2: oklch(0.68 0.09 175);
+  --chart-3: oklch(0.55 0.12 250);
+  --chart-4: oklch(0.78 0.12 55);
+  --chart-5: oklch(0.72 0.1 45);
+
+  --accent-blue: var(--chart-1);
+  --accent-green: var(--chart-2);
+  --accent-orange: var(--chart-4);
+  --accent-teal: var(--accent-green);
+  --accent-amber: var(--accent-orange);
   --accent-risk: var(--destructive);
-  --surface-hero-bg: color-mix(in oklch, var(--accent-teal) 14%, var(--card-elevated));
-  --surface-hero-gradient: linear-gradient(
-    160deg,
-    color-mix(in oklch, var(--accent-teal) 22%, transparent) 0%,
-    var(--surface-hero-bg) 48%,
-    var(--card-elevated) 100%
-  );
-  --surface-hero-border: color-mix(in oklch, var(--accent-teal) 35%, var(--card-elevated-border));
-  --surface-primary-bg: color-mix(in oklch, var(--accent-teal) 10%, var(--card));
-  --surface-primary-border: color-mix(in oklch, var(--accent-teal) 28%, var(--border));
-  --accent-secondary-edge: color-mix(in oklch, var(--accent-amber) 55%, var(--border));
-  --accent-outflow-edge: color-mix(in oklch, var(--accent-risk) 50%, var(--border));
 
-  --sidebar: var(--background);
+  --shadow-soft: 0 4px 20px -6px oklch(0.25 0.04 265 / 8%);
+  --shadow-card: 0 8px 28px -10px oklch(0.25 0.04 265 / 10%);
+  --shadow-fab: 0 8px 24px -4px oklch(0.62 0.16 260 / 45%);
+
+  /* Hero — solid seafoam (assets / summary) */
+  --surface-hero-bg: var(--accent-green);
+  --surface-hero-fg: oklch(0.99 0.005 180);
+  --surface-hero-muted: oklch(0.99 0.01 180 / 75%);
+  --surface-hero-gradient: linear-gradient(
+    145deg,
+    color-mix(in oklch, var(--accent-green) 88%, white) 0%,
+    var(--accent-green) 55%,
+    color-mix(in oklch, var(--accent-green) 92%, black) 100%
+  );
+  --surface-hero-border: transparent;
+
+  /* Primary tier — soft blue wash */
+  --surface-primary-bg: color-mix(in oklch, var(--accent-blue) 12%, white);
+  --surface-primary-border: transparent;
+  --surface-primary-fg: var(--foreground);
+
+  /* Secondary — white cards with orange accent icon wells */
+  --surface-secondary-icon: color-mix(in oklch, var(--accent-orange) 18%, white);
+  --accent-secondary-edge: var(--accent-orange);
+
+  /* Outflow — white cards with coral accent */
+  --surface-outflow-icon: color-mix(in oklch, var(--accent-orange) 22%, white);
+  --accent-outflow-edge: color-mix(in oklch, var(--destructive) 70%, var(--accent-orange));
+
+  --sidebar: oklch(1 0 0);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
+  --sidebar-accent: oklch(0.96 0.02 255);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: oklch(0.94 0.01 250);
   --sidebar-ring: var(--ring);
 }
 
@@ -71,8 +97,8 @@
   --card-muted-border: oklch(1 0 0 / 8%);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
+  --primary: oklch(0.68 0.14 260);
+  --primary-foreground: oklch(0.99 0.003 250);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
   --muted: oklch(0.279 0.041 260.031);
@@ -82,25 +108,40 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
+  --ring: oklch(0.62 0.14 260);
+  --chart-1: oklch(0.68 0.14 260);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-4: oklch(0.72 0.12 55);
   --chart-5: oklch(0.645 0.246 16.439);
 
-  --surface-hero-bg: color-mix(in oklch, var(--accent-teal) 18%, var(--card-elevated));
+  --shadow-soft: 0 4px 20px -6px oklch(0 0 0 / 35%);
+  --shadow-card: 0 8px 28px -10px oklch(0 0 0 / 45%);
+  --shadow-fab: 0 8px 24px -4px oklch(0.62 0.16 260 / 55%);
+
+  --surface-hero-bg: color-mix(in oklch, var(--accent-green) 35%, var(--card-elevated));
+  --surface-hero-fg: oklch(0.96 0.01 180);
+  --surface-hero-muted: oklch(0.96 0.01 180 / 65%);
   --surface-hero-gradient: linear-gradient(
-    160deg,
-    color-mix(in oklch, var(--accent-teal) 28%, transparent) 0%,
-    var(--surface-hero-bg) 45%,
-    var(--card-elevated) 100%
+    145deg,
+    color-mix(in oklch, var(--accent-green) 40%, var(--card-elevated)) 0%,
+    var(--surface-hero-bg) 100%
   );
-  --surface-hero-border: color-mix(in oklch, var(--accent-teal) 42%, var(--card-elevated-border));
-  --surface-primary-bg: color-mix(in oklch, var(--accent-teal) 14%, var(--card));
-  --surface-primary-border: color-mix(in oklch, var(--accent-teal) 32%, var(--border));
-  --accent-secondary-edge: color-mix(in oklch, var(--accent-amber) 58%, var(--border));
-  --accent-outflow-edge: color-mix(in oklch, var(--accent-risk) 55%, var(--border));
+  --surface-hero-border: color-mix(in oklch, var(--accent-green) 30%, transparent);
+  --surface-primary-bg: color-mix(in oklch, var(--accent-blue) 18%, var(--card));
+  --surface-primary-border: transparent;
+  --surface-primary-fg: var(--foreground);
+  --surface-secondary-icon: color-mix(in oklch, var(--accent-orange) 22%, var(--card));
+  --surface-outflow-icon: color-mix(in oklch, var(--destructive) 18%, var(--card));
+
+  --sidebar: oklch(0.14 0.036 259);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: oklch(0.22 0.04 259);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: var(--ring);
 }
 
 @theme inline {
@@ -111,6 +152,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -150,7 +193,6 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    /* Hide scrollbars globally; scrolling still works (touch, wheel, keys). */
     scrollbar-width: none;
   }
   *::-webkit-scrollbar {
@@ -186,50 +228,76 @@
 }
 
 /**
- * Card tiers — purposeful hierarchy (use via `<Card variant="…">`):
+ * Card tiers — friendly rounded surfaces (use via `<Card variant="…">`):
  *
- * hero     — page-level KPI: soft teal fill + shadow (max 1–2 per viewport)
- * primary  — key section/metric: light fill only, no loud gradient
- * secondary— supporting: neutral surface + amber left edge (no fill wash)
- * outflow  — costs/debt: neutral surface + red left edge (no fill wash)
- * quiet    — tables/lists: muted flat surface, minimal chrome
- * default  — neutral panel
+ * hero     — seafoam KPI block with white type
+ * primary  — soft blue wash for key metrics
+ * secondary— white card + warm accent icon well
+ * outflow  — white card + coral/debt accent
+ * quiet    — flat muted list surface
+ * default  — white floating panel
  */
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+@utility section-label {
+  @apply text-sm font-semibold text-foreground;
+}
+
+@utility icon-well {
+  @apply inline-flex size-9 shrink-0 items-center justify-center rounded-xl;
+}
+
 @utility card-hero {
   background-color: var(--surface-hero-bg);
   background-image: var(--surface-hero-gradient);
   border-color: var(--surface-hero-border);
-  box-shadow:
-    0 1px 2px 0 oklch(0 0 0 / 5%),
-    0 8px 24px -10px color-mix(in oklch, var(--accent-teal) 22%, transparent);
+  color: var(--surface-hero-fg);
+  box-shadow: var(--shadow-card);
+}
+
+@utility card-hero-blue {
+  background-color: var(--accent-blue);
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in oklch, var(--accent-blue) 88%, white) 0%,
+    var(--accent-blue) 55%,
+    color-mix(in oklch, var(--accent-blue) 92%, black) 100%
+  );
+  border-color: transparent;
+  color: var(--surface-hero-fg);
+  box-shadow: var(--shadow-card);
 }
 
 @utility card-primary {
   background-color: var(--surface-primary-bg);
   background-image: none;
   border-color: var(--surface-primary-border);
-  box-shadow: 0 1px 2px 0 oklch(0 0 0 / 4%);
+  box-shadow: var(--shadow-soft);
 }
 
 @utility card-secondary {
   background-color: var(--card);
   background-image: none;
-  border-color: var(--border);
-  border-left-width: 3px;
-  border-left-color: var(--accent-secondary-edge);
+  border-color: transparent;
+  box-shadow: var(--shadow-soft);
 }
 
 @utility card-outflow {
   background-color: var(--card);
   background-image: none;
-  border-color: var(--border);
-  border-left-width: 3px;
-  border-left-color: var(--accent-outflow-edge);
+  border-color: transparent;
+  box-shadow: var(--shadow-soft);
 }
 
 @utility card-quiet {
   background-color: var(--card-muted);
-  border-color: var(--card-muted-border);
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -250,7 +318,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* One-shot "pop" used when a nav item becomes the active route. */
 @keyframes nav-pop {
   0% {
     transform: scale(1);
@@ -263,38 +330,12 @@
   }
 }
 
-@keyframes nav-pop-rest {
-  from {
-    transform: scale(1.1);
-  }
-  to {
-    transform: scale(1.1);
-  }
-}
-
 @utility animate-nav-pop {
   animation: nav-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-/* Subtle slide-in indicator bar for the active desktop sidebar row. */
-@keyframes nav-rail-in {
-  from {
-    transform: scaleY(0.4);
-    opacity: 0;
-  }
-  to {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-}
-
-@utility animate-nav-rail-in {
-  animation: nav-rail-in 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .animate-nav-pop,
-  .animate-nav-rail-in {
+  .animate-nav-pop {
     animation: none;
   }
 }

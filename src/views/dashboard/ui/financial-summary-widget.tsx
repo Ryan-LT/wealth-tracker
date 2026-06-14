@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatVnd } from "@/shared/lib";
 
@@ -21,7 +20,7 @@ export function FinancialSummaryWidget({
   return (
     <Card variant="hero" className="h-full">
       <CardHeader>
-        <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+        <CardTitle className="text-sm font-medium text-[var(--surface-hero-muted)]">
           Financial summary
         </CardTitle>
       </CardHeader>
@@ -36,7 +35,7 @@ export function FinancialSummaryWidget({
           value={formatVnd(portfolioDetailTotal)}
           loading={loading}
         />
-        <Separator />
+        <div className="my-1 h-px bg-[var(--surface-hero-muted)]/25" />
         <Row label="Total assets" value={formatVnd(totalAssets)} emphasized loading={loading} />
         <Row
           label="Liabilities"
@@ -64,14 +63,20 @@ function Row({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 leading-5">
-      <span className={emphasized ? "font-medium text-foreground" : "text-muted-foreground"}>
+      <span
+        className={
+          emphasized
+            ? "font-medium text-[var(--surface-hero-fg)]"
+            : "text-[var(--surface-hero-muted)]"
+        }
+      >
         {label}
       </span>
       <span
         className={[
           "font-data-tabular tabular-nums shrink-0",
-          emphasized ? "font-semibold text-foreground" : "font-medium",
-          destructive ? "text-destructive" : "",
+          emphasized ? "font-semibold text-[var(--surface-hero-fg)]" : "font-medium",
+          destructive ? "text-white/90" : "text-[var(--surface-hero-fg)]",
         ].join(" ")}
       >
         {loading ? <Skeleton className="h-4 w-24 inline-block align-middle" /> : value}

@@ -78,7 +78,7 @@ export function PrimaryGoalCard({
   return (
     <Card variant="secondary" className="flex h-full flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 gap-2 pb-3">
-        <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
           {cardLabel}
         </CardTitle>
         {loading ? (
@@ -86,7 +86,7 @@ export function PrimaryGoalCard({
         ) : (
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide",
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold",
               feasibilityChipClass(pulse.tone),
             )}
             title={pulse.hint}

@@ -72,21 +72,22 @@ function feasibilityIcon(tone: GoalFeasibilityTone): string {
   }
 }
 
-function feasibilityChipClass(tone: GoalFeasibilityTone): string {
+/** Chips on heroBlue cards — high contrast on blue gradient in light and dark themes. */
+function heroFeasibilityChipClass(tone: GoalFeasibilityTone): string {
   switch (tone) {
     case "achieved":
     case "on_track":
-      return "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+      return "border-white/40 bg-white/20 text-white";
     case "steady":
-      return "border-border bg-muted text-muted-foreground";
+      return "border-white/30 bg-white/12 text-white/95";
     case "watch":
-      return "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+      return "border-amber-200/50 bg-amber-100/25 text-amber-50";
     case "tight":
-      return "border-orange-600/40 bg-orange-500/10 text-orange-700 dark:text-orange-300";
+      return "border-orange-200/50 bg-orange-100/25 text-orange-50";
     case "at_risk":
-      return "border-destructive/40 bg-destructive/10 text-destructive";
+      return "border-red-200/50 bg-red-100/25 text-red-50";
     default:
-      return "border-border bg-muted text-muted-foreground";
+      return "border-white/30 bg-white/12 text-white/90";
   }
 }
 
@@ -120,7 +121,7 @@ function Chip({
       title={title}
       className={cn(
         "inline-flex max-w-[min(100%,14rem)] flex-col items-end gap-0.5 rounded-lg border px-3 py-1.5 text-end",
-        feasibilityChipClass(tone),
+        heroFeasibilityChipClass(tone),
       )}
     >
       <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide">

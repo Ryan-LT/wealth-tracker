@@ -22,6 +22,10 @@ import {
 
 import { totalCombinedAssetValue } from "@/views/dashboard/lib/total-combined-asset-value";
 import {
+  buildAllocationReport,
+  normalizeProfilesForAllocationReport,
+} from "@/views/allocations/lib/compute-cross-goal-allocations";
+import {
   ASSETS_SEED,
   DEBTS_SEED,
   GOALS_SEED,
@@ -34,6 +38,7 @@ import {
   useTable,
 } from "@/shared/storage";
 
+import { DashboardAtAGlance } from "./dashboard-at-a-glance";
 import { FinancialSummaryWidget } from "./financial-summary-widget";
 import { MetricGrid } from "./metric-grid";
 import { MillionBy35Card } from "./million-by-35-card";
@@ -44,7 +49,7 @@ export function DashboardPage() {
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts] = useTable("debts", DEBTS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
-  const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [incomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [goals] = useTable("goals", GOALS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
@@ -63,18 +68,18 @@ export function DashboardPage() {
     const grossAssets = totalCombinedAssetValue(assets, settingsAssets);
     const liabilities = totalDebtBalance(debts);
     const nw = grossAssets - liabilities;
-    const incomeTotal = totalMonthlyIncomeFromSources(sources);
+    const incomeTotal = totalMonthlyIncomeFromSources(incomeSources);
     return {
       totalAssets: grossAssets,
       totalNetWorth: nw,
-      activeIncome: monthlyIncomeByKind(sources, "active"),
-      passiveIncome: monthlyIncomeByKind(sources, "passive"),
+      activeIncome: monthlyIncomeByKind(incomeSources, "active"),
+      passiveIncome: monthlyIncomeByKind(incomeSources, "passive"),
       totalDebt: -liabilities,
       eoyProjection: projectNetWorthEndOfYear(nw, prefs, incomeTotal),
       monthlyNet: estimatedMonthlyNetCashflow(prefs, incomeTotal),
       averageSpending: resolveAverageMonthlySpending(prefs),
     };
-  }, [assets, debts, sources, prefs, settingsAssets]);
+  }, [assets, debts, incomeSources, prefs, settingsAssets]);
 
   const financialBreakdown = useMemo(() => {
     const portfolioDetailTotal = totalAssetValue(assets);
@@ -93,6 +98,20 @@ export function DashboardPage() {
     () => buildGoalStartingOptions(assets, settingsAssets),
     [assets, settingsAssets],
   );
+
+  const instantPoolLeft = useMemo(() => {
+    const seedKeySet = new Set(seedOptions.map((o) => o.key));
+    const normalizedProfiles = normalizeProfilesForAllocationReport(
+      goals.profiles,
+      seedKeySet,
+    );
+    return buildAllocationReport(
+      normalizedProfiles,
+      seedOptions,
+      settingsAssets,
+      incomeSources,
+    ).totals.instantRemainingPool;
+  }, [goals.profiles, seedOptions, settingsAssets, incomeSources]);
 
   const primaryProfile = goalProfileForDashboard(goals);
 
@@ -159,20 +178,24 @@ export function DashboardPage() {
       </Header>
 
       <Main>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <FinancialSummaryWidget
-            totalAssets={financialBreakdown.totalAssets}
-            totalLiabilities={financialBreakdown.totalLiabilities}
-            portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
-            assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
-            loading={!hydrated}
+        <section>
+          <h2 className="section-label mb-3">At a glance</h2>
+          <DashboardAtAGlance
+            netWorth={summary.totalNetWorth}
+            instantPoolLeft={instantPoolLeft}
+            monthlyNet={summary.monthlyNet}
+            eoyProjection={summary.eoyProjection}
           />
+        </section>
+
+        <section className="mt-8">
+          <h2 className="section-label mb-3">Milestone</h2>
           <MillionBy35Card
             currentNetWorth={summary.totalNetWorth}
             monthlyNetContribution={summary.monthlyNet}
             loading={!hydrated}
           />
-        </div>
+        </section>
 
         <section className="mt-8">
           <h2 className="section-label mb-3">Goal plans</h2>
@@ -202,15 +225,24 @@ export function DashboardPage() {
           </div>
         </section>
 
+        <section className="mt-8">
+          <h2 className="section-label mb-3">Position</h2>
+          <FinancialSummaryWidget
+            totalAssets={financialBreakdown.totalAssets}
+            totalLiabilities={financialBreakdown.totalLiabilities}
+            portfolioDetailTotal={financialBreakdown.portfolioDetailTotal}
+            assetConfigurationTotal={financialBreakdown.assetConfigurationTotal}
+            loading={!hydrated}
+          />
+        </section>
+
         <section className="mt-8 min-w-0">
+          <h2 className="section-label mb-3">Cashflow & obligations</h2>
           <MetricGrid
-            totalAssets={summary.totalAssets}
             activeIncome={summary.activeIncome}
             passiveIncome={summary.passiveIncome}
             averageMonthlySpending={summary.averageSpending}
-            monthlyNetSavings={summary.monthlyNet}
             totalDebt={summary.totalDebt}
-            eoyProjection={summary.eoyProjection}
             loading={!hydrated}
           />
         </section>

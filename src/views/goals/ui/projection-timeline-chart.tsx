@@ -17,7 +17,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   cumulativeDueScheduleFromCheckpoints,
-  formatThousands,
   formatVnd,
 } from "@/shared/lib";
 import type { GoalCheckpoint } from "@/shared/storage";
@@ -74,6 +73,16 @@ function formatXAxisLabel(d: Date): string {
     return d.toLocaleString(undefined, { month: "short", year: "numeric" });
   }
   return formatChartAxisDate(d);
+}
+
+/** Compact axis labels so large VND values fit on narrow viewports. */
+function formatYAxisAmount(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  if (value === 0) return "0";
+  return new Intl.NumberFormat(undefined, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
 function fractionalMonthsBetween(anchor: Date, end: Date): number {
@@ -363,7 +372,7 @@ export function ProjectionTimelineChart({
             Target: {formatVnd(targetAmount)}
           </span>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={rows} margin={{ top: 16, right: 20, bottom: 8, left: 8 }}>
+            <LineChart data={rows} margin={{ top: 16, right: 20, bottom: 8, left: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="label"
@@ -375,8 +384,9 @@ export function ProjectionTimelineChart({
               <YAxis
                 stroke="var(--muted-foreground)"
                 fontSize={11}
-                tickFormatter={(v) => formatThousands(Number(v))}
-                width={64}
+                tickFormatter={(v) => formatYAxisAmount(Number(v))}
+                width={44}
+                tickMargin={4}
               />
               <Tooltip
                 contentStyle={{

@@ -3,6 +3,8 @@ import type { GoalStartingOption } from "@/shared/lib";
 import {
   liveBalanceForSourceKey,
   maxAllocationForSourceKey,
+  migrateLegacySeedsToLines,
+  sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
 } from "@/shared/lib";
 import {
@@ -91,6 +93,21 @@ function storedForIncome(source: IncomeSource, sourceKey: string): number {
   return (source.capitalLines ?? [])
     .filter((l) => l.sourceKey === sourceKey)
     .reduce((s, l) => s + Math.max(0, l.amount), 0);
+}
+
+export function normalizeProfilesForAllocationReport(
+  profiles: GoalProfile[],
+  seedKeys: Set<string>,
+): GoalProfile[] {
+  return profiles
+    .filter((p) => p.id)
+    .map((p) => ({
+      ...p,
+      seedLines: sanitizeSeedLinesAgainstOptions(
+        migrateLegacySeedsToLines(p),
+        seedKeys,
+      ),
+    }));
 }
 
 export function buildAllocationReport(

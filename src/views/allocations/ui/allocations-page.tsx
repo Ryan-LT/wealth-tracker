@@ -22,8 +22,6 @@ import { AssetCategoryBadge } from "@/shared/ui";
 import {
   buildGoalStartingOptions,
   formatVnd,
-  migrateLegacySeedsToLines,
-  sanitizeSeedLinesAgainstOptions,
   estimatedMonthlyNetCashflow,
   resolveAverageMonthlySpending,
   totalMonthlyIncomeFromSources,
@@ -36,13 +34,13 @@ import {
   SETTINGS_ASSETS_SEED,
   type AllocationsBandFilter,
   type AssetsState,
-  type GoalProfile,
   useHydrated,
   useTable,
 } from "@/shared/storage";
 
 import {
   buildAllocationReport,
+  normalizeProfilesForAllocationReport,
   type AllocationSourceRow,
   type LiquidityBand,
 } from "@/views/allocations/lib/compute-cross-goal-allocations";
@@ -125,21 +123,6 @@ function MatrixSortTh({
       </button>
     </TableHead>
   );
-}
-
-function normalizeForReport(
-  profiles: GoalProfile[],
-  seedKeys: Set<string>,
-): GoalProfile[] {
-  return profiles
-    .filter((p) => p.id)
-    .map((p) => ({
-      ...p,
-      seedLines: sanitizeSeedLinesAgainstOptions(
-        migrateLegacySeedsToLines(p),
-        seedKeys,
-      ),
-    }));
 }
 
 function SourceCard({
@@ -259,7 +242,7 @@ export function AllocationsPage() {
     [seedOptions],
   );
   const normalizedProfiles = useMemo(
-    () => normalizeForReport(goals.profiles, seedKeySet),
+    () => normalizeProfilesForAllocationReport(goals.profiles, seedKeySet),
     [goals.profiles, seedKeySet],
   );
   const report = useMemo(

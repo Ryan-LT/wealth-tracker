@@ -1,8 +1,10 @@
 export {
+  backgroundRefetchTables,
   flushTablesNow,
   readTable,
   refetchTables,
   writeTable,
+  useInitialLoadDone,
   useTable,
   useHydrated,
 } from "./store";

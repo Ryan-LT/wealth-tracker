@@ -24,6 +24,7 @@ let hydratePromise: Promise<void> | null = null;
 let syncInFlight: Promise<void> | null = null;
 let localCacheLoaded = false;
 let lastSyncedAt: number | null = null;
+let initialLoadDone = false;
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof window.fetch !== "undefined";
@@ -115,10 +116,12 @@ function syncFromServer(): Promise<void> {
       }
       hydrateState = "ok";
       lastSyncedAt = Date.now();
+      initialLoadDone = true;
       persistLocalCache();
     } catch {
       if (valueCache.size > 0) {
         hydrateState = "ok";
+        initialLoadDone = true;
       } else if (hydrateState === "pending") {
         hydrateState = "error";
       }
@@ -296,7 +299,7 @@ export function useLastSyncedAt(): number | null {
 
 /**
  * Force a re-fetch from Neon. Resets hydration until the request finishes so the
- * shell can show a loading screen. Safe to call on every foreground resume.
+ * shell can show a loading screen. Use only for the initial bootstrap.
  */
 export function refetchTables(): Promise<void> {
   if (!isBrowser()) {
@@ -307,4 +310,26 @@ export function refetchTables(): Promise<void> {
   syncInFlight = null;
   notify();
   return syncFromServer();
+}
+
+/**
+ * Re-fetch from Neon without resetting hydration — keeps the UI visible while
+ * syncing in the background (e.g. PWA foreground resume).
+ */
+export function backgroundRefetchTables(): Promise<void> {
+  if (!isBrowser()) {
+    return Promise.resolve();
+  }
+  hydratePromise = null;
+  syncInFlight = null;
+  return syncFromServer();
+}
+
+/** `true` after the first successful hydrate (network or local cache fallback). */
+export function useInitialLoadDone(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => initialLoadDone,
+    () => false,
+  );
 }

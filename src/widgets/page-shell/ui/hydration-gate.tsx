@@ -4,7 +4,12 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { checkForServiceWorkerUpdate } from "@/components/sw-register";
 import { onAppForeground } from "@/shared/lib/app-foreground";
-import { refetchTables, useHydrated } from "@/shared/storage";
+import {
+  backgroundRefetchTables,
+  refetchTables,
+  useHydrated,
+  useInitialLoadDone,
+} from "@/shared/storage";
 
 import { AppLoadingScreen } from "./app-loading-screen";
 
@@ -12,35 +17,50 @@ function runBootstrap(): Promise<void> {
   return Promise.all([refetchTables(), checkForServiceWorkerUpdate()]).then(() => undefined);
 }
 
+function runBackgroundSync(): Promise<void> {
+  return Promise.all([backgroundRefetchTables(), checkForServiceWorkerUpdate()]).then(
+    () => undefined,
+  );
+}
+
 /**
  * Blocks the shell until the latest service worker (if any) and Neon tables
- * have been fetched for this open. Shows a full-screen loader during sync and
- * again when the PWA returns to the foreground.
+ * have been fetched for this open. Shows a full-screen loader only on the
+ * first sync; subsequent foreground resumes sync in the background.
  */
 export function HydrationGate({ children }: { children: ReactNode }) {
   const hydrated = useHydrated();
-  const [swChecked, setSwChecked] = useState(false);
+  const initialLoadDone = useInitialLoadDone();
+  const [bootstrapPending, setBootstrapPending] = useState(!initialLoadDone);
 
   useEffect(() => {
+    if (initialLoadDone) {
+      return;
+    }
+
     let cancelled = false;
 
     void runBootstrap().finally(() => {
-      if (!cancelled) setSwChecked(true);
+      if (!cancelled) setBootstrapPending(false);
     });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialLoadDone]);
 
   useEffect(() => {
     return onAppForeground(() => {
-      setSwChecked(false);
-      void runBootstrap().finally(() => setSwChecked(true));
+      if (initialLoadDone) {
+        void runBackgroundSync();
+      } else {
+        setBootstrapPending(true);
+        void runBootstrap().finally(() => setBootstrapPending(false));
+      }
     });
-  }, []);
+  }, [initialLoadDone]);
 
-  if (!swChecked || !hydrated) {
+  if (!initialLoadDone && (bootstrapPending || !hydrated)) {
     return <AppLoadingScreen />;
   }
 

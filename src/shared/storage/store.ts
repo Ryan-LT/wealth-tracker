@@ -18,7 +18,7 @@ const valueCache = new Map<string, unknown>();
 const dirty = new Set<string>();
 
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
-let flushInFlight: Promise<void> | null = null;
+let flushInFlight: Promise<boolean> | null = null;
 let hydrateState: "pending" | "ok" | "error" = "pending";
 let hydratePromise: Promise<void> | null = null;
 let syncInFlight: Promise<void> | null = null;
@@ -161,9 +161,10 @@ function scheduleFlush(): void {
   }, 400);
 }
 
-async function flushDirty(): Promise<void> {
+/** Resolves `true` when the attempted keys were persisted. */
+async function flushDirty(): Promise<boolean> {
   if (dirty.size === 0) {
-    return;
+    return true;
   }
   if (flushInFlight) {
     return flushInFlight;
@@ -190,9 +191,11 @@ async function flushDirty(): Promise<void> {
       for (const k of keysToFlush) {
         dirty.delete(k);
       }
+      return true;
     } catch (e) {
       console.error("[wealthtracker] persist to Neon failed", e);
       scheduleFlush();
+      return false;
     } finally {
       flushInFlight = null;
       if (dirty.size > 0) {
@@ -204,16 +207,22 @@ async function flushDirty(): Promise<void> {
   return flushInFlight;
 }
 
-/** Wait for any pending debounced writes to reach the server. */
-export async function flushTablesNow(): Promise<void> {
-  if (!isBrowser()) return;
+/**
+ * Wait for pending debounced writes to reach the server. Resolves `false` (instead
+ * of retrying forever) when a write fails, e.g. offline; the regular debounced
+ * retry keeps going in the background.
+ */
+export async function flushTablesNow(): Promise<boolean> {
+  if (!isBrowser()) return true;
   if (flushTimer) {
     clearTimeout(flushTimer);
     flushTimer = null;
   }
   while (dirty.size > 0) {
-    await flushDirty();
+    const ok = await flushDirty();
+    if (!ok) return false;
   }
+  return true;
 }
 
 function readSnapshot<T>(name: string, seed: T): T {

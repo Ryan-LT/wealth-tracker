@@ -1,5 +1,7 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from "serwist";
+
+import { SHELL_ROUTES } from "./sw-routes";
 import {
   ExpirationPlugin,
   NetworkFirst,
@@ -17,7 +19,6 @@ declare const self: ServiceWorkerGlobalScope;
 
 const NAV_CACHE = "wealthtracker-pages";
 const OFFLINE_URL = "/offline";
-const SHELL_ROUTES = ["/", "/loans", "/goals", "/allocations", "/settings"];
 
 /**
  * Prefer the network for API reads so each app open gets fresh data; fall back
@@ -111,7 +112,13 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(NAV_CACHE);
-      await Promise.allSettled(SHELL_ROUTES.map((url) => cache.add(url)));
+      await Promise.allSettled(
+        SHELL_ROUTES.map(async (url) => {
+          const res = await fetch(url, { credentials: "same-origin", cache: "reload" });
+          // Never cache a login redirect (signed-out install) as the page itself.
+          if (res.ok && !res.redirected) await cache.put(url, res);
+        }),
+      );
     })(),
   );
 });

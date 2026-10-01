@@ -1,36 +1,17 @@
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 
-import { OfflineBanner } from "@/components/offline-banner";
-import { SidebarInset, SidebarProvider } from "@/shared/ui/kit/sidebar";
-import { cn } from "@/shared/lib";
-import { AppSidebar, LayoutProvider } from "@/widgets/app-sidebar";
-import { MobileBottomNav } from "@/widgets/mobile-bottom-nav";
-import { HydrationGate } from "@/widgets/page-shell";
+import { isAuthEnvConfigured } from "@/shared/api/auth-session";
+import { AppShell } from "@/widgets/app-shell";
 
 export default async function ShellLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
+  const defaultSidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
+  const userName = process.env.AUTH_USERNAME?.trim() || "Owner";
 
   return (
-    <LayoutProvider>
-      <HydrationGate>
-        <SidebarProvider defaultOpen={defaultOpen}>
-          <AppSidebar />
-          <SidebarInset
-            className={cn(
-              "@container/content",
-              "has-data-[layout=fixed]:h-svh",
-              "peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
-              "pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-0",
-            )}
-          >
-            <OfflineBanner />
-            {children}
-          </SidebarInset>
-          <MobileBottomNav />
-        </SidebarProvider>
-      </HydrationGate>
-    </LayoutProvider>
+    <AppShell defaultSidebarOpen={defaultSidebarOpen} userName={userName} authEnabled={isAuthEnvConfigured()}>
+      {children}
+    </AppShell>
   );
 }

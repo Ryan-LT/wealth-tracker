@@ -2,57 +2,52 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-import { ServiceWorkerRegistrar } from "@/components/sw-register";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ServiceWorkerRegistrar } from "@/app/_providers/sw-register";
+import { ThemeProvider } from "@/app/_providers/theme-provider";
 import { Toaster } from "@/shared/ui/kit/sonner";
+import { TooltipProvider } from "@/shared/ui/kit/tooltip";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Wealth Tracker",
-  description:
-    "Wealth Tracker — track net worth, assets, debts, income, and goals.",
+  title: { default: "Wealth Tracker", template: "%s · Wealth Tracker" },
+  description: "Track net worth, assets, debts, income and goal plans.",
   applicationName: "Wealth Tracker",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Wealth Tracker",
   },
-  formatDetection: {
-    telephone: false,
-  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#5d8bf4" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a1d2e" },
+    { media: "(prefers-color-scheme: light)", color: "#f9fafb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0e10" },
   ],
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
-      <body className="bg-background text-foreground min-h-svh">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster richColors closeButton />
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+          <Toaster
+            richColors
+            closeButton
+            position="bottom-right"
+            mobileOffset={{ bottom: "calc(4.75rem + env(safe-area-inset-bottom))" }}
+          />
         </ThemeProvider>
         <ServiceWorkerRegistrar />
       </body>

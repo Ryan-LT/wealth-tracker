@@ -1,135 +1,135 @@
 "use client";
 
-import { useMemo } from "react";
+import { CreditCard, Download, Landmark, LogOut, RefreshCw, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
-import { Header } from "@/widgets/page-header";
-import { Main } from "@/widgets/page-shell";
-import { ProfileDropdown } from "@/widgets/profile-menu";
-import { ThemeSwitch } from "@/widgets/theme-switch";
-import { Separator } from "@/shared/ui/kit/separator";
-import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
-import { mergeAssetCategoryOptions } from "@/entities/settings-asset";
-import { totalMonthlyIncomeFromSources } from "@/shared/lib";
-import {
-  DEBTS_SEED,
-  INCOME_SOURCES_SEED,
-  PREFERENCES_SEED,
-  SETTINGS_ASSETS_SEED,
-  useHydrated,
-  useTable,
-} from "@/shared/storage";
+import { useSignOut } from "@/features/sign-out";
+import { useSyncNow } from "@/features/sync-now";
+import { formatRelative, formatTime } from "@/shared/lib/format";
+import { useLastSyncedAt } from "@/shared/storage";
+import { Callout } from "@/shared/ui/callout";
+import { DescriptionList } from "@/shared/ui/description-list";
+import { Button } from "@/shared/ui/kit/button";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Section } from "@/shared/ui/section";
+import { SegmentedControl } from "@/shared/ui/segmented-control";
+import { StatusBadge } from "@/shared/ui/status-badge";
+import { PageContainer, useOnline, useShell } from "@/widgets/app-shell";
 
-import { AverageMonthlySpendingSection } from "./average-monthly-spending-section";
-import { AssetManagementTable } from "./asset-management-table";
-import { DebtsSection } from "./debts-section";
-import { IncomeSourcesGrid } from "./income-sources-grid";
+import { downloadBackup } from "../lib/export-backup";
+
+const THEMES = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+  { value: "system", label: "System" },
+] as const;
+
+type ThemeValue = (typeof THEMES)[number]["value"];
 
 export function SettingsPage() {
-  const hydrated = useHydrated();
-  const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
-  const [richAssets] = useTable<AssetsState>("assets", ASSETS_SEED);
-  const [debts, setDebts] = useTable("debts", DEBTS_SEED);
-  const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
-  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
-
-  const assetCategoryOptions = useMemo(
-    () => mergeAssetCategoryOptions(prefs, assets),
-    [prefs, assets],
-  );
-
-  const incomeMonthly = useMemo(
-    () => totalMonthlyIncomeFromSources(sources),
-    [sources],
-  );
-
-  function setAverageMonthlySpending(amount: number) {
-    const value = Math.max(0, Number.isFinite(amount) ? amount : 0);
-    setPrefs((p) => ({
-      ...p,
-      averageMonthlySpending: value,
-      // Clear legacy outflow so it does not override income − spending math.
-      monthOutflow: 0,
-    }));
-  }
+  const { theme, setTheme } = useTheme();
+  const { userName, authEnabled } = useShell();
+  const online = useOnline();
+  const lastSyncedAt = useLastSyncedAt();
+  const { syncNow, syncing } = useSyncNow();
+  const { signOut, pending } = useSignOut();
 
   return (
-    <>
-      <Header fixed>
-        <h1 className="text-xl font-bold tracking-tight md:text-2xl">
-          Asset configuration
-        </h1>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-full bg-card p-1 shadow-soft">
-            <ThemeSwitch />
-            <ProfileDropdown />
-          </div>
-        </div>
-      </Header>
+    <PageContainer className="max-w-3xl">
+      <PageHeader title="Settings" description="Appearance, data sync and your session." />
 
-      <Main>
-        <Separator className="my-4 hidden md:block" />
+      <Section title="Appearance" description="Choose how Wealth Tracker looks on this device.">
+        <SegmentedControl<ThemeValue>
+          aria-label="Theme"
+          value={(theme as ThemeValue) ?? "system"}
+          onValueChange={setTheme}
+          options={[...THEMES]}
+        />
+      </Section>
 
-        <div className="flex flex-col gap-7">
-          <AssetManagementTable
-            assets={assets}
-            categoryOptions={assetCategoryOptions}
-            onRegisterCustomCategory={(category) =>
-              setPrefs((p) => ({
-                ...p,
-                extraAssetCategories: [
-                  ...new Set([
-                    ...(p.extraAssetCategories ?? []),
-                    category.trim(),
-                  ]),
-                ],
-              }))
-            }
-            onDelete={(id) =>
-              setAssets((prev) => prev.filter((a) => a.id !== id))
-            }
-            onUpdate={(next) =>
-              setAssets((prev) =>
-                prev.map((a) => (a.id === next.id ? next : a)),
-              )
-            }
-            onAdd={(asset) => setAssets((prev) => [...prev, asset])}
-            onReorder={(ordered) => setAssets(() => ordered)}
-            loading={!hydrated}
-          />
-          <IncomeSourcesGrid
-            sources={sources}
-            assets={richAssets}
-            settingsAssets={assets}
-            onCreate={(source) => setSources((prev) => [...prev, source])}
-            onUpdate={(source) =>
-              setSources((prev) =>
-                prev.map((s) => (s.id === source.id ? source : s)),
-              )
-            }
-            onDelete={(id) =>
-              setSources((prev) => prev.filter((s) => s.id !== id))
-            }
-            loading={!hydrated}
-          />
-          <DebtsSection
-            debts={debts}
-            onAdd={(debt) => setDebts((prev) => [...prev, debt])}
-            onUpdate={(debt) =>
-              setDebts((prev) => prev.map((d) => (d.id === debt.id ? debt : d)))
-            }
-            onDelete={(id) =>
-              setDebts((prev) => prev.filter((d) => d.id !== id))
-            }
-            loading={!hydrated}
-          />
-          <AverageMonthlySpendingSection
-            prefs={prefs}
-            totalMonthlyIncome={incomeMonthly}
-            onSpendingChange={setAverageMonthlySpending}
-            loading={!hydrated}
-          />
-        </div>
-      </Main>
-    </>
+      <Section
+        title="Data & sync"
+        description="Your data lives in your Neon database and is cached on this device so the app works offline."
+        actions={
+          <Button variant="outline" size="sm" onClick={() => void syncNow()} disabled={syncing || !online}>
+            <RefreshCw className={syncing ? "animate-spin" : undefined} />
+            Sync now
+          </Button>
+        }
+      >
+        <DescriptionList
+          items={[
+            {
+              label: "Connection",
+              value: online ? <StatusBadge tone="success" dot>Online</StatusBadge> : <StatusBadge tone="warning" dot>Offline</StatusBadge>,
+            },
+            {
+              label: "Last synced",
+              value: lastSyncedAt ? (
+                <span title={new Date(lastSyncedAt).toLocaleString()}>
+                  {formatRelative(lastSyncedAt)} · {formatTime(lastSyncedAt)}
+                </span>
+              ) : (
+                "Not yet"
+              ),
+            },
+            {
+              label: "Backup",
+              hint: "Downloads every table as JSON (same shape as the API).",
+              value: (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    downloadBackup();
+                    toast.success("Backup downloaded");
+                  }}
+                >
+                  <Download />
+                  Export JSON
+                </Button>
+              ),
+            },
+          ]}
+        />
+      </Section>
+
+      <Section title="Session">
+        <DescriptionList
+          items={[
+            { label: "Signed in as", value: userName },
+            {
+              label: "Login",
+              value: authEnabled ? <StatusBadge tone="success" dot>Enabled</StatusBadge> : <StatusBadge dot>Disabled</StatusBadge>,
+              hint: authEnabled ? undefined : "Set AUTH_USERNAME, AUTH_PASSWORD and AUTH_SECRET on the server to require a login.",
+            },
+          ]}
+        />
+        {authEnabled ? (
+          <Button variant="outline" className="mt-4" onClick={() => void signOut()} disabled={pending}>
+            <LogOut />
+            Sign out
+          </Button>
+        ) : null}
+      </Section>
+
+      <Callout tone="info" title="Looking for asset, income or debt settings?">
+        They now have their own pages:{" "}
+        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/assets">
+          <Landmark className="size-3.5" /> Assets
+        </Link>
+        ,{" "}
+        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/income">
+          <TrendingUp className="size-3.5" /> Income &amp; spending
+        </Link>{" "}
+        and{" "}
+        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/debts">
+          <CreditCard className="size-3.5" /> Debts
+        </Link>
+        .
+      </Callout>
+    </PageContainer>
   );
 }

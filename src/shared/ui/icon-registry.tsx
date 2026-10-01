@@ -21,6 +21,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { createElement } from "react";
+
 import { cn } from "@/shared/lib/cn";
 
 /**
@@ -58,6 +60,5 @@ export const ICON_OPTIONS: { value: string; label: string; icon: LucideIcon }[] 
 );
 
 export function RegistryIcon({ name, className }: { name: string | undefined; className?: string }) {
-  const Icon = resolveIcon(name);
-  return <Icon className={cn("size-4 shrink-0", className)} aria-hidden />;
+  return createElement(resolveIcon(name), { className: cn("size-4 shrink-0", className), "aria-hidden": true });
 }

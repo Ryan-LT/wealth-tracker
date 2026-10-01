@@ -1,0 +1,59 @@
+"use client";
+
+import { ChevronRight, Search } from "lucide-react";
+import { usePathname } from "next/navigation";
+
+import { findNavItem } from "@/shared/config";
+import { Button } from "@/shared/ui/kit/button";
+import { Separator } from "@/shared/ui/kit/separator";
+import { SidebarTrigger } from "@/shared/ui/kit/sidebar";
+
+import { useShell } from "../model/shell-context";
+import { OfflineStrip } from "./offline-strip";
+import { ThemeToggle } from "./theme-toggle";
+
+export function TopBar() {
+  const pathname = usePathname() ?? "/";
+  const match = findNavItem(pathname);
+  const { setCommandOpen } = useShell();
+
+  return (
+    <header className="sticky top-0 z-30 shrink-0 border-b bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur-md supports-[backdrop-filter]:bg-background/75 md:rounded-t-xl">
+      <OfflineStrip />
+      <div className="flex h-14 items-center gap-2 px-3 md:px-4">
+        <SidebarTrigger className="size-9" />
+        <Separator orientation="vertical" className="mx-1 hidden data-[orientation=vertical]:h-5 md:block" />
+        <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
+          <ol className="flex min-w-0 items-center gap-1.5 text-sm">
+            {match ? (
+              <>
+                <li className="hidden text-muted-foreground md:block">{match.group.label}</li>
+                <li aria-hidden className="hidden text-muted-foreground md:block">
+                  <ChevronRight className="size-3.5" />
+                </li>
+                <li className="truncate font-semibold md:font-medium" aria-current="page">
+                  {match.item.label}
+                </li>
+              </>
+            ) : null}
+          </ol>
+        </nav>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            onClick={() => setCommandOpen(true)}
+            className="hidden h-8 w-56 justify-start gap-2 px-2.5 font-normal text-muted-foreground md:flex"
+          >
+            <Search />
+            Search or jump to…
+            <kbd className="ml-auto rounded border bg-muted px-1.5 text-xs font-medium text-muted-foreground">⌘K</kbd>
+          </Button>
+          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Search" onClick={() => setCommandOpen(true)}>
+            <Search />
+          </Button>
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+  );
+}

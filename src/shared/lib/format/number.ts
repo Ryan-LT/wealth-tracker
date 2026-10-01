@@ -19,8 +19,8 @@ export function formatNumber(
   const { maximumFractionDigits = 0, minimumFractionDigits = 0, signDisplay = "auto" } = opts;
   const abs = Math.abs(value);
   const fixed = abs.toFixed(maximumFractionDigits);
-  let [intPart, frac = ""] = fixed.split(".");
-  frac = frac.replace(/0+$/, "");
+  const [intPart, rawFrac = ""] = fixed.split(".");
+  let frac = rawFrac.replace(/0+$/, "");
   if (frac.length < minimumFractionDigits) frac = frac.padEnd(minimumFractionDigits, "0");
   const isZero = Number(fixed) === 0;
   const body = frac ? `${groupThousands(intPart)},${frac}` : groupThousands(intPart);

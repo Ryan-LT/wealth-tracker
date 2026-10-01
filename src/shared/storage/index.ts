@@ -5,6 +5,7 @@ export {
   refetchTables,
   writeTable,
   useInitialLoadDone,
+  useLastSyncedAt,
   useTable,
   useHydrated,
 } from "./store";

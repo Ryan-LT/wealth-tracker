@@ -1,3 +1,2 @@
-export { AppLoadingScreen } from "@/widgets/page-shell/ui/app-loading-screen";
+// Legacy page container for views not yet migrated to `PageContainer`.
 export { Main } from "@/widgets/page-shell/ui/main";
-export { HydrationGate } from "@/widgets/page-shell/ui/hydration-gate";

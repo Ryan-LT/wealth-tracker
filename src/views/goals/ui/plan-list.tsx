@@ -83,7 +83,7 @@ export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposing
                 <Progress value={r.pct} className="h-1" />
                 <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span className="truncate">
-                    <Money value={r.targetAmount} compact /> {r.targetDate ? `· ${formatDate(r.targetDate, "monthYear")}` : ""}
+                    <Money value={r.targetAmount} compact interactive={false} /> {r.targetDate ? `· ${formatDate(r.targetDate, "monthYear")}` : ""}
                   </span>
                   <FeasibilityBadge tone={r.health.tone} label={r.health.label} />
                 </div>

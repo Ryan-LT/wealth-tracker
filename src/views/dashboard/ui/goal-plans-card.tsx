@@ -71,15 +71,15 @@ export function GoalPlansCard({ plans, monthlyNet, onOpenPlan }: GoalPlansCardPr
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="min-w-0 truncate font-medium">{plan.name}</span>
-                    <FeasibilityBadge tone={health.tone} label={health.label} hint={health.hint} />
+                    <FeasibilityBadge tone={health.tone} label={health.label} hint={health.hint} interactive={false} />
                   </div>
                   <div className="flex items-center gap-3">
                     <Progress value={pct} className="flex-1" />
                     <span className="w-10 text-right text-xs font-medium tabular-nums">{pct}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    <Money value={plan.saved} compact className="font-medium text-foreground" /> {plan.savedCaption.toLowerCase()} of{" "}
-                    <Money value={plan.targetAmount} compact />
+                    <Money value={plan.saved} compact interactive={false} className="font-medium text-foreground" /> {plan.savedCaption.toLowerCase()} of{" "}
+                    <Money value={plan.targetAmount} compact interactive={false} />
                     {plan.targetDate ? ` · by ${formatDate(plan.targetDate)}` : ""}
                   </p>
                 </button>

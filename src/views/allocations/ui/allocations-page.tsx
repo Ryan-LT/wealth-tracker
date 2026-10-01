@@ -137,7 +137,10 @@ export function AllocationsPage() {
             aria-label="Liquidity filter"
             value={band}
             onValueChange={(v) => setPrefs((p) => ({ ...p, allocationsBandFilter: v }))}
-            options={ALLOCATIONS_BAND_FILTERS.map((o) => ({ ...o, label: o.value === "both" ? "All" : o.label }))}
+            options={ALLOCATIONS_BAND_FILTERS.map((o) => ({
+              ...o,
+              label: o.value === "both" ? "All" : o.value === "instant" ? "Instant" : "Not instant",
+            }))}
           />
         }
         flush

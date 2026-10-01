@@ -38,15 +38,21 @@ export function FeasibilityBadge({
   tone,
   label,
   hint,
+  interactive = true,
   className,
-}: Pick<GoalFeasibility, "tone" | "label"> & { hint?: string; className?: string }) {
+}: Pick<GoalFeasibility, "tone" | "label"> & {
+  hint?: string;
+  /** `false` inside clickable rows: the hint becomes a plain title (no nested focus target). */
+  interactive?: boolean;
+  className?: string;
+}) {
   const meta = feasibilityToneMeta(tone);
   const badge = (
-    <StatusBadge tone={meta.status} icon={meta.icon} className={className}>
+    <StatusBadge tone={meta.status} icon={meta.icon} className={className} title={interactive ? undefined : hint}>
       {label}
     </StatusBadge>
   );
-  if (!hint) return badge;
+  if (!hint || !interactive) return badge;
   return (
     <Tooltip>
       <TooltipTrigger asChild>

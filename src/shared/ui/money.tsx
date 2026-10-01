@@ -17,6 +17,11 @@ type MoneyProps = {
   /** `auto` colours positive green and negative red. */
   tone?: MoneyTone;
   strike?: boolean;
+  /**
+   * Compact values are a small button (hover tooltip, tap to expand). Pass `false`
+   * inside other interactive elements (clickable rows, links) to render plain text.
+   */
+  interactive?: boolean;
   className?: string;
 };
 
@@ -36,7 +41,7 @@ function toneClass(tone: MoneyTone, value: number): string | undefined {
 }
 
 /** Every VND amount in the UI goes through this component. */
-export function Money({ value, compact, signed, tone = "none", strike, className }: MoneyProps) {
+export function Money({ value, compact, signed, tone = "none", strike, interactive = true, className }: MoneyProps) {
   const signDisplay = signed ? "exceptZero" : "auto";
   const full = formatMoney(value, { signDisplay });
   const [expanded, setExpanded] = useState(false);
@@ -54,6 +59,15 @@ export function Money({ value, compact, signed, tone = "none", strike, className
   const short = formatMoneyCompact(value, { signDisplay });
   if (short === full) return <span className={classes}>{full}</span>;
 
+  if (!interactive) {
+    return (
+      <span className={classes} title={full}>
+        <span aria-hidden>{short}</span>
+        <span className="sr-only">{full}</span>
+      </span>
+    );
+  }
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -61,7 +75,7 @@ export function Money({ value, compact, signed, tone = "none", strike, className
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-label={full}
-          className={cn(classes, "cursor-help rounded-sm text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring")}
+          className={cn(classes, "relative z-[1] cursor-help rounded-sm text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring")}
         >
           {expanded ? full : short}
         </button>

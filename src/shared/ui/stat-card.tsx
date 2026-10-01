@@ -22,16 +22,26 @@ type StatCardProps = {
 
 /** KPI tile with a single fixed type scale. */
 export function StatCard({ label, value, icon: Icon, hint, aside, href, loading, className }: StatCardProps) {
-  const body = (
+  return (
     <Card
       className={cn(
-        "h-full gap-2 px-4 py-4",
-        href && "transition-colors hover:border-foreground/20 hover:bg-accent/30",
+        "relative h-full gap-2 px-4 py-4",
+        href && "transition-colors focus-within:border-ring hover:border-foreground/20 hover:bg-accent/30",
         className,
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="line-clamp-2 text-sm leading-snug font-medium text-muted-foreground">{label}</p>
+        {href ? (
+          // Stretched link: the whole card is clickable without nesting the value's button inside a link.
+          <Link
+            href={href}
+            className="line-clamp-2 text-sm leading-snug font-medium text-muted-foreground outline-none after:absolute after:inset-0 after:rounded-lg"
+          >
+            {label}
+          </Link>
+        ) : (
+          <p className="line-clamp-2 text-sm leading-snug font-medium text-muted-foreground">{label}</p>
+        )}
         {Icon ? <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden /> : null}
       </div>
       {/* Big standalone numbers use proportional figures (tabular only in columns). */}
@@ -39,18 +49,12 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
         {loading ? <Skeleton className="h-7 w-28" /> : value}
       </div>
       {hint || aside ? (
-        <div className="flex min-h-4 items-center justify-between gap-2 text-xs text-muted-foreground">
+        <div className="relative z-[1] flex min-h-4 items-center justify-between gap-2 text-xs text-muted-foreground">
           <span className="min-w-0 truncate">{hint}</span>
           {aside}
         </div>
       ) : null}
     </Card>
-  );
-  if (!href) return body;
-  return (
-    <Link href={href} className="block rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring">
-      {body}
-    </Link>
   );
 }
 

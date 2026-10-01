@@ -47,7 +47,10 @@ export function DebtsPage() {
     setDialog({ mode: "edit", debt: { ...debt } });
     setDialogOpen(true);
   };
-  useCreateParam(openCreate);
+  useCreateParam(openCreate, (id) => {
+    const d = debts.find((x) => x.id === id);
+    if (d) openEdit(d);
+  });
 
   const total = totalDebtBalance(debts);
   const variableTotal = debts.filter((d) => d.rateKind === "Variable").reduce((s, d) => s + d.balance, 0);

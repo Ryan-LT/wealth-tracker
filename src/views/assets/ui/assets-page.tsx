@@ -82,7 +82,10 @@ export function AssetsPage() {
     setDialog({ mode: "edit", asset: { ...asset } });
     setDialogOpen(true);
   }, []);
-  useCreateParam(openCreate);
+  useCreateParam(openCreate, (id) => {
+    const a = assets.find((x) => x.id === id);
+    if (a) openEdit(a);
+  });
 
   const reorder = useCallback(
     (activeId: string, overId: string) => {

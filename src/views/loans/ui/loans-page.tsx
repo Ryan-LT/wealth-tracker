@@ -66,7 +66,10 @@ export function LoansPage() {
     setDialog({ mode: "edit", loan: { ...loan } });
     setDialogOpen(true);
   }, []);
-  useCreateParam(openCreate);
+  useCreateParam(openCreate, (id) => {
+    const l = loans.find((x) => x.id === id);
+    if (l) openEdit(l);
+  });
 
   const toggle = useCallback(
     (loan: PersonalLoan) => {

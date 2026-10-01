@@ -75,7 +75,10 @@ export function IncomePage() {
     setDialog({ mode: "edit", source: { ...s, capitalLines: [...(s.capitalLines ?? [])] } });
     setDialogOpen(true);
   }, []);
-  useCreateParam(openCreate);
+  useCreateParam(openCreate, (id) => {
+    const s = sources.find((x) => x.id === id);
+    if (s) openEdit(s);
+  });
 
   const actionsFor = useCallback(
     (s: IncomeSource): RowAction[] => [

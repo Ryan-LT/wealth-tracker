@@ -12,8 +12,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+} from "@/shared/ui/kit/alert-dialog";
+import { Button } from "@/shared/ui/kit/button";
 import { cn } from "@/shared/lib";
 import { GOAL_PLAN_NEW_SENTINEL, type GoalProfile } from "@/shared/storage";
 

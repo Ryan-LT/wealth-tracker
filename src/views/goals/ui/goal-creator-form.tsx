@@ -13,13 +13,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/shared/ui/kit/alert-dialog";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { DatePicker } from "@/shared/ui/kit/date-picker";
+import { Input } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/kit/tabs";
 import { cn } from "@/shared/lib";
 import {
   effectiveGoalSeedLineAmount,

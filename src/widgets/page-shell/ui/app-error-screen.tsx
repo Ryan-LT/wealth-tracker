@@ -1,6 +1,6 @@
 import { CloudOff, RotateCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/kit/button";
 import { WealthTrackerLogo } from "@/shared/ui/wealth-tracker-logo";
 
 type AppErrorScreenProps = {

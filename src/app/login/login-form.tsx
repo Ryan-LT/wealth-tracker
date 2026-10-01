@@ -3,17 +3,17 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
+import { Button } from "@/shared/ui/kit/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/shared/ui/kit/card";
+import { Input } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
 import { WealthTrackerLogo } from "@/shared/ui";
 
 export function LoginForm() {

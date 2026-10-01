@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 
 import { OfflineBanner } from "@/components/offline-banner";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/shared/ui/kit/sidebar";
 import { cn } from "@/shared/lib";
 import { AppSidebar, LayoutProvider } from "@/widgets/app-sidebar";
 import { MobileBottomNav } from "@/widgets/mobile-bottom-nav";

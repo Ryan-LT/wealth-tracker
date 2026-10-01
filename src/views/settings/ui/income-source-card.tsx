@@ -2,9 +2,9 @@
 
 import { Pencil, Trash2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent } from "@/shared/ui/kit/card";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import { totalCapitalAmount, type IncomeSource } from "@/entities/income";
 import { formatThousands } from "@/shared/lib";
 import { Badge } from "@/shared/ui";

@@ -4,13 +4,13 @@ import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/kit/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/ui/kit/dropdown-menu";
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme();

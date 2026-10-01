@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { Progress } from "@/shared/ui/kit/progress";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import { cn } from "@/shared/lib";
 import { onAppForeground } from "@/shared/lib/app-foreground";
 import {

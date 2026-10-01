@@ -7,8 +7,8 @@ import { Header } from "@/widgets/page-header";
 import { Main } from "@/widgets/page-shell";
 import { ProfileDropdown } from "@/widgets/profile-menu";
 import { ThemeSwitch } from "@/widgets/theme-switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { Separator } from "@/shared/ui/kit/separator";
 import {
   buildGoalStartingOptions,
   clampSeedLinesToAllocationPool,

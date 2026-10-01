@@ -4,8 +4,8 @@ import { LogOut, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/shared/ui/kit/avatar";
+import { Button } from "@/shared/ui/kit/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/ui/kit/dropdown-menu";
 
 export function ProfileDropdown() {
   const router = useRouter();

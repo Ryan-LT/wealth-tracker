@@ -3,14 +3,14 @@
 import { ChevronDown, Coins, Plus, Trash2, Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/kit/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/shared/ui/kit/dialog";
 import { cn } from "@/shared/lib";
 import {
   appendGoalSeedLine,

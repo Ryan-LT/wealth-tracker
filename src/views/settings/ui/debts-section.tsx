@@ -12,26 +12,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/shared/ui/kit/alert-dialog";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/shared/ui/kit/dialog";
+import { Input } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/shared/ui/kit/select";
 import type { Debt } from "@/entities/debt";
 import { MoneyInput, PercentInput } from "@/shared/ui";
 

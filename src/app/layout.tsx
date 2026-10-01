@@ -4,7 +4,7 @@ import "./globals.css";
 
 import { ServiceWorkerRegistrar } from "@/components/sw-register";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/shared/ui/kit/sonner";
 
 const inter = Inter({
   variable: "--font-inter",

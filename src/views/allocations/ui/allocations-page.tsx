@@ -6,8 +6,8 @@ import { Header } from "@/widgets/page-header";
 import { Main } from "@/widgets/page-shell";
 import { ProfileDropdown } from "@/widgets/profile-menu";
 import { ThemeSwitch } from "@/widgets/theme-switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/kit/tabs";
 import {
   Table,
   TableBody,
@@ -15,8 +15,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/shared/ui/kit/table";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import { cn } from "@/shared/lib";
 import { AssetCategoryBadge } from "@/shared/ui";
 import {

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/shared/ui/kit/sidebar";
 import { cn } from "@/shared/lib";
 
 import { useFixedHeaderInset } from "./use-fixed-header-inset";

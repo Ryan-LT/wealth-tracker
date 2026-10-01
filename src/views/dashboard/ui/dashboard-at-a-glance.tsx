@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { cn, formatVnd } from "@/shared/lib";
 
 import { InstantPoolLeftCard } from "./instant-pool-left-card";

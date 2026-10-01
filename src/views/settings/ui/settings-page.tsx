@@ -6,7 +6,7 @@ import { Header } from "@/widgets/page-header";
 import { Main } from "@/widgets/page-shell";
 import { ProfileDropdown } from "@/widgets/profile-menu";
 import { ThemeSwitch } from "@/widgets/theme-switch";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/shared/ui/kit/separator";
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { mergeAssetCategoryOptions } from "@/entities/settings-asset";
 import { totalMonthlyIncomeFromSources } from "@/shared/lib";

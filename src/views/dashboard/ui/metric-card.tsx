@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle, type CardVariant } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle, type CardVariant } from "@/shared/ui/kit/card";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import { cn } from "@/shared/lib";
 import { MaterialIcon } from "@/shared/ui";
 

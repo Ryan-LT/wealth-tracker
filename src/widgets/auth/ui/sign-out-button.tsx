@@ -4,7 +4,7 @@ import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/kit/button";
 import { cn } from "@/shared/lib";
 
 type SignOutButtonProps = {

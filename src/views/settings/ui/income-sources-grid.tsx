@@ -12,19 +12,19 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from "@/shared/ui/kit/alert-dialog";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/shared/ui/kit/dialog";
+import { Input } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/kit/tabs";
 import type { AssetsState } from "@/entities/asset";
 import type { GoalSeedLine } from "@/entities/goal";
 import {

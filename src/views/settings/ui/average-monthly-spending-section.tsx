@@ -3,8 +3,8 @@
 import { ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import type { Preferences } from "@/entities/preferences";
 import {
   estimatedMonthlyNetCashflow,

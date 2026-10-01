@@ -1,6 +1,6 @@
 // Entity-agnostic helpers stay here.
 export { cn, getDisplayNameInitials } from "./cn";
-export { useIsMobile } from "./use-mobile";
+export { useIsMobile, useMediaQuery } from "./use-media-query";
 export { formatVnd, formatThousands } from "./format-vnd";
 export { formatUsd } from "./format-usd";
 export { formatDisplayDate } from "./format-date";

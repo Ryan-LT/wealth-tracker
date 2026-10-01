@@ -5,15 +5,15 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
+import { Button } from "@/shared/ui/kit/button";
+import { DatePicker } from "@/shared/ui/kit/date-picker";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/shared/ui/kit/dialog";
 import {
   Form,
   FormControl,
@@ -22,16 +22,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/shared/ui/kit/form";
+import { Input } from "@/shared/ui/kit/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/shared/ui/kit/select";
+import { Textarea } from "@/shared/ui/kit/textarea";
 import type { PersonalLoan, PersonalLoanDirection } from "@/entities/personal-loan";
 import { MoneyInput } from "@/shared/ui";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebar } from "@/shared/ui/kit/sidebar";
 import { useLayout } from "@/widgets/app-sidebar/lib/layout-provider";
 
 /** Match `src/components/ui/sidebar.tsx` desktop widths. */

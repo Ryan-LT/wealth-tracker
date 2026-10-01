@@ -37,26 +37,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/shared/ui/kit/alert-dialog";
+import { Button } from "@/shared/ui/kit/button";
+import { Card } from "@/shared/ui/kit/card";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/shared/ui/kit/dialog";
+import { Input } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/shared/ui/kit/select";
 import {
   Table,
   TableBody,
@@ -64,7 +64,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/shared/ui/kit/table";
 import { cn } from "@/shared/lib";
 import { isDefaultAssetCategory } from "@/entities/settings-asset";
 import { AssetCategoryBadge } from "@/shared/ui";

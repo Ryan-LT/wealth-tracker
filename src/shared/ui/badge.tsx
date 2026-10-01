@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { Badge as ShadcnBadge } from "@/components/ui/badge";
+import { Badge as ShadcnBadge } from "@/shared/ui/kit/badge";
 import { cn } from "@/shared/lib";
 
 type BadgeTone =

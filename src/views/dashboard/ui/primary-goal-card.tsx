@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { Progress } from "@/shared/ui/kit/progress";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import { cn } from "@/shared/lib";
 import { computeGoalFeasibility, formatVnd, type GoalFeasibilityTone } from "@/shared/lib";
 import { MaterialIcon } from "@/shared/ui";

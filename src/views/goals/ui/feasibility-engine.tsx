@@ -2,8 +2,8 @@
 
 import { Check, CircleHelp, TriangleAlert } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/shared/ui/kit/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { cn } from "@/shared/lib";
 import { formatVnd } from "@/shared/lib";
 

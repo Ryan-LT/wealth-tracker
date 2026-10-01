@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import {
   cumulativeDueScheduleFromCheckpoints,
   formatVnd,

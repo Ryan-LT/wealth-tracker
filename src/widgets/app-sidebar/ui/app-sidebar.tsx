@@ -18,7 +18,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/shared/ui/kit/sidebar";
 
 import { cn } from "@/shared/lib";
 import { useLayout } from "@/widgets/app-sidebar/lib/layout-provider";

@@ -2,8 +2,8 @@
 
 import { NumericFormat, type NumberFormatValues } from "react-number-format";
 
-import { Input as ShadcnInput } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input as ShadcnInput } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
 import { cn } from "@/shared/lib";
 
 export type PercentInputProps = {

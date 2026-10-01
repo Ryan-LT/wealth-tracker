@@ -2,9 +2,27 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+const ARBITRARY_TEXT = "/\\btext-\\[\\d/";
+const RAW_PALETTE = "/\\b(emerald|amber|orange|red|green|rose|lime|yellow)-\\d{2,3}\\b/";
+const TYPE_SCALE_MSG = "Use the type scale (text-xs / sm / base / xl / 2xl) instead of arbitrary font sizes.";
+const TOKEN_MSG = "Use semantic tokens (text-success, bg-danger-muted, <Money tone>, <StatusBadge>) instead of raw palette colours.";
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // Design-system guardrails.
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        { selector: `Literal[value=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
+        { selector: `TemplateElement[value.raw=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
+        { selector: `Literal[value=${RAW_PALETTE}]`, message: TOKEN_MSG },
+        { selector: `TemplateElement[value.raw=${RAW_PALETTE}]`, message: TOKEN_MSG },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

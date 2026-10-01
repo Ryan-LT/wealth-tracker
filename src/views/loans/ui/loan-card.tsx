@@ -2,15 +2,15 @@
 
 import { Check, MoreVertical, Pencil, RotateCcw, Trash2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/shared/ui/kit/button";
+import { Card } from "@/shared/ui/kit/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/shared/ui/kit/dropdown-menu";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 import { cn } from "@/shared/lib";
 import { formatVnd } from "@/shared/lib";
 import type { PersonalLoan } from "@/entities/personal-loan";

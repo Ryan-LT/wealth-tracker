@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCallback, useState } from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/shared/ui/kit/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,13 +17,13 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/ui/kit/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/shared/ui/kit/sidebar";
 
 export function NavUser() {
   const { isMobile } = useSidebar();

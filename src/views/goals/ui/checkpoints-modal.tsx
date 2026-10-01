@@ -3,16 +3,16 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
+import { Button } from "@/shared/ui/kit/button";
+import { DatePicker } from "@/shared/ui/kit/date-picker";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+} from "@/shared/ui/kit/dialog";
+import { Label } from "@/shared/ui/kit/label";
 import { normalizeStoredCheckpoints } from "@/shared/lib";
 import type { GoalCheckpoint, GoalProfile } from "@/shared/storage";
 import { MoneyInput } from "@/shared/ui";

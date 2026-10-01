@@ -2,7 +2,7 @@
 
 import { Check, Pencil, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/kit/button";
 
 type SectionEditActionsProps = {
   editing: boolean;

@@ -34,7 +34,7 @@ import { GripVertical } from "lucide-react";
 import { createContext, useContext, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
 import { cn } from "@/shared/lib/cn";
-import { useIsMobile } from "@/shared/lib/use-media-query";
+import { useMediaQuery } from "@/shared/lib/use-media-query";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/shared/ui/kit/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/kit/tooltip";
 
@@ -64,7 +64,7 @@ export type DataTableProps<T> = {
   onSortingChange?: OnChangeFn<SortingState>;
   /** Data is already sorted by the caller (keeps domain tie-breaks). */
   manualSorting?: boolean;
-  /** Below `md`, render each row with this instead of a table row. */
+  /** Below `lg` (where the content column gets narrow), render rows with this instead. */
   renderMobileItem?: (row: T) => ReactNode;
   /** Shown when `data` is empty. */
   empty: ReactNode;
@@ -159,7 +159,7 @@ export function DataTable<T>({
   rowClassName,
   className,
 }: DataTableProps<T>) {
-  const isMobile = useIsMobile();
+  const isCompact = useMediaQuery("(max-width: 1023px)");
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const sorting = sortingProp ?? internalSorting;
 
@@ -198,7 +198,7 @@ export function DataTable<T>({
 
   if (data.length === 0) return <div className={className}>{empty}</div>;
 
-  if (isMobile && renderMobileItem) {
+  if (isCompact && renderMobileItem) {
     return (
       <ul className={cn("divide-y", className)}>
         {rows.map((row) => (

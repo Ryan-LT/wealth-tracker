@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { SettingsPage } from "@/views/records-legacy";
+import { AssetsPage } from "@/views/assets";
 
 export const metadata: Metadata = { title: "Assets" };
 
 export default function Page() {
-  return <SettingsPage />;
+  return (
+    <Suspense>
+      <AssetsPage />
+    </Suspense>
+  );
 }

@@ -70,10 +70,13 @@ export function ComboboxField<T extends FieldValues, N extends FieldPath<T>>({
                 </FormControl>
               </PopoverTrigger>
               <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
-                <Command>
+                <Command
+                  // Plain substring matching: fuzzy scores made Enter pick an unrelated option.
+                  filter={(itemValue, term) => (itemValue.toLowerCase().includes(term.trim().toLowerCase()) ? 1 : 0)}
+                >
                   <CommandInput placeholder="Search…" value={search} onValueChange={setSearch} />
                   <CommandList className="max-h-64">
-                    <CommandEmpty>{allowCreate ? "Type to create a new one." : "No match."}</CommandEmpty>
+                    {allowCreate && query && !exists ? null : <CommandEmpty>No match.</CommandEmpty>}
                     <CommandGroup>
                       {options.map((o) => (
                         <CommandItem key={o} value={o} onSelect={() => choose(o)}>
@@ -84,7 +87,7 @@ export function ComboboxField<T extends FieldValues, N extends FieldPath<T>>({
                     </CommandGroup>
                     {allowCreate && query && !exists ? (
                       <CommandGroup forceMount>
-                        <CommandItem forceMount value={`__create__${query}`} onSelect={() => choose(query)}>
+                        <CommandItem value={`__create__ ${query}`} onSelect={() => choose(query)}>
                           <Plus />
                           Create “{query}”
                         </CommandItem>

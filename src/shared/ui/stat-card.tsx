@@ -30,11 +30,11 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-sm font-medium text-muted-foreground">{label}</p>
-        {Icon ? <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden /> : null}
+      <div className="flex items-start justify-between gap-2">
+        <p className="line-clamp-2 text-sm leading-snug font-medium text-muted-foreground">{label}</p>
+        {Icon ? <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden /> : null}
       </div>
-      <div className="text-xl leading-tight font-semibold tracking-tight md:text-2xl">
+      <div className="mt-auto text-xl leading-tight font-semibold tracking-tight md:text-2xl">
         {loading ? <Skeleton className="h-7 w-28" /> : value}
       </div>
       {hint || aside ? (
@@ -55,5 +55,5 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
 
 /** Responsive KPI row: 2 columns on phones, up to 4 on desktop. */
 export function StatGrid({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4", className)}>{children}</div>;
+  return <div className={cn("grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4", className)}>{children}</div>;
 }

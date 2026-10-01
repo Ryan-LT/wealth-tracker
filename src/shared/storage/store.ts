@@ -18,6 +18,10 @@ const valueCache = new Map<string, unknown>();
 const dirty = new Set<string>();
 
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+/** Consecutive failed PUTs; drives retry backoff (400 ms doubling up to 30 s). */
+let flushFailures = 0;
+const FLUSH_DEBOUNCE_MS = 400;
+const FLUSH_MAX_BACKOFF_MS = 30_000;
 let flushInFlight: Promise<boolean> | null = null;
 let hydrateState: "pending" | "ok" | "error" = "pending";
 let hydratePromise: Promise<void> | null = null;
@@ -148,17 +152,21 @@ function ensureHydrated(): Promise<void> {
   return hydratePromise;
 }
 
-function scheduleFlush(): void {
+/** `retry`: back off after failures; user writes always use the short debounce. */
+function scheduleFlush(retry = false): void {
   if (!isBrowser()) {
     return;
   }
   if (flushTimer) {
     clearTimeout(flushTimer);
   }
+  const delay = retry
+    ? Math.min(FLUSH_MAX_BACKOFF_MS, FLUSH_DEBOUNCE_MS * 2 ** flushFailures)
+    : FLUSH_DEBOUNCE_MS;
   flushTimer = setTimeout(() => {
     flushTimer = null;
     void flushDirty();
-  }, 400);
+  }, delay);
 }
 
 /** Resolves `true` when the attempted keys were persisted. */
@@ -191,15 +199,16 @@ async function flushDirty(): Promise<boolean> {
       for (const k of keysToFlush) {
         dirty.delete(k);
       }
+      flushFailures = 0;
       return true;
     } catch (e) {
       console.error("[wealthtracker] persist to Neon failed", e);
-      scheduleFlush();
+      flushFailures = Math.min(flushFailures + 1, 10);
       return false;
     } finally {
       flushInFlight = null;
       if (dirty.size > 0) {
-        scheduleFlush();
+        scheduleFlush(flushFailures > 0);
       }
     }
   })();

@@ -11,6 +11,7 @@ import {
   useInitialLoadDone,
 } from "@/shared/storage";
 
+import { AppErrorScreen } from "./app-error-screen";
 import { AppLoadingScreen } from "./app-loading-screen";
 
 function runBootstrap(): Promise<void> {
@@ -60,8 +61,20 @@ export function HydrationGate({ children }: { children: ReactNode }) {
     });
   }, [initialLoadDone]);
 
-  if (!initialLoadDone && (bootstrapPending || !hydrated)) {
-    return <AppLoadingScreen />;
+  if (!initialLoadDone) {
+    if (bootstrapPending || !hydrated) {
+      return <AppLoadingScreen />;
+    }
+    // First load failed with no local cache: never render seed data, because
+    // any write from that state would overwrite the real tables on the server.
+    return (
+      <AppErrorScreen
+        onRetry={() => {
+          setBootstrapPending(true);
+          void runBootstrap().finally(() => setBootstrapPending(false));
+        }}
+      />
+    );
   }
 
   return <>{children}</>;

@@ -35,6 +35,7 @@ import {
   SETTINGS_ASSETS_SEED,
   type AssetsState,
   useHydrated,
+  useInitialLoadDone,
   useTable,
 } from "@/shared/storage";
 
@@ -46,6 +47,7 @@ import { PrimaryGoalCard } from "./primary-goal-card";
 
 export function DashboardPage() {
   const hydrated = useHydrated();
+  const initialLoadDone = useInitialLoadDone();
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts] = useTable("debts", DEBTS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
@@ -60,9 +62,10 @@ export function DashboardPage() {
   }, [assets, debts, settingsAssets]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    // Only after real data loaded — never write tracking computed from seeds.
+    if (!initialLoadDone) return;
     setPrefs((p) => syncNetWorthTracking(p, netWorth));
-  }, [hydrated, netWorth, setPrefs]);
+  }, [initialLoadDone, netWorth, setPrefs]);
 
   const summary = useMemo(() => {
     const grossAssets = totalCombinedAssetValue(assets, settingsAssets);

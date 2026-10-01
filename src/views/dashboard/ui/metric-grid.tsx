@@ -49,7 +49,7 @@ export function MetricGrid({
         icon="credit_card"
         label="Total debt"
         value={formatVnd(totalDebt)}
-        hint="Mortgage excluded"
+        hint="All debts"
         negative
         loading={loading}
       />

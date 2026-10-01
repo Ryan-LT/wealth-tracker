@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { GoalsPage } from "@/views/goals";
 
 export const metadata: Metadata = { title: "Goals" };
 
 export default function Page() {
-  return <GoalsPage />;
+  return (
+    <Suspense>
+      <GoalsPage />
+    </Suspense>
+  );
 }

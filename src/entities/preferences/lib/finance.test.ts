@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildNetWorthChartSeries,
+  buildNetWorthTrend,
+  netWorthTrackingUnchanged,
   estimatedMonthlyNetCashflow,
   fractionalMonthsUntilYearEnd,
   monthCalendarKey,
@@ -140,5 +142,29 @@ describe("net worth tracking", () => {
     );
     expect(series.values).toEqual([100, 100, 100, 300, 300, 500]);
     expect(series.labels).toHaveLength(6);
+  });
+});
+
+describe("buildNetWorthTrend", () => {
+  it("matches the chart series values and labels each month", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-15T10:00:00+07:00"));
+    const history = [
+      { monthKey: "2026-02", value: 100 },
+      { monthKey: "2026-04", value: 300 },
+    ];
+    const trend = buildNetWorthTrend(history, 500);
+    expect(trend.map((p) => p.value)).toEqual(buildNetWorthChartSeries(history, 500).values);
+    expect(trend.map((p) => p.monthKey)).toEqual(["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"]);
+    expect(trend.at(-1)!.live).toBe(true);
+    expect(trend.filter((p) => p.live)).toHaveLength(1);
+  });
+
+  it("detects unchanged tracking", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-10T10:00:00+07:00"));
+    const once = syncNetWorthTracking(PREFERENCES_SEED, 500);
+    expect(netWorthTrackingUnchanged(once, syncNetWorthTracking(once, 500))).toBe(true);
+    expect(netWorthTrackingUnchanged(once, syncNetWorthTracking(once, 501))).toBe(false);
   });
 });

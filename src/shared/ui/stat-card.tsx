@@ -34,7 +34,8 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
         <p className="line-clamp-2 text-sm leading-snug font-medium text-muted-foreground">{label}</p>
         {Icon ? <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden /> : null}
       </div>
-      <div className="mt-auto text-xl leading-tight font-semibold tracking-tight md:text-2xl">
+      {/* Big standalone numbers use proportional figures (tabular only in columns). */}
+      <div className="mt-auto text-xl leading-tight font-semibold tracking-tight **:normal-nums md:text-2xl">
         {loading ? <Skeleton className="h-7 w-28" /> : value}
       </div>
       {hint || aside ? (

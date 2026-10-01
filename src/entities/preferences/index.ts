@@ -8,7 +8,9 @@ export {
 export {
   applyAverageMonthlySpending,
   buildNetWorthChartSeries,
+  buildNetWorthTrend,
   estimatedMonthlyNetCashflow,
+  netWorthTrackingUnchanged,
   fractionalMonthsUntilYearEnd,
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
@@ -17,6 +19,7 @@ export {
   resolveAverageMonthlySpending,
   syncNetWorthTracking,
 } from "@/entities/preferences/lib/finance";
+export type { NetWorthTrendPoint } from "@/entities/preferences/lib/finance";
 export {
   ALLOCATIONS_BAND_FILTERS,
   isAllocationsBandFilter,

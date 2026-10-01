@@ -18,3 +18,4 @@ export {
   type CashflowSummary,
   type DashboardSummary,
 } from "@/entities/portfolio/lib/summary";
+export { assetTotalsByCategory, type CategoryTotal } from "@/entities/portfolio/lib/by-category";

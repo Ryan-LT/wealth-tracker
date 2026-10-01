@@ -159,3 +159,45 @@ export function registerExtraAssetCategory(prefs: Preferences, category: string)
     ],
   };
 }
+
+export type NetWorthTrendPoint = {
+  /** `YYYY-MM`. */
+  monthKey: string;
+  /** First day of the month (local). */
+  date: Date;
+  value: number;
+  /** True for the current month (live net worth, not a stored snapshot). */
+  live: boolean;
+};
+
+/**
+ * Last six calendar months for the net-worth chart. Same carry-forward rule as
+ * {@link buildNetWorthChartSeries}: months without a snapshot repeat the previous value.
+ */
+export function buildNetWorthTrend(
+  history: NetWorthMonthSnapshot[],
+  netWorth: number,
+  now: Date = new Date(),
+): NetWorthTrendPoint[] {
+  const map = new Map(history.map((h) => [h.monthKey, h.value]));
+  const sorted = [...history].sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+  let carry = sorted.length > 0 ? sorted[0].value : netWorth;
+  const out: NetWorthTrendPoint[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthKey = monthCalendarKey(date);
+    if (map.has(monthKey)) carry = map.get(monthKey)!;
+    out.push({ monthKey, date, value: i === 0 ? netWorth : carry, live: i === 0 });
+  }
+  return out;
+}
+
+/** True when tracking fields would not change (skip a needless write). */
+export function netWorthTrackingUnchanged(prev: Preferences, next: Preferences): boolean {
+  return (
+    prev.netWorthMonthKey === next.netWorthMonthKey &&
+    prev.netWorthMonthBaseline === next.netWorthMonthBaseline &&
+    prev.lastKnownNetWorth === next.lastKnownNetWorth &&
+    JSON.stringify(prev.netWorthMonthlyHistory ?? []) === JSON.stringify(next.netWorthMonthlyHistory ?? [])
+  );
+}

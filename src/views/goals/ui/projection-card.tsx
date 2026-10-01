@@ -1,0 +1,213 @@
+"use client";
+
+import { CircleCheck, TriangleAlert } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CartesianGrid, ComposedChart, Line, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+import { buildProjectionChartModel, evaluateStartingOnlyStatus, type GoalCheckpoint } from "@/entities/goal";
+import { formatDate, formatMoney, formatMoneyCompact, formatMonths } from "@/shared/lib/format";
+import { chartAxisProps, ChartLegendItem, ChartTooltipCard, ChartViewToggle, type ChartView } from "@/shared/ui/chart";
+import { EmptyState } from "@/shared/ui/empty-state";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/kit/table";
+import { Money } from "@/shared/ui/money";
+import { Section } from "@/shared/ui/section";
+
+type ProjectionCardProps = {
+  targetAmount: number;
+  startingAmount: number;
+  monthlyNetContribution: number;
+  monthsToTarget: number;
+  targetDateIso: string;
+  checkpoints: GoalCheckpoint[];
+};
+
+const MAX_TICKS = 7;
+
+export function ProjectionCard(props: ProjectionCardProps) {
+  const [view, setView] = useState<ChartView>("chart");
+  const model = useMemo(
+    () =>
+      buildProjectionChartModel({
+        targetAmount: props.targetAmount,
+        startingAmount: props.startingAmount,
+        monthlyNetContribution: props.monthlyNetContribution,
+        monthsToTarget: props.monthsToTarget,
+        targetDateIso: props.targetDateIso || undefined,
+        checkpoints: props.checkpoints,
+      }),
+    [props.targetAmount, props.startingAmount, props.monthlyNetContribution, props.monthsToTarget, props.targetDateIso, props.checkpoints],
+  );
+
+  const ticks = useMemo(() => {
+    const monthStarts = model.rows.filter((r) => new Date(r.x).getDate() === 1).map((r) => r.x);
+    const step = Math.max(1, Math.ceil(monthStarts.length / MAX_TICKS));
+    return monthStarts.filter((_, i) => i % step === 0);
+  }, [model.rows]);
+
+  const { meetTarget } = model;
+  const summary =
+    meetTarget.kind === "date" ? (
+      <span className={model.afterGoalDate ? "text-warning" : "text-success"}>
+        Reaches the target on <strong className="font-semibold">{formatDate(meetTarget.date)}</strong> (~{formatMonths(meetTarget.months)})
+        {model.afterGoalDate && model.goalDate ? <span className="text-muted-foreground"> — after the goal date ({formatDate(model.goalDate)})</span> : null}
+      </span>
+    ) : meetTarget.kind === "already" ? (
+      <span className="text-success">Starting balance already meets the target.</span>
+    ) : meetTarget.kind === "unreachable" ? (
+      <span className="text-danger">Won&apos;t reach the target at the current monthly net.</span>
+    ) : (
+      <span>Add a target amount to see the projection.</span>
+    );
+
+  return (
+    <Section
+      title="Projection"
+      description={summary}
+      actions={<ChartViewToggle value={view} onChange={setView} />}
+    >
+      {view === "chart" ? (
+        <div className="grid gap-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <ChartLegendItem color="var(--chart-1)" label="Projected balance" />
+            {model.hasSchedule ? <ChartLegendItem color="var(--chart-2)" label="Cumulative due" /> : null}
+            {props.targetAmount > 0 ? <ChartLegendItem color="var(--muted-foreground)" label="Target" dashed /> : null}
+          </div>
+          <div className="h-72 w-full" role="img" aria-label="Projected balance over time against the target">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={model.rows} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
+                <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
+                <XAxis
+                  dataKey="x"
+                  type="number"
+                  scale="time"
+                  domain={["dataMin", "dataMax"]}
+                  ticks={ticks}
+                  tickFormatter={(x: number) => formatDate(x, "monthYear")}
+                  {...chartAxisProps}
+                  tickMargin={8}
+                />
+                <YAxis width={56} tickFormatter={(v: number) => formatMoneyCompact(v, { symbol: false })} {...chartAxisProps} />
+                <Tooltip
+                  cursor={{ stroke: "var(--chart-axis)", strokeWidth: 1 }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const row = payload[0].payload as (typeof model.rows)[number];
+                    return (
+                      <ChartTooltipCard
+                        title={formatDate(row.x)}
+                        rows={[
+                          { key: "p", name: "Projected", color: "var(--chart-1)", value: formatMoney(row.projected) },
+                          ...(row.due !== null ? [{ key: "d", name: "Cumulative due", color: "var(--chart-2)", value: formatMoney(row.due) }] : []),
+                          ...(props.targetAmount > 0
+                            ? [{ key: "t", name: "Target", color: "var(--muted-foreground)", value: formatMoney(row.target), dashed: true }]
+                            : []),
+                        ]}
+                      />
+                    );
+                  }}
+                />
+                {props.targetAmount > 0 ? (
+                  <ReferenceLine
+                    y={props.targetAmount}
+                    stroke="var(--muted-foreground)"
+                    strokeDasharray="4 4"
+                    ifOverflow="extendDomain"
+                  />
+                ) : null}
+                {model.hasSchedule ? (
+                  <Line type="stepAfter" dataKey="due" stroke="var(--chart-2)" strokeWidth={2} dot={false} isAnimationActive={false} />
+                ) : null}
+                <Line
+                  type="linear"
+                  dataKey="projected"
+                  stroke="var(--chart-1)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
+                  isAnimationActive={false}
+                />
+                {model.paidDots.map((d) => (
+                  <ReferenceDot key={d.id} x={d.x} y={d.cumulative} r={4} fill="var(--chart-2)" stroke="var(--card)" strokeWidth={2} ifOverflow="discard" />
+                ))}
+                {meetTarget.kind === "date" ? (
+                  <>
+                    <ReferenceLine x={meetTarget.date.getTime()} stroke="var(--chart-1)" strokeOpacity={0.5} />
+                    <ReferenceDot
+                      x={meetTarget.date.getTime()}
+                      y={props.targetAmount}
+                      r={5}
+                      fill="var(--chart-1)"
+                      stroke="var(--card)"
+                      strokeWidth={2}
+                      ifOverflow="discard"
+                      label={{ value: "Target met", position: "top", fontSize: 12, fill: "var(--foreground)" }}
+                    />
+                  </>
+                ) : null}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Linear: starting balance + monthly net each month.{model.paidDots.length ? " Dots mark paid checkpoints." : ""}
+          </p>
+        </div>
+      ) : (
+        <Table containerClassName="-mx-5 w-auto max-h-96 overflow-y-auto">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Projected</TableHead>
+              {model.hasSchedule ? <TableHead className="text-right">Cumulative due</TableHead> : null}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {model.rows.map((r) => (
+              <TableRow key={r.x}>
+                <TableCell>{formatDate(r.x)}</TableCell>
+                <TableCell className="text-right">
+                  <Money value={r.projected} />
+                </TableCell>
+                {model.hasSchedule ? (
+                  <TableCell className="text-right">
+                    <Money value={r.due ?? 0} />
+                  </TableCell>
+                ) : null}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Section>
+  );
+}
+
+/** Plans that exclude monthly income: starting balance vs target only. */
+export function StartingOnlyCard({ startingBalance, targetAmount }: { startingBalance: number; targetAmount: number }) {
+  const s = evaluateStartingOnlyStatus(startingBalance, targetAmount);
+  return (
+    <Section title="Goal status" description="Monthly income is excluded — comparing the starting balance with the target only.">
+      {s.kind === "no_target" ? (
+        <EmptyState title="Add a target amount to evaluate" className="py-8" />
+      ) : (
+        <div className="flex flex-col items-center gap-2 py-6 text-center">
+          {s.kind === "met" ? <CircleCheck className="size-10 text-success" /> : <TriangleAlert className="size-10 text-danger" />}
+          <p className="text-xl font-semibold">{s.kind === "met" ? "Goal met" : "Goal not met"}</p>
+          <p className="text-sm text-muted-foreground">
+            <Money value={startingBalance} /> starting vs <Money value={targetAmount} /> target
+          </p>
+          {s.kind === "met" ? (
+            s.surplus > 0 ? (
+              <p className="text-sm font-medium text-success">
+                Surplus <Money value={s.surplus} />
+              </p>
+            ) : null
+          ) : (
+            <p className="text-sm font-medium text-danger">
+              Short by <Money value={s.gap} />
+            </p>
+          )}
+        </div>
+      )}
+    </Section>
+  );
+}

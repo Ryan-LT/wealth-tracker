@@ -22,29 +22,6 @@ export function monthsBetween(from: Date, to: Date): number {
   return Math.max(0, (to.getTime() - from.getTime()) / MS_PER_MONTH);
 }
 
-/**
- * @deprecated Project uses strictly linear projections — no compound / imagined
- * interest. Do not reintroduce in any new code path; kept exported only to avoid
- * a breaking removal in case external callers reference it.
- */
-export function futureValueWithMonthlyContributions(
-  pv: number,
-  pmt: number,
-  annualRate: number,
-  months: number,
-): number {
-  if (!Number.isFinite(pv) || !Number.isFinite(pmt) || !Number.isFinite(annualRate)) {
-    return pv;
-  }
-  if (months <= 0) return pv;
-  const rm = annualRate / 12;
-  if (Math.abs(rm) < 1e-12) {
-    return pv + pmt * months;
-  }
-  const factor = (1 + rm) ** months;
-  return pv * factor + pmt * ((factor - 1) / rm);
-}
-
 export type Milestone35Feasibility = {
   projectedEndingNetWorth: number;
   /** True when projected balance meets or exceeds the VND target. */

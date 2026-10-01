@@ -14,7 +14,7 @@ import {
 } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
-import { WealthTrackerLogo } from "@/shared/ui";
+import { WealthTrackerLogo } from "@/shared/ui/wealth-tracker-logo";
 
 export function LoginForm() {
   const router = useRouter();
@@ -57,7 +57,7 @@ export function LoginForm() {
       <div className="flex flex-col items-center gap-2 text-center">
         <WealthTrackerLogo size={48} decorative />
         <h1 className="text-xl font-semibold tracking-tight">Wealth Tracker</h1>
-        <p className="text-sm text-muted-foreground">Your personal finance hub</p>
+        <p className="text-sm text-muted-foreground">Personal finance</p>
       </div>
 
       <Card className="w-full max-w-sm">

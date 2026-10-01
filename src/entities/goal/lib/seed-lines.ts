@@ -174,21 +174,6 @@ export function effectiveGoalSeedLineAmount(
   return Math.min(Math.max(0, line.amount), max);
 }
 
-/** @deprecated Prefer {@link effectiveGoalSeedLineAmount} with plan context. */
-export function resolvedSeedLineAmount(
-  line: GoalSeedLine,
-  options: GoalStartingOption[],
-): number {
-  if (line.sourceKey === "custom") {
-    return Math.max(0, line.amount);
-  }
-  const opt = options.find((o) => o.key === line.sourceKey);
-  if (opt && !opt.isCustom) {
-    return Math.min(Math.max(0, line.amount), Math.max(0, opt.amount));
-  }
-  return Math.max(0, line.amount);
-}
-
 export function totalGoalStartingBalance(
   lines: GoalSeedLine[] | undefined,
   options: GoalStartingOption[],

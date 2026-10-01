@@ -2,19 +2,11 @@ import * as React from "react";
 
 import { cn } from "@/shared/lib/cn";
 
-/** @deprecated Card variants were removed; kept only so old imports compile. */
-export type CardVariant = string;
-
 /**
  * One card surface for the whole app. The card owns vertical padding;
  * header / content / footer own horizontal padding only, so edges always align.
  */
-function Card({
-  className,
-  // Accepted for backwards compatibility while pages migrate; has no effect.
-  variant: _variant,
-  ...props
-}: React.ComponentProps<"div"> & { variant?: string }) {
+function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"

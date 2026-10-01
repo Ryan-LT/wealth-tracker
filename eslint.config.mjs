@@ -15,7 +15,7 @@ const eslintConfig = defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
-        "warn",
+        "error",
         { selector: `Literal[value=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
         { selector: `TemplateElement[value.raw=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
         { selector: `Literal[value=${RAW_PALETTE}]`, message: TOKEN_MSG },

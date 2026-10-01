@@ -55,9 +55,6 @@ export type GoalProfile = {
 /** Goal Plan: compose a new plan before first save (not a persisted plan id). */
 export const GOAL_PLAN_NEW_SENTINEL = "__new__";
 
-/** @deprecated Use {@link GOAL_PLAN_NEW_SENTINEL}. */
-export const GOAL_SIMULATOR_NEW_SENTINEL = GOAL_PLAN_NEW_SENTINEL;
-
 export type GoalsState = {
   /** The single primary goal shown on the Dashboard. */
   primary: {

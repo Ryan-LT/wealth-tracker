@@ -177,6 +177,8 @@ export function DataTable<T>({
     ];
   }, [columns, reorder, getRowId]);
 
+  // TanStack Table v8 returns unstable functions; fine because the React Compiler is not enabled here.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns: allColumns,

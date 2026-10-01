@@ -4,3 +4,10 @@ export {
   type PersonalLoanDirection,
   type PersonalLoanStatus,
 } from "@/entities/personal-loan/model";
+export {
+  createPersonalLoanDraft,
+  sanitizePersonalLoan,
+  sortPersonalLoans,
+  toggleLoanStatus,
+  totalOpenAmount,
+} from "@/entities/personal-loan/lib/loans";

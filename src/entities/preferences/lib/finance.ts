@@ -143,3 +143,19 @@ export function buildNetWorthChartSeries(
   return { labels, values };
 }
 
+
+/** Set average monthly spending and clear the legacy outflow so income − spending math wins. */
+export function applyAverageMonthlySpending(prefs: Preferences, amount: number): Preferences {
+  const value = Math.max(0, Number.isFinite(amount) ? amount : 0);
+  return { ...prefs, averageMonthlySpending: value, monthOutflow: 0 };
+}
+
+/** Remember a user-defined asset category (deduplicated). */
+export function registerExtraAssetCategory(prefs: Preferences, category: string): Preferences {
+  return {
+    ...prefs,
+    extraAssetCategories: [
+      ...new Set([...(prefs.extraAssetCategories ?? []), category.trim()]),
+    ],
+  };
+}

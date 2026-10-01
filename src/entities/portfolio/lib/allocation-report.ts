@@ -1,18 +1,22 @@
-import type { IncomeSource } from "@/entities/income";
-import type { GoalStartingOption } from "@/shared/lib";
+import type { AssetsState } from "@/entities/asset";
 import {
+  buildGoalStartingOptions,
+  EMPTY_GOAL_PROFILE,
   liveBalanceForSourceKey,
   maxAllocationForSourceKey,
   migrateLegacySeedsToLines,
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
-} from "@/shared/lib";
-import {
-  EMPTY_GOAL_PROFILE,
   type GoalProfile,
+  type GoalsState,
+  type GoalStartingOption,
+} from "@/entities/goal";
+import type { IncomeSource } from "@/entities/income";
+import type { AllocationsBandFilter } from "@/entities/preferences";
+import {
   resolveSettingsAssetLiquidity,
   type SettingsAsset,
-} from "@/shared/storage";
+} from "@/entities/settings-asset";
 
 /** Draft used only to compute shared pools (id must not match any saved plan). */
 export const PHANTOM_ALLOCATION_DRAFT: GoalProfile = {
@@ -228,4 +232,29 @@ export function buildAllocationReport(
       customReservedStored,
     },
   };
+}
+
+/** Report straight from the stored tables (normalizes legacy seeds first). */
+export function buildAllocationReportForTables(t: {
+  goals: GoalsState;
+  assets: AssetsState;
+  settingsAssets: SettingsAsset[];
+  incomeSources: IncomeSource[];
+}): AllocationReport {
+  const seedOptions = buildGoalStartingOptions(t.assets, t.settingsAssets);
+  const seedKeys = new Set(seedOptions.map((o) => o.key));
+  return buildAllocationReport(
+    normalizeProfilesForAllocationReport(t.goals.profiles, seedKeys),
+    seedOptions,
+    t.settingsAssets,
+    t.incomeSources,
+  );
+}
+
+export function filterAllocationRowsByBand(
+  rows: AllocationSourceRow[],
+  filter: AllocationsBandFilter,
+): AllocationSourceRow[] {
+  if (filter === "both") return rows;
+  return rows.filter((row) => row.band === filter);
 }

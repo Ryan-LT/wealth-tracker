@@ -6,12 +6,19 @@ export {
   type Preferences,
 } from "@/entities/preferences/model";
 export {
+  applyAverageMonthlySpending,
   buildNetWorthChartSeries,
   estimatedMonthlyNetCashflow,
   fractionalMonthsUntilYearEnd,
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
+  registerExtraAssetCategory,
   resolveAverageMonthlySpending,
   syncNetWorthTracking,
 } from "@/entities/preferences/lib/finance";
+export {
+  ALLOCATIONS_BAND_FILTERS,
+  isAllocationsBandFilter,
+  resolveAllocationsBandFilter,
+} from "@/entities/preferences/lib/allocations-prefs";

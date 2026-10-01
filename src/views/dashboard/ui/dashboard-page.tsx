@@ -20,11 +20,11 @@ import {
   totalSettingsAssetsValue,
 } from "@/shared/lib";
 
-import { totalCombinedAssetValue } from "@/views/dashboard/lib/total-combined-asset-value";
+import { totalCombinedAssetValue } from "@/entities/portfolio";
 import {
   buildAllocationReport,
   normalizeProfilesForAllocationReport,
-} from "@/views/allocations/lib/compute-cross-goal-allocations";
+} from "@/entities/portfolio";
 import {
   ASSETS_SEED,
   DEBTS_SEED,

@@ -11,3 +11,8 @@ export {
   totalCapitalAmount,
   wrapIncomeSourceAsProfile,
 } from "@/entities/income/lib/wrap-as-profile";
+export {
+  createIncomeSourceDraft,
+  incomeCapitalPeers,
+  sanitizeIncomeSource,
+} from "@/entities/income/lib/sanitize";

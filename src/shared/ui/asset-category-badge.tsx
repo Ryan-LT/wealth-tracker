@@ -4,7 +4,7 @@ import { cn } from "@/shared/lib";
 import {
   assetCategoryBadgeClassNames,
   resolveAssetCategoryEmoji,
-} from "@/shared/config/asset-categories";
+} from "@/entities/settings-asset";
 
 export type AssetCategoryBadgeProps = {
   category: string;

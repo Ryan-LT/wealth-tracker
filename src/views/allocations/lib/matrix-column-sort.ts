@@ -1,6 +1,6 @@
 import type { AllocationsMatrixColumnSort } from "@/entities/preferences";
 
-import type { AllocationSourceRow, LiquidityBand } from "./compute-cross-goal-allocations";
+import type { AllocationSourceRow, LiquidityBand } from "@/entities/portfolio";
 
 /**
  * Column-driven sort; `null` = instant access first, then A–Z within band.

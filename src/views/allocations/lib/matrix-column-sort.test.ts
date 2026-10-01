@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AllocationSourceRow } from "@/views/allocations/lib/compute-cross-goal-allocations";
+import type { AllocationSourceRow } from "@/entities/portfolio";
 import {
   cycleMatrixColumnSort,
   normalizeMatrixColumnSort,

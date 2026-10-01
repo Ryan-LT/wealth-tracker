@@ -102,3 +102,42 @@ export function cumulativeDueScheduleFromCheckpoints(
     return { date, cumulative: run };
   });
 }
+
+/** Display order (by date) with installments floored and a running cumulative total. */
+export function checkpointsWithRunningTotal(
+  checkpoints: GoalCheckpoint[],
+): (GoalCheckpoint & { running: number })[] {
+  const sorted = [...checkpoints]
+    .filter((c) => String(c.date).trim())
+    .map((c) => ({
+      ...c,
+      date: String(c.date).trim().split("T")[0],
+      amount: Math.max(0, Math.floor(Number(c.amount) || 0)),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let running = 0;
+  return sorted.map((c) => {
+    running += c.amount;
+    return { ...c, running };
+  });
+}
+
+/** Mark one checkpoint paid / unpaid. Unpaid rows drop the `paid` key entirely. */
+export function setCheckpointPaid(
+  checkpoints: GoalCheckpoint[],
+  id: string,
+  paid: boolean,
+): GoalCheckpoint[] {
+  return checkpoints.map((c) => {
+    if (c.id !== id) return c;
+    if (paid) return { ...c, paid: true };
+    return { id: c.id, date: c.date, amount: c.amount };
+  });
+}
+
+export function createCheckpointId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `cp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}

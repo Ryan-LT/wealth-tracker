@@ -43,7 +43,7 @@ import {
   normalizeProfilesForAllocationReport,
   type AllocationSourceRow,
   type LiquidityBand,
-} from "@/views/allocations/lib/compute-cross-goal-allocations";
+} from "@/entities/portfolio";
 import {
   cycleMatrixColumnSort,
   normalizeMatrixColumnSort,

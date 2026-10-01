@@ -27,6 +27,11 @@ export {
   resolvedSeedLineAmount,
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
+  addableSeedOptions,
+  seedLineAllocationView,
+  sourceAvailability,
+  type SeedLineAllocationView,
+  type SourceAvailability,
   type SourceGoalUsage,
 } from "@/entities/goal/lib/seed-lines";
 export {
@@ -36,6 +41,47 @@ export {
   type GoalFeasibilityTone,
 } from "@/entities/goal/lib/feasibility";
 export {
+  checkpointsWithRunningTotal,
+  createCheckpointId,
   cumulativeDueScheduleFromCheckpoints,
   normalizeStoredCheckpoints,
+  setCheckpointPaid,
 } from "@/entities/goal/lib/checkpoints";
+export {
+  normalizeGoalProfile,
+  removeGoalPlan,
+  resolvePlanEditorProfile,
+  revertPlanSection,
+  upsertGoalPlan,
+  type PlanSection,
+  type UpsertGoalPlanContext,
+} from "@/entities/goal/lib/plan-editor";
+export {
+  computeGoalProjection,
+  describeGoalProjectionNote,
+  evaluateStartingOnlyStatus,
+  goalProjectionNoteTone,
+  monthsToTargetRounded,
+  type GoalProjectionInput,
+  type GoalProjectionNote,
+  type GoalProjectionStatus,
+  type GoalProjectionSummary,
+  type StartingOnlyStatus,
+} from "@/entities/goal/lib/projection";
+export {
+  buildAxisColumnDates,
+  buildProjectionChartModel,
+  computeProjectedMeetTarget,
+  cumulativeDueAtOrBefore,
+  paidCheckpointDots,
+  type PaidCheckpointDot,
+  type ProjectedMeetTarget,
+  type ProjectionChartInput,
+  type ProjectionChartModel,
+  type ProjectionChartRow,
+} from "@/entities/goal/lib/projection-chart";
+export {
+  buildGoalPlanSummaries,
+  goalProgressPercent,
+  type GoalPlanSummary,
+} from "@/entities/goal/lib/plan-summaries";

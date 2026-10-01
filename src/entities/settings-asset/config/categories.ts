@@ -1,5 +1,5 @@
-import type { SettingsAsset } from "@/entities/settings-asset";
 import type { Preferences } from "@/entities/preferences";
+import type { SettingsAsset } from "@/entities/settings-asset/model";
 
 /**
  * Built-in asset categories for Settings → Asset Management combobox.

@@ -3,11 +3,14 @@ import { describe, expect, it } from "vitest";
 import { buildGoalStartingOptions } from "@/entities/goal";
 import {
   buildAllocationReport,
+  buildAllocationReportForTables,
+  filterAllocationRowsByBand,
   liquidityBandForSourceKey,
   normalizeProfilesForAllocationReport,
-} from "@/views/allocations/lib/compute-cross-goal-allocations";
+} from "@/entities/portfolio/lib/allocation-report";
 import {
   fixtureAssets,
+  fixtureGoals,
   fixtureCatalog,
   fixtureIncome,
   planCar,
@@ -162,5 +165,33 @@ describe("buildAllocationReport", () => {
         },
       }
     `);
+  });
+});
+
+describe("buildAllocationReportForTables / filterAllocationRowsByBand", () => {
+  it("matches the manual pipeline and filters by band", () => {
+    const fromTables = buildAllocationReportForTables({
+      goals: fixtureGoals,
+      assets: fixtureAssets,
+      settingsAssets: fixtureCatalog,
+      incomeSources: fixtureIncome,
+    });
+    const manual = buildAllocationReport(
+      normalizeProfilesForAllocationReport(fixtureGoals.profiles, keys),
+      options,
+      fixtureCatalog,
+      fixtureIncome,
+    );
+    expect(fromTables).toEqual(manual);
+    expect(filterAllocationRowsByBand(manual.sources, "both")).toHaveLength(manual.sources.length);
+    expect(
+      filterAllocationRowsByBand(manual.sources, "not_instant").every((r) => r.band === "not_instant"),
+    ).toBe(true);
+    expect(filterAllocationRowsByBand(manual.sources, "instant").map((r) => r.sourceKey)).toEqual([
+      "catalog:a3",
+      "cash:c2",
+      "cash:c1",
+      "catalog:a1",
+    ]);
   });
 });

@@ -8,7 +8,7 @@ import { ProfileDropdown } from "@/widgets/profile-menu";
 import { ThemeSwitch } from "@/widgets/theme-switch";
 import { Separator } from "@/components/ui/separator";
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
-import { mergeAssetCategoryOptions } from "@/shared/config";
+import { mergeAssetCategoryOptions } from "@/entities/settings-asset";
 import { totalMonthlyIncomeFromSources } from "@/shared/lib";
 import {
   DEBTS_SEED,

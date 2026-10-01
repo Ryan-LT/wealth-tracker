@@ -278,3 +278,97 @@ export function ensureKeyedSeedDefaults(
     return { ...l, amount: max };
   });
 }
+
+/** Options that can still be added to a plan (custom may repeat; keyed sources once). */
+export function addableSeedOptions(
+  seedOptions: GoalStartingOption[],
+  lines: GoalSeedLine[],
+): GoalStartingOption[] {
+  const used = new Set<string>();
+  for (const l of lines) {
+    if (l.sourceKey !== "custom") used.add(l.sourceKey);
+  }
+  return seedOptions.filter((o) => o.key !== "none" && (o.isCustom || !used.has(o.key)));
+}
+
+export type SourceAvailability = {
+  live: number;
+  usage: SourceGoalUsage[];
+  reservedElsewhere: number;
+  remaining: number;
+  fullyReserved: boolean;
+  empty: boolean;
+};
+
+/** How much of a keyed source is still free for this plan (picker rows). */
+export function sourceAvailability(
+  option: GoalStartingOption,
+  savedPlans: GoalProfile[],
+  planDraft: GoalProfile,
+): SourceAvailability {
+  const live = Math.max(0, option.amount);
+  const usage = goalUsageForSourceKey(option.key, savedPlans, planDraft);
+  const reservedElsewhere = usage.reduce((s, u) => s + u.amount, 0);
+  const remaining = Math.max(0, live - reservedElsewhere);
+  return {
+    live,
+    usage,
+    reservedElsewhere,
+    remaining,
+    fullyReserved: live > 0 && remaining === 0,
+    empty: live === 0,
+  };
+}
+
+export type SeedLineAllocationView = {
+  title: string;
+  category?: string;
+  liquidity?: GoalStartingOption["liquidity"];
+  isCustom: boolean;
+  live: number;
+  /** Cap for this line (Infinity for custom). */
+  maxAlloc: number;
+  /** Amount that counts toward the plan after caps. */
+  effective: number;
+  /** Headroom left after the current input value. */
+  availableToPlan: number;
+  over: boolean;
+  usage: SourceGoalUsage[];
+  availabilityTone: "danger" | "warning" | "default";
+};
+
+/** Everything the allocation editor shows for one starting-balance line. */
+export function seedLineAllocationView(
+  line: GoalSeedLine,
+  seedOptions: GoalStartingOption[],
+  savedPlans: GoalProfile[],
+  planDraft: GoalProfile,
+): SeedLineAllocationView {
+  const option = seedOptions.find((o) => o.key === line.sourceKey);
+  const isCustom = line.sourceKey === "custom";
+  const live = !isCustom ? liveBalanceForSourceKey(line.sourceKey, seedOptions) : 0;
+  const maxAlloc = !isCustom
+    ? maxAllocationForSourceKey(line.sourceKey, seedOptions, savedPlans, planDraft, line.id)
+    : Number.POSITIVE_INFINITY;
+  const effective = effectiveGoalSeedLineAmount(line, seedOptions, savedPlans, planDraft);
+  const allocatedNow = Math.max(0, line.amount);
+  const availableToPlan = Math.max(0, maxAlloc - allocatedNow);
+  return {
+    title: labelForSeedLine(line, seedOptions),
+    category: option?.category,
+    liquidity: option?.liquidity,
+    isCustom,
+    live,
+    maxAlloc,
+    effective,
+    availableToPlan,
+    over: !isCustom && line.amount > maxAlloc,
+    usage: !isCustom ? goalUsageForSourceKey(line.sourceKey, savedPlans, planDraft) : [],
+    availabilityTone:
+      availableToPlan === 0 && maxAlloc > 0
+        ? "danger"
+        : maxAlloc < live
+          ? "warning"
+          : "default",
+  };
+}

@@ -4,7 +4,7 @@ import { totalAssetValue } from "@/entities/asset";
 import { totalDebtBalance } from "@/entities/debt";
 import { monthlyIncomeByKind, totalCapitalAmount, totalMonthlyIncomeFromSources, wrapIncomeSourceAsProfile } from "@/entities/income";
 import { totalSettingsAssetsValue } from "@/entities/settings-asset";
-import { totalCombinedAssetValue } from "@/views/dashboard/lib/total-combined-asset-value";
+import { totalCombinedAssetValue } from "@/entities/portfolio";
 import { fixtureAssets, fixtureCatalog, fixtureDebts, fixtureIncome } from "@/test/fixtures/tables";
 
 describe("entity totals", () => {

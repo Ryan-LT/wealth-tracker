@@ -39,7 +39,7 @@ export function buildGoalPlanSummaries(
   const primaryProfile = goalProfileForDashboard(goals);
   const target = primaryProfile?.targetAmount ?? goals.primary.targetAmount;
   const name =
-    (primaryProfile?.name?.trim() || goals.primary.name?.trim()) ?? "Primary Goal";
+    primaryProfile?.name?.trim() || goals.primary.name?.trim() || "Primary Goal";
   const saved =
     goals.primary.saved > 0
       ? Math.min(goals.primary.saved, target)

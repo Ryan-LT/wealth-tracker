@@ -134,6 +134,7 @@ describe("plan summaries", () => {
       },
     ]);
     expect(buildGoalPlanSummaries({ ...legacy, primary: { ...legacy.primary, saved: 5_000 } }, options, 400)[0].saved).toBe(1_000);
+    expect(buildGoalPlanSummaries({ ...legacy, primary: { ...legacy.primary, name: "" } }, options, 0)[0].name).toBe("Primary Goal");
   });
 
   it("progress percent", () => {

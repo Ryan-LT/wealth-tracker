@@ -2,6 +2,7 @@ import type {
   PersonalLoan,
   PersonalLoanDirection,
 } from "@/entities/personal-loan/model";
+import { todayIso } from "@/shared/lib/date";
 
 export function createPersonalLoanDraft(
   direction: PersonalLoanDirection = "lent_out",
@@ -12,7 +13,8 @@ export function createPersonalLoanDraft(
     person: "",
     amount: 0,
     direction,
-    date: now.toISOString().slice(0, 10),
+    // Local calendar day (UTC would be "yesterday" before 7am in Vietnam).
+    date: todayIso(now),
     status: "open",
     note: "",
   };

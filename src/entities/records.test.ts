@@ -143,6 +143,8 @@ describe("personal loans", () => {
     expect(d.id).toMatch(/^loan-\d+-[a-z0-9]{1,5}$/);
     expect(d).toMatchObject({ person: "", amount: 0, direction: "borrowed", status: "open", note: "" });
     expect(d.date).toBe("2026-05-01");
+    // 06:30 local is still the previous day in UTC; the draft uses the local day.
+    expect(createPersonalLoanDraft("lent_out", new Date("2026-05-02T06:30:00+07:00")).date).toBe("2026-05-02");
   });
 
   it("sorts, totals and toggles", () => {

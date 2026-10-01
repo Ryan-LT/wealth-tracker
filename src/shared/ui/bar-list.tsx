@@ -24,7 +24,7 @@ export function BarList({ items, className }: { items: BarListItem[]; className?
               </span>
             </span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-border/60" aria-hidden>
             <div
               className="h-full rounded-r-full bg-chart-1"
               style={{ width: `${max > 0 ? Math.max(1.5, (item.value / max) * 100) : 0}%` }}

@@ -39,7 +39,7 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent">
               <Avatar className="size-8 rounded-md">
-                <AvatarFallback className="rounded-md bg-primary/10 text-xs font-semibold text-primary">
+                <AvatarFallback className="rounded-md bg-primary-soft text-xs font-semibold text-primary-soft-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>

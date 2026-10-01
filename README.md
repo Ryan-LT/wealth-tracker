@@ -62,8 +62,10 @@ a short debounce and retries with backoff when offline.
 
 ### Design system
 
-- Tokens in `src/app/globals.css` (one indigo accent; `success / warning / danger / info`
-  for signed values and status; validated chart palette).
+- Tokens in `src/app/globals.css` — the "Warm stone" palette: warm off-white / charcoal
+  neutrals (a dimmed, low-glare dark mode), one soft indigo accent with a `primary-soft`
+  tint for selected states, `success / warning / danger / info` for signed values and
+  status (all AA in both modes), and a chart palette validated against the card surface.
 - Components in `src/shared/ui` (`PageHeader`, `Section`, `StatCard`, `Money`,
   `StatusBadge`, `DataTable`, form fields…), primitives in `src/shared/ui/kit`.
 - Money is always written `1.245.670.000 ₫` (compact `4,82B ₫` on KPI tiles, full value

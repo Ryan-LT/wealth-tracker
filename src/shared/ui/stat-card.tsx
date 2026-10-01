@@ -50,7 +50,8 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
       </div>
       {hint || aside ? (
         <div className="relative z-[1] flex min-h-4 items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span className="min-w-0 truncate">{hint}</span>
+          {/* On phones a badge (aside) wins over a truncated hint. */}
+          <span className={cn("min-w-0 truncate", aside && "max-sm:hidden")}>{hint}</span>
           {aside}
         </div>
       ) : null}

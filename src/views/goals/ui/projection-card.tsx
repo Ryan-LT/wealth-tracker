@@ -45,6 +45,8 @@ export function ProjectionCard(props: ProjectionCardProps) {
   }, [model.rows]);
 
   const { meetTarget } = model;
+  const firstX = model.rows[0]?.x ?? 0;
+  const visibleDots = model.paidDots.filter((d) => d.x >= firstX);
   const summary =
     meetTarget.kind === "date" ? (
       <span className={model.afterGoalDate ? "text-warning" : "text-success"}>
@@ -126,29 +128,30 @@ export function ProjectionCard(props: ProjectionCardProps) {
                   activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
                   isAnimationActive={false}
                 />
-                {model.paidDots.map((d) => (
+                {visibleDots.map((d) => (
                   <ReferenceDot key={d.id} x={d.x} y={d.cumulative} r={4} fill="var(--chart-2)" stroke="var(--card)" strokeWidth={2} ifOverflow="discard" />
                 ))}
+                {/* Recharts 2 ignores fragments, so each marker is its own child. */}
                 {meetTarget.kind === "date" ? (
-                  <>
-                    <ReferenceLine x={meetTarget.date.getTime()} stroke="var(--chart-1)" strokeOpacity={0.5} />
-                    <ReferenceDot
-                      x={meetTarget.date.getTime()}
-                      y={props.targetAmount}
-                      r={5}
-                      fill="var(--chart-1)"
-                      stroke="var(--card)"
-                      strokeWidth={2}
-                      ifOverflow="discard"
-                      label={{ value: "Target met", position: "top", fontSize: 12, fill: "var(--foreground)" }}
-                    />
-                  </>
+                  <ReferenceLine x={meetTarget.date.getTime()} stroke="var(--chart-1)" strokeOpacity={0.45} />
+                ) : null}
+                {meetTarget.kind === "date" ? (
+                  <ReferenceDot
+                    x={meetTarget.date.getTime()}
+                    y={props.targetAmount}
+                    r={5}
+                    fill="var(--chart-1)"
+                    stroke="var(--card)"
+                    strokeWidth={2}
+                    ifOverflow="discard"
+                    label={{ value: "Target met", position: "top", fontSize: 12, fill: "var(--foreground)" }}
+                  />
                 ) : null}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
           <p className="text-xs text-muted-foreground">
-            Linear: starting balance + monthly net each month.{model.paidDots.length ? " Dots mark paid checkpoints." : ""}
+            Linear: starting balance + monthly net each month.{visibleDots.length ? " Dots mark paid checkpoints." : ""}
           </p>
         </div>
       ) : (

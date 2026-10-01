@@ -58,7 +58,7 @@ export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposing
       <ul className="grid gap-0.5 px-2">
         {isComposingNew ? (
           <li>
-            <div className="rounded-md border border-dashed border-primary/50 bg-primary/5 px-3 py-2.5 text-sm font-medium" aria-current="true">
+            <div className="rounded-md border border-dashed border-primary/40 bg-primary-soft px-3 py-2.5 text-sm font-medium text-primary-soft-foreground" aria-current="true">
               New plan (unsaved)
             </div>
           </li>
@@ -73,7 +73,7 @@ export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposing
                 aria-current={active ? "true" : undefined}
                 className={cn(
                   "grid w-full gap-1.5 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none",
-                  active && "bg-accent",
+                  active && "bg-primary-soft hover:bg-primary-soft",
                 )}
               >
                 <div className="flex items-center justify-between gap-2">

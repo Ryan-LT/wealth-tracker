@@ -68,7 +68,12 @@ export function AppSidebar() {
               <SidebarMenu>
                 {group.items.map((item) => (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={isNavActive(activePath, item.href)} tooltip={item.label}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isNavActive(activePath, item.href)}
+                      tooltip={item.label}
+                      className="data-[active=true]:bg-primary-soft data-[active=true]:text-primary-soft-foreground data-[active=true]:[&>svg]:text-primary-soft-foreground"
+                    >
                       <Link href={item.href} onClick={(e) => navigate(e, item.href)}>
                         <item.icon />
                         <span>{item.label}</span>

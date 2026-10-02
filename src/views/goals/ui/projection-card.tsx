@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { CartesianGrid, ComposedChart, Line, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { buildProjectionChartModel, evaluateStartingOnlyStatus, type GoalCheckpoint } from "@/entities/goal";
-import { formatDate, formatMoney, formatMoneyCompact, formatMonths } from "@/shared/lib/format";
+import { formatDate, formatMoney, formatMoneyCompact, formatMonths, formatPercent } from "@/shared/lib/format";
 import { chartAxisProps, ChartLegendItem, ChartTooltipCard, ChartViewToggle, type ChartView } from "@/shared/ui/chart";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/kit/table";
@@ -154,7 +154,10 @@ export function ProjectionCard(props: ProjectionCardProps) {
             </ResponsiveContainer>
           </div>
           <p className="text-xs text-muted-foreground">
-            Linear: starting balance + monthly net each month.{visibleDots.length ? " Dots mark paid checkpoints." : ""}
+            {props.annualReturn > 0
+              ? `Starting balance + this plan's monthly savings, growing ${formatPercent(props.annualReturn * 100)} a year.`
+              : "Starting balance + this plan's monthly savings each month."}
+            {visibleDots.length ? " Dots mark paid checkpoints." : ""}
           </p>
         </div>
       ) : (

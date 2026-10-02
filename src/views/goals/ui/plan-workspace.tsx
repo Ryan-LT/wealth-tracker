@@ -171,7 +171,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
           aside={draft.targetAmount > 0 ? <span>vs target</span> : null}
         />
         <StatCard
-          label="Monthly net in projection"
+          label="Monthly savings for this plan"
           icon={Wallet}
           value={projection.applyMonthlyIncome ? <Money value={projection.effectiveMonthlyContribution} compact signed tone="auto" /> : "Excluded"}
           hint={

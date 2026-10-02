@@ -13,6 +13,7 @@ import {
   type GoalStartingOption,
 } from "@/entities/goal";
 import { CategoryBadge, LiquidityBadge } from "@/entities/settings-asset/ui";
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { MoneyInput } from "@/shared/ui/form";
 import { Badge } from "@/shared/ui/kit/badge";
@@ -33,7 +34,7 @@ export type AllocateSourcesDialogProps = {
   savedPlans: GoalProfile[];
   seedOptions: GoalStartingOption[];
   applyLabel?: string;
-  /** What the allocation is for, used in labels ("plan", "income source"). */
+  /** What the allocation is for, used in labels ("plan", "income source"); pass it translated. Defaults to "plan". */
   subject?: string;
   onApply: (lines: GoalSeedLine[]) => void | Promise<void>;
 };
@@ -56,10 +57,13 @@ function AllocationEditor({
   profile,
   savedPlans,
   seedOptions,
-  applyLabel = "Apply",
-  subject = "plan",
+  applyLabel,
+  subject: subjectProp,
   onApply,
 }: AllocateSourcesDialogProps) {
+  const { t } = useI18n();
+  const a = t.goals.allocate;
+  const subject = subjectProp ?? a.subjectPlan;
   // Mounted fresh on every open (Radix unmounts closed content).
   const [lines, setLines] = useState<GoalSeedLine[]>(() => (profile.seedLines ?? []).map((l) => ({ ...l })));
   const [pickerOpen, setPickerOpen] = useState(lines.length === 0);
@@ -94,7 +98,7 @@ function AllocationEditor({
       <DialogBody className="flex flex-col gap-3">
         {lines.length === 0 ? (
           <p className="rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-            No sources yet — add one below.
+            {a.noSources}
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
@@ -115,9 +119,9 @@ function AllocationEditor({
           pickerOpen ? (
             <div className="rounded-md border">
               <Command>
-                <CommandInput placeholder="Find a source…" autoFocus={lines.length > 0} />
+                <CommandInput placeholder={a.findSource} autoFocus={lines.length > 0} />
                 <CommandList className="max-h-72">
-                  <CommandEmpty>No matching source.</CommandEmpty>
+                  <CommandEmpty>{a.noMatch}</CommandEmpty>
                   <CommandGroup>
                     {addable.map((option) => (
                       <SourceOptionItem
@@ -135,24 +139,24 @@ function AllocationEditor({
           ) : (
             <Button type="button" variant="outline" className="self-start" onClick={() => setPickerOpen(true)}>
               <Plus />
-              Add source
+              {a.addSource}
             </Button>
           )
         ) : (
-          <p className="text-xs text-muted-foreground">Every tracked source is already added.</p>
+          <p className="text-xs text-muted-foreground">{a.allAdded}</p>
         )}
       </DialogBody>
       <DialogFooter className="sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground max-sm:order-last max-sm:text-center">
-          Counts toward {subject}: <Money value={total} className="font-semibold text-foreground" />
+          {a.countsTowardTotal({ subject })} <Money value={total} className="font-semibold text-foreground" />
         </p>
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button type="button" onClick={() => void apply()} disabled={busy}>
             {busy ? <Loader2 className="animate-spin" /> : null}
-            {applyLabel}
+            {applyLabel ?? t.common.apply}
           </Button>
         </div>
       </DialogFooter>
@@ -171,13 +175,15 @@ function SourceOptionItem({
   draft: GoalProfile;
   onPick: () => void;
 }) {
+  const { t } = useI18n();
+  const m = t.goals.allocate;
   if (option.isCustom) {
     return (
-      <CommandItem value="custom amount extra cash" onSelect={onPick} className="items-start gap-3 py-2">
+      <CommandItem value={`custom amount extra cash ${m.customAmount}`} onSelect={onPick} className="items-start gap-3 py-2">
         <Coins className="mt-0.5" />
         <div>
-          <p className="font-medium">Custom amount</p>
-          <p className="text-xs text-muted-foreground">Extra cash not tied to a tracked source</p>
+          <p className="font-medium">{m.customAmount}</p>
+          <p className="text-xs text-muted-foreground">{m.customHint}</p>
         </div>
       </CommandItem>
     );
@@ -196,9 +202,11 @@ function SourceOptionItem({
           <Money
             value={a.remaining}
             className={cn("font-medium", a.empty ? "" : a.fullyReserved ? "text-danger" : "text-foreground")}
-          />{" "}
-          available of <Money value={a.live} /> live
-          {a.usage.length > 0 ? ` · reserved by ${a.usage.map((u) => u.planName).join(", ")}` : ""}
+          />
+          {m.availableOf}
+          <Money value={a.live} />
+          {m.live}
+          {a.usage.length > 0 ? m.reservedBy({ names: a.usage.map((u) => u.planName).join(", ") }) : ""}
         </p>
       </div>
     </CommandItem>
@@ -218,6 +226,8 @@ function AllocationLineRow({
   onAmountChange: (amount: number) => void;
   onRemove: () => void;
 }) {
+  const { t } = useI18n();
+  const m = t.goals.allocate;
   const inputId = useId();
   return (
     <li className="rounded-md border bg-card">
@@ -228,30 +238,30 @@ function AllocationLineRow({
           {view.category ? <CategoryBadge category={view.category} /> : null}
           {view.liquidity ? <LiquidityBadge liquidity={view.liquidity} /> : null}
         </div>
-        <Button type="button" variant="ghost" size="icon-sm" aria-label={`Remove ${view.title}`} onClick={onRemove} className="-my-1 text-muted-foreground hover:text-danger">
+        <Button type="button" variant="ghost" size="icon-sm" aria-label={m.remove({ name: view.title })} onClick={onRemove} className="-my-1 text-muted-foreground hover:text-danger">
           <Trash2 />
         </Button>
       </div>
       <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,15rem)_1fr] sm:gap-5">
         <div className="grid gap-1.5">
-          <Label htmlFor={inputId}>{view.isCustom ? "Amount" : "Allocate from this source"}</Label>
+          <Label htmlFor={inputId}>{view.isCustom ? m.amount : m.allocateFromSource}</Label>
           <MoneyInput id={inputId} value={amount} onChange={onAmountChange} min={0} max={view.isCustom ? undefined : view.maxAlloc} />
         </div>
         {view.isCustom ? (
-          <p className="self-center text-xs text-muted-foreground">Extra cash not tied to a tracked source.</p>
+          <p className="self-center text-xs text-muted-foreground">{m.customHintSentence}</p>
         ) : (
           <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 self-center text-xs">
-            <dt className="text-muted-foreground">Live balance</dt>
+            <dt className="text-muted-foreground">{m.liveBalance}</dt>
             <dd className="text-right">
               <Money value={view.live} />
             </dd>
-            <dt className="text-muted-foreground">Still available to this {subject}</dt>
+            <dt className="text-muted-foreground">{m.stillAvailable({ subject })}</dt>
             <dd className={cn("text-right", view.availabilityTone === "danger" && "text-danger", view.availabilityTone === "warning" && "text-warning")}>
               <Money value={view.availableToPlan} />
             </dd>
-            <dt className="text-muted-foreground">Counts toward {subject}</dt>
+            <dt className="text-muted-foreground">{m.countsToward({ subject })}</dt>
             <dd className="flex items-center justify-end gap-1.5 font-medium">
-              {view.over ? <Badge variant="danger">Capped</Badge> : null}
+              {view.over ? <Badge variant="danger">{m.capped}</Badge> : null}
               <Money value={view.effective} />
             </dd>
           </dl>
@@ -259,7 +269,7 @@ function AllocationLineRow({
       </div>
       {view.usage.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5 border-t px-3 py-2 text-xs">
-          <span className="text-muted-foreground">Also reserved for</span>
+          <span className="text-muted-foreground">{m.alsoReserved}</span>
           {view.usage.map((u) => (
             <Badge key={u.planId} variant="outline" className="gap-1.5 font-normal">
               <span className="max-w-40 truncate font-medium">{u.planName}</span>

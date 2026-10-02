@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/shared/i18n";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
@@ -14,20 +17,24 @@ type BalanceSheetCardProps = {
 };
 
 export function BalanceSheetCard(p: BalanceSheetCardProps) {
+  const { t } = useI18n();
+  const m = t.dashboard.balanceSheet;
   return (
-    <Section title="Balance sheet" description="What you own minus what you owe.">
+    <Section title={m.title} description={m.description}>
       <DescriptionList
         items={[
-          { label: "Assets", value: <Money value={p.assetConfigurationTotal} /> },
-          ...(p.portfolioDetailTotal > 0 ? [{ label: "Imported holdings", value: <Money value={p.portfolioDetailTotal} /> }] : []),
-          ...(p.loansLent > 0 ? [{ label: "Lent to others", value: <Money value={p.loansLent} /> }] : []),
-          { label: "Total assets", value: <Money value={p.grossAssets} />, emphasis: true },
+          { label: m.assets, value: <Money value={p.assetConfigurationTotal} /> },
+          ...(p.portfolioDetailTotal > 0 ? [{ label: m.importedHoldings, value: <Money value={p.portfolioDetailTotal} /> }] : []),
+          ...(p.loansLent > 0 ? [{ label: m.lentToOthers, value: <Money value={p.loansLent} /> }] : []),
+          { label: m.totalAssets, value: <Money value={p.grossAssets} />, emphasis: true },
           {
-            label: "Debts",
+            label: m.debts,
             value: <Money value={-p.liabilities} tone={p.liabilities > 0 ? "danger" : "none"} />,
-            hint: p.loansBorrowed > 0 ? <>Incl. <Money value={p.loansBorrowed} /> borrowed from people</> : undefined,
+            hint: p.loansBorrowed > 0 ? <>
+                {m.borrowedPrefix} <Money value={p.loansBorrowed} /> {m.borrowedSuffix}
+              </> : undefined,
           },
-          { label: "Net worth", value: <Money value={p.netWorth} />, emphasis: true },
+          { label: m.netWorth, value: <Money value={p.netWorth} />, emphasis: true },
         ]}
       />
     </Section>

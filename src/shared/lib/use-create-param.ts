@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { useEffect, useEffectEvent } from "react";
 
 /**
@@ -12,7 +13,7 @@ import { useEffect, useEffectEvent } from "react";
 export function useCreateParam(openCreate: () => void, openEdit?: (id: string) => boolean | void) {
   const params = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const onNew = useEffectEvent(openCreate);
   const onEdit = useEffectEvent((id: string) => openEdit?.(id));
 

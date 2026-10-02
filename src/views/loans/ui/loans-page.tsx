@@ -16,6 +16,7 @@ import {
   type PersonalLoanDirection,
 } from "@/entities/personal-loan";
 import { PREFERENCES_SEED } from "@/entities/preferences";
+import { useI18n } from "@/shared/i18n";
 import { formatDate, formatMoney } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
@@ -41,18 +42,20 @@ type StatusFilter = "all" | "open" | "settled";
 type DialogState = { mode: "create" | "edit"; loan: PersonalLoan };
 
 function DirectionBadge({ direction }: { direction: PersonalLoanDirection }) {
+  const { t } = useI18n();
   return direction === "lent_out" ? (
     <StatusBadge tone="success" icon={ArrowUpRight}>
-      Owed to you
+      {t.loans.owedToYou}
     </StatusBadge>
   ) : (
     <StatusBadge tone="danger" icon={ArrowDownLeft}>
-      You owe
+      {t.loans.youOwe}
     </StatusBadge>
   );
 }
 
 export function LoansPage() {
+  const { t } = useI18n();
   const [loans, setLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const countsInNetWorth = prefs.includeLoansInNetWorth === true;
@@ -80,21 +83,21 @@ export function LoansPage() {
     (loan: PersonalLoan) => {
       const next = toggleLoanStatus(loan);
       setLoans((prev) => prev.map((l) => (l.id === loan.id ? next : l)));
-      toast.success(next.status === "settled" ? "Marked as settled" : "Reopened", { description: loan.person });
+      toast.success(next.status === "settled" ? t.loans.toast.settled : t.loans.toast.reopened, { description: loan.person });
     },
-    [setLoans],
+    [setLoans, t],
   );
 
   const actionsFor = useCallback(
     (loan: PersonalLoan): RowAction[] => [
       loan.status === "open"
-        ? { label: "Mark settled", icon: CircleCheck, onSelect: () => toggle(loan) }
-        : { label: "Reopen", icon: RotateCcw, onSelect: () => toggle(loan) },
-      { label: "Edit", icon: Pencil, onSelect: () => openEdit(loan) },
+        ? { label: t.loans.actions.markSettled, icon: CircleCheck, onSelect: () => toggle(loan) }
+        : { label: t.loans.actions.reopen, icon: RotateCcw, onSelect: () => toggle(loan) },
+      { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(loan) },
       "separator",
-      { label: "Delete", icon: Trash2, destructive: true, onSelect: () => setPendingDelete(loan) },
+      { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(loan) },
     ],
-    [toggle, openEdit],
+    [toggle, openEdit, t],
   );
 
   const owedToYou = totalOpenAmount(loans, "lent_out");
@@ -116,7 +119,7 @@ export function LoansPage() {
     () => [
       {
         accessorKey: "person",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Person" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.loans.columns.person} />,
         cell: ({ row }) => (
           <div className="max-w-56 min-w-0 whitespace-normal">
             <p className={row.original.status === "settled" ? "font-medium text-muted-foreground" : "font-medium"}>{row.original.person}</p>
@@ -126,26 +129,32 @@ export function LoansPage() {
       },
       {
         accessorKey: "direction",
-        header: "Direction",
+        header: t.loans.columns.direction,
         enableSorting: false,
         cell: ({ row }) => <DirectionBadge direction={row.original.direction} />,
       },
       {
         accessorKey: "date",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.loans.columns.date} />,
         sortUndefined: "last",
         cell: ({ row }) => <span className="tabular-nums text-muted-foreground">{formatDate(row.original.date)}</span>,
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: t.loans.columns.status,
         enableSorting: false,
         cell: ({ row }) =>
-          row.original.status === "open" ? <StatusBadge tone="info" dot>Open</StatusBadge> : <StatusBadge dot>Settled</StatusBadge>,
+          row.original.status === "open" ? (
+            <StatusBadge tone="info" dot>
+              {t.loans.open}
+            </StatusBadge>
+          ) : (
+            <StatusBadge dot>{t.loans.settled}</StatusBadge>
+          ),
       },
       {
         accessorKey: "amount",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Amount" align="right" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.loans.columns.amount} align="right" />,
         cell: ({ row }) => (
           <Money
             value={row.original.amount}
@@ -159,76 +168,80 @@ export function LoansPage() {
       {
         id: "actions",
         enableSorting: false,
-        header: () => <span className="sr-only">Actions</span>,
-        cell: ({ row }) => <RowActions label={`Actions for ${row.original.person}`} actions={actionsFor(row.original)} />,
+        header: () => <span className="sr-only">{t.common.actions}</span>,
+        cell: ({ row }) => <RowActions label={t.common.actionsFor({ name: row.original.person })} actions={actionsFor(row.original)} />,
         meta: { className: "w-12" },
       },
     ],
-    [actionsFor],
+    [actionsFor, t],
   );
 
   return (
     <PageContainer>
       <PageHeader
-        title="Personal loans"
-        description={
-          countsInNetWorth
-            ? "Informal money lent or borrowed. Open entries count in your net worth."
-            : "Informal money lent or borrowed. A private log — not counted in net worth."
-        }
+        title={t.loans.title}
+        description={countsInNetWorth ? t.loans.descriptionCounted : t.loans.descriptionPrivate}
         actions={
           <Button onClick={openCreate}>
             <Plus />
-            Add loan
+            {t.loans.add}
           </Button>
         }
       />
 
       <StatGrid>
-        <StatCard label="Owed to you" icon={ArrowUpRight} value={<Money value={owedToYou} compact tone="success" />} hint="Open entries you lent" />
-        <StatCard label="You owe" icon={ArrowDownLeft} value={<Money value={youOwe} compact tone="danger" />} hint="Open entries you borrowed" />
-        <StatCard label="Net position" icon={Scale} value={<Money value={owedToYou - youOwe} compact signed tone="auto" />} hint="Owed to you − you owe" />
-        <StatCard label="Open entries" icon={HandCoins} value={openCount} hint={`${loans.length - openCount} settled`} />
+        <StatCard
+          label={t.loans.kpi.owedToYou.label}
+          icon={ArrowUpRight}
+          value={<Money value={owedToYou} compact tone="success" />}
+          hint={t.loans.kpi.owedToYou.hint}
+        />
+        <StatCard label={t.loans.kpi.youOwe.label} icon={ArrowDownLeft} value={<Money value={youOwe} compact tone="danger" />} hint={t.loans.kpi.youOwe.hint} />
+        <StatCard
+          label={t.loans.kpi.net.label}
+          icon={Scale}
+          value={<Money value={owedToYou - youOwe} compact signed tone="auto" />}
+          hint={t.loans.kpi.net.hint}
+        />
+        <StatCard label={t.loans.kpi.open.label} icon={HandCoins} value={openCount} hint={t.loans.kpi.open.hint({ count: loans.length - openCount })} />
       </StatGrid>
 
       <div className="flex items-start justify-between gap-4 rounded-lg border bg-card px-5 py-4">
         <div className="grid gap-1">
-          <Label htmlFor="loans-in-net-worth">Count in net worth</Label>
-          <p className="text-sm text-muted-foreground">
-            Add money you lent out to your assets and money you borrowed to your debts (open entries only).
-          </p>
+          <Label htmlFor="loans-in-net-worth">{t.loans.netWorth.label}</Label>
+          <p className="text-sm text-muted-foreground">{t.loans.netWorth.description}</p>
         </div>
         <Switch
           id="loans-in-net-worth"
           checked={countsInNetWorth}
           onCheckedChange={(on) => {
             setPrefs((p) => ({ ...p, includeLoansInNetWorth: on }));
-            toast.success(on ? "Personal loans now count in net worth" : "Personal loans no longer count in net worth");
+            toast.success(on ? t.loans.netWorth.on : t.loans.netWorth.off);
           }}
         />
       </div>
 
-      <Section title="Loan log" description="Totals include open entries only." flush>
+      <Section title={t.loans.log.title} description={t.loans.log.description} flush>
         <div className="border-b px-5 py-3">
-          <DataTableToolbar search={search} onSearchChange={setSearch} placeholder="Search people or notes…">
+          <DataTableToolbar search={search} onSearchChange={setSearch} placeholder={t.loans.log.searchPlaceholder}>
             <SegmentedControl<DirectionFilter>
-              aria-label="Direction"
+              aria-label={t.loans.log.directionLabel}
               value={direction}
               onValueChange={setDirection}
               options={[
-                { value: "all", label: "All" },
-                { value: "lent_out", label: "Owed to you" },
-                { value: "borrowed", label: "You owe" },
+                { value: "all", label: t.loans.log.all },
+                { value: "lent_out", label: t.loans.owedToYou },
+                { value: "borrowed", label: t.loans.youOwe },
               ]}
             />
             <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-              <SelectTrigger className="w-32" aria-label="Status">
+              <SelectTrigger className="w-32" aria-label={t.loans.log.statusLabel}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any status</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="settled">Settled</SelectItem>
+                <SelectItem value="all">{t.loans.log.anyStatus}</SelectItem>
+                <SelectItem value="open">{t.loans.open}</SelectItem>
+                <SelectItem value="settled">{t.loans.settled}</SelectItem>
               </SelectContent>
             </Select>
           </DataTableToolbar>
@@ -243,17 +256,17 @@ export function LoansPage() {
             loans.length === 0 ? (
               <EmptyState
                 icon={HandCoins}
-                title="No loans logged"
-                description="Keep track of money you lent to or borrowed from friends and family."
+                title={t.loans.empty.title}
+                description={t.loans.empty.description}
                 action={
                   <Button variant="outline" onClick={openCreate}>
                     <Plus />
-                    Add loan
+                    {t.loans.add}
                   </Button>
                 }
               />
             ) : (
-              <EmptyState title="No loans match these filters" description="Try another direction, status or search." />
+              <EmptyState title={t.loans.empty.filteredTitle} description={t.loans.empty.filteredDescription} />
             )
           }
           renderMobileItem={(l) => (
@@ -261,8 +274,8 @@ export function LoansPage() {
               <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openEdit(l)}>
                 <p className={l.status === "settled" ? "truncate font-medium text-muted-foreground" : "truncate font-medium"}>{l.person}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {l.direction === "lent_out" ? "Owed to you" : "You owe"} · {formatDate(l.date)}
-                  {l.status === "settled" ? " · Settled" : ""}
+                  {l.direction === "lent_out" ? t.loans.owedToYou : t.loans.youOwe} · {formatDate(l.date)}
+                  {l.status === "settled" ? t.loans.settledSuffix : ""}
                 </p>
               </button>
               <Money
@@ -271,7 +284,7 @@ export function LoansPage() {
                 tone={l.status === "settled" ? "muted" : l.direction === "lent_out" ? "success" : "danger"}
                 className="text-sm font-medium"
               />
-              <RowActions label={`Actions for ${l.person}`} actions={actionsFor(l)} />
+              <RowActions label={t.common.actionsFor({ name: l.person })} actions={actionsFor(l)} />
             </div>
           )}
         />
@@ -286,10 +299,10 @@ export function LoansPage() {
           const next = sanitizePersonalLoan(draft);
           if (dialog?.mode === "edit") {
             setLoans((prev) => prev.map((l) => (l.id === next.id ? next : l)));
-            toast.success("Loan updated");
+            toast.success(t.loans.toast.updated);
           } else {
             setLoans((prev) => [...prev, next]);
-            toast.success("Loan added");
+            toast.success(t.loans.toast.added);
           }
         }}
       />
@@ -297,13 +310,15 @@ export function LoansPage() {
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(o) => !o && setPendingDelete(null)}
-        title="Delete loan entry?"
-        description={pendingDelete ? `Remove the ${formatMoney(pendingDelete.amount)} entry with "${pendingDelete.person}"?` : null}
+        title={t.loans.confirmDelete.title}
+        description={
+          pendingDelete ? t.loans.confirmDelete.description({ amount: formatMoney(pendingDelete.amount), person: pendingDelete.person }) : null
+        }
         onConfirm={() => {
           if (!pendingDelete) return;
           const removed = pendingDelete;
           setLoans((prev) => prev.filter((l) => l.id !== removed.id));
-          toast.success("Loan deleted", { description: removed.person });
+          toast.success(t.loans.toast.deleted, { description: removed.person });
         }}
       />
     </PageContainer>

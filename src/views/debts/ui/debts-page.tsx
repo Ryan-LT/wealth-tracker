@@ -9,13 +9,14 @@ import {
   createDebtDraft,
   DEBTS_SEED,
   debtPayoff,
-  describeDebtPayment,
+  isValidDayOfMonth,
   sanitizeDebt,
   totalDebtBalance,
   totalMonthlyInterest,
   weightedAverageRate,
   type Debt,
 } from "@/entities/debt";
+import { useI18n, type Messages } from "@/shared/i18n";
 import { formatDate, formatMonths, formatPercent } from "@/shared/lib/format";
 import { useTable } from "@/shared/storage";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
@@ -35,20 +36,32 @@ import { DebtFormDialog } from "./debt-form-dialog";
 
 type DialogState = { mode: "create" | "edit"; debt: Debt };
 
+/** Payment column: "Day N each month" (+ note), the note alone, or a dash. */
+function describePayment(t: Messages, debt: Debt): { primary: string; secondary?: string } {
+  const note = debt.nextPayment.trim();
+  if (isValidDayOfMonth(debt.paymentDayOfMonth)) {
+    return { primary: t.debts.paymentDay({ day: debt.paymentDayOfMonth }), secondary: note || undefined };
+  }
+  return { primary: note || "—" };
+}
+
 /** Payoff column: date + total interest from the monthly payment, or why it can't be shown. */
 function PayoffCell({ debt }: { debt: Debt }) {
+  const { t } = useI18n();
   const p = debtPayoff(debt);
   switch (p.kind) {
     case "paid_off":
-      return <span className="text-muted-foreground">Paid off</span>;
+      return <span className="text-muted-foreground">{t.debts.payoff.paidOff}</span>;
     case "unknown":
-      return <span className="text-muted-foreground">Add a monthly payment</span>;
+      return <span className="text-muted-foreground">{t.debts.payoff.addPayment}</span>;
     case "never":
       return (
         <div>
-          <p className="text-danger">Never at this payment</p>
+          <p className="text-danger">{t.debts.payoff.never}</p>
           <p className="text-xs text-muted-foreground">
-            Interest alone is <Money value={p.monthlyInterest} /> / month
+            {t.debts.payoff.interestAlonePrefix}
+            <Money value={p.monthlyInterest} />
+            {t.debts.payoff.interestAloneSuffix}
           </p>
         </div>
       );
@@ -59,7 +72,8 @@ function PayoffCell({ debt }: { debt: Debt }) {
             {formatDate(p.date, "monthYear")} <span className="text-xs text-muted-foreground">({formatMonths(p.months)})</span>
           </p>
           <p className="text-xs text-muted-foreground">
-            <Money value={p.totalInterest} /> interest left
+            <Money value={p.totalInterest} />
+            {t.debts.payoff.interestLeft}
           </p>
         </div>
       );
@@ -67,6 +81,7 @@ function PayoffCell({ debt }: { debt: Debt }) {
 }
 
 export function DebtsPage() {
+  const { t } = useI18n();
   const [debts, setDebts] = useTable("debts", DEBTS_SEED);
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -92,40 +107,40 @@ export function DebtsPage() {
     () => [
       {
         accessorKey: "name",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.debts.columns.name} />,
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "balance",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Balance" align="right" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.debts.columns.balance} align="right" />,
         cell: ({ row }) => <Money value={row.original.balance} />,
         footer: () => <Money value={total} className="font-semibold" />,
         meta: { align: "right" },
       },
       {
         accessorKey: "ratePct",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Rate" align="right" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.debts.columns.rate} align="right" />,
         cell: ({ row }) => (
           <span className="inline-flex items-center justify-end gap-2">
             <span className="tabular-nums">{formatPercent(row.original.ratePct, { maximumFractionDigits: 3 })}</span>
-            <Badge variant={row.original.rateKind === "Variable" ? "warning" : "neutral"}>{row.original.rateKind}</Badge>
+            <Badge variant={row.original.rateKind === "Variable" ? "warning" : "neutral"}>{t.debts.rateKind[row.original.rateKind]}</Badge>
           </span>
         ),
         meta: { align: "right" },
       },
       {
         id: "payoff",
-        header: "Payoff",
+        header: t.debts.columns.payoff,
         enableSorting: false,
         cell: ({ row }) => <PayoffCell debt={row.original} />,
         meta: { className: "hidden lg:table-cell" },
       },
       {
         id: "payment",
-        header: "Payment",
+        header: t.debts.columns.payment,
         enableSorting: false,
         cell: ({ row }) => {
-          const p = describeDebtPayment(row.original);
+          const p = describePayment(t, row.original);
           return (
             <div className="max-w-64 whitespace-normal">
               <p>{p.primary}</p>
@@ -137,59 +152,68 @@ export function DebtsPage() {
       {
         id: "actions",
         enableSorting: false,
-        header: () => <span className="sr-only">Actions</span>,
+        header: () => <span className="sr-only">{t.common.actions}</span>,
         cell: ({ row }) => (
           <RowActions
-            label={`Actions for ${row.original.name}`}
+            label={t.common.actionsFor({ name: row.original.name })}
             actions={[
-              { label: "Edit", icon: Pencil, onSelect: () => openEdit(row.original) },
+              { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(row.original) },
               "separator",
-              { label: "Delete", icon: Trash2, destructive: true, onSelect: () => setPendingDelete(row.original) },
+              { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(row.original) },
             ]}
           />
         ),
         meta: { className: "w-12" },
       },
     ],
-    [total],
+    [total, t],
   );
 
   return (
     <PageContainer>
       <PageHeader
-        title="Debts"
-        description="Loans, cards and other liabilities. Balances are subtracted from net worth."
+        title={t.debts.title}
+        description={t.debts.description}
         actions={
           <Button onClick={openCreate}>
             <Plus />
-            Add debt
+            {t.debts.add}
           </Button>
         }
       />
 
       <StatGrid>
-        <StatCard label="Total outstanding" icon={CreditCard} value={<Money value={total} compact />} hint={`${debts.length} ${debts.length === 1 ? "debt" : "debts"}`} />
         <StatCard
-          label="Avg interest rate"
+          label={t.debts.kpi.total.label}
+          icon={CreditCard}
+          value={<Money value={total} compact />}
+          hint={t.debts.kpi.total.hint({ count: debts.length })}
+        />
+        <StatCard
+          label={t.debts.kpi.avgRate.label}
           icon={Percent}
           value={formatPercent(weightedAverageRate(debts), { maximumFractionDigits: 2 })}
-          hint="Weighted by balance"
+          hint={t.debts.kpi.avgRate.hint}
         />
         <StatCard
-          label="Variable-rate balance"
+          label={t.debts.kpi.variable.label}
           icon={TrendingUp}
           value={<Money value={variableTotal} compact />}
-          hint={total > 0 ? `${formatPercent((variableTotal / total) * 100, { maximumFractionDigits: 0 })} of all debt` : "No debt"}
+          hint={
+            total > 0
+              ? t.debts.kpi.variable.hint({ pct: formatPercent((variableTotal / total) * 100, { maximumFractionDigits: 0 }) })
+              : t.debts.kpi.variable.none
+          }
         />
         <StatCard
-          label="Interest per month"
+          label={t.debts.kpi.interest.label}
           icon={Flame}
           value={<Money value={totalMonthlyInterest(debts)} compact />}
-          hint="Balance × rate ÷ 12"
+          hint={t.debts.kpi.interest.hint}
         />
       </StatGrid>
 
-      <Section title="All debts" flush>
+      <Section title={t.debts.allDebts} flush>
         <DataTable
           columns={columns}
           data={debts}
@@ -198,33 +222,33 @@ export function DebtsPage() {
           empty={
             <EmptyState
               icon={CreditCard}
-              title="No debts recorded"
-              description="Track mortgages, car loans and credit cards to see your true net worth."
+              title={t.debts.empty.title}
+              description={t.debts.empty.description}
               action={
                 <Button variant="outline" onClick={openCreate}>
                   <Plus />
-                  Add debt
+                  {t.debts.add}
                 </Button>
               }
             />
           }
           renderMobileItem={(d) => {
-            const p = describeDebtPayment(d);
+            const p = describePayment(t, d);
             return (
               <div className="flex items-center gap-3 px-4 py-3">
                 <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openEdit(d)}>
                   <p className="truncate font-medium">{d.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {formatPercent(d.ratePct, { maximumFractionDigits: 3 })} {d.rateKind.toLowerCase()} · {p.primary}
+                    {formatPercent(d.ratePct, { maximumFractionDigits: 3 })} {t.debts.rateKindLower[d.rateKind]} · {p.primary}
                   </p>
                 </button>
                 <Money value={d.balance} className="text-sm font-medium" />
                 <RowActions
-                  label={`Actions for ${d.name}`}
+                  label={t.common.actionsFor({ name: d.name })}
                   actions={[
-                    { label: "Edit", icon: Pencil, onSelect: () => openEdit(d) },
+                    { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(d) },
                     "separator",
-                    { label: "Delete", icon: Trash2, destructive: true, onSelect: () => setPendingDelete(d) },
+                    { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(d) },
                   ]}
                 />
               </div>
@@ -242,10 +266,10 @@ export function DebtsPage() {
           const next = sanitizeDebt(draft);
           if (dialog?.mode === "edit") {
             setDebts((prev) => prev.map((d) => (d.id === next.id ? next : d)));
-            toast.success("Debt updated");
+            toast.success(t.debts.toast.updated);
           } else {
             setDebts((prev) => [...prev, next]);
-            toast.success("Debt added");
+            toast.success(t.debts.toast.added);
           }
         }}
       />
@@ -253,13 +277,13 @@ export function DebtsPage() {
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(o) => !o && setPendingDelete(null)}
-        title="Delete debt?"
-        description={pendingDelete ? `Remove "${pendingDelete.name}" from your liabilities list?` : null}
+        title={t.debts.confirmDelete.title}
+        description={pendingDelete ? t.debts.confirmDelete.description({ name: pendingDelete.name }) : null}
         onConfirm={() => {
           if (!pendingDelete) return;
           const removed = pendingDelete;
           setDebts((prev) => prev.filter((d) => d.id !== removed.id));
-          toast.success("Debt deleted", { description: removed.name });
+          toast.success(t.debts.toast.deleted, { description: removed.name });
         }}
       />
     </PageContainer>

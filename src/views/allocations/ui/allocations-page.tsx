@@ -15,6 +15,7 @@ import {
   type AllocationsBandFilter,
 } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { useI18n } from "@/shared/i18n";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
 import { useTable } from "@/shared/storage";
 import { EmptyState } from "@/shared/ui/empty-state";
@@ -38,6 +39,8 @@ export function AllocationsPage() {
   const [incomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const compact = useMediaQuery("(max-width: 1023px)");
+  const { t } = useI18n();
+  const m = t.allocations;
 
   const report = useMemo(
     () => buildAllocationReportForTables({ goals, assets, settingsAssets, incomeSources }),
@@ -53,46 +56,46 @@ export function AllocationsPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Liquidity" description="How your assets are committed across goal plans and income capital." />
+      <PageHeader title={m.title} description={m.description} />
 
       <StatGrid className="xl:grid-cols-3">
-        <StatCard label="Monthly income" icon={TrendingUp} value={<Money value={cash.totalIncome} compact />} href="/income" />
-        <StatCard label="Avg monthly spending" icon={ShoppingCart} value={<Money value={cash.averageSpending} compact />} href="/income" />
+        <StatCard label={m.kpi.monthlyIncome.label} icon={TrendingUp} value={<Money value={cash.totalIncome} compact />} href="/income" />
+        <StatCard label={m.kpi.avgSpending.label} icon={ShoppingCart} value={<Money value={cash.averageSpending} compact />} href="/income" />
         <StatCard
-          label="Monthly net savings"
+          label={m.kpi.monthlyNet.label}
           icon={Wallet}
           value={<Money value={cash.monthlyNet} compact signed tone="auto" />}
-          hint="Used when a plan includes monthly income"
+          hint={m.kpi.monthlyNet.hint}
         />
         <StatCard
-          label="Instant pool left"
+          label={m.kpi.instantPool.label}
           icon={Zap}
           value={<Money value={report.totals.instantRemainingPool} compact />}
-          hint="Uncommitted capacity on instant-access sources"
+          hint={m.kpi.instantPool.hint}
         />
         <StatCard
-          label="Not-instant pool left"
+          label={m.kpi.notInstantPool.label}
           icon={Clock}
           value={<Money value={report.totals.notInstantRemainingPool} compact />}
-          hint="Real estate, investments, locked assets"
+          hint={m.kpi.notInstantPool.hint}
         />
         <StatCard
-          label="Custom amounts"
+          label={m.kpi.custom.label}
           icon={PencilRuler}
           value={<Money value={report.totals.customReservedStored} compact />}
-          hint="Modelled starting lines with no live balance"
+          hint={m.kpi.custom.hint}
         />
       </StatGrid>
 
-      <Section title="Plans" description="Starting balances after caps, and whether monthly income feeds each projection." flush>
+      <Section title={m.plans.title} description={m.plans.description} flush>
         {report.plans.length === 0 ? (
           <EmptyState
             icon={Target}
-            title="No saved goal plans yet"
-            description="Save a plan to see how it reserves your assets."
+            title={m.plans.emptyTitle}
+            description={m.plans.emptyDescription}
             action={
               <Button variant="outline" asChild>
-                <Link href="/goals">Go to goals</Link>
+                <Link href="/goals">{m.plans.goToGoals}</Link>
               </Button>
             }
           />
@@ -100,9 +103,9 @@ export function AllocationsPage() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>Plan</TableHead>
-                <TableHead className="text-right">Starting (capped)</TableHead>
-                <TableHead className="max-sm:hidden">Monthly income</TableHead>
+                <TableHead>{m.plans.colPlan}</TableHead>
+                <TableHead className="text-right">{m.plans.colStarting}</TableHead>
+                <TableHead className="max-sm:hidden">{m.plans.colMonthlyIncome}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -115,11 +118,11 @@ export function AllocationsPage() {
                   <TableCell className="max-sm:hidden">
                     {p.usesMonthlyIncome ? (
                       <StatusBadge tone="success" dot>
-                        On · <Money value={cash.monthlyNet} compact signed />
-                        /mo
+                        {m.plans.incomeOn} <Money value={cash.monthlyNet} compact signed />
+                        {m.plans.perMonthShort}
                       </StatusBadge>
                     ) : (
-                      <StatusBadge dot>Off for this plan</StatusBadge>
+                      <StatusBadge dot>{m.plans.incomeOff}</StatusBadge>
                     )}
                   </TableCell>
                 </TableRow>
@@ -130,25 +133,25 @@ export function AllocationsPage() {
       </Section>
 
       <Section
-        title="Source × plan matrix"
-        description="What each plan reserves from each source, and what is still uncommitted."
+        title={m.matrix.title}
+        description={m.matrix.description}
         actions={
           <SegmentedControl<AllocationsBandFilter>
-            aria-label="Liquidity filter"
+            aria-label={m.matrix.filterLabel}
             value={band}
             onValueChange={(v) => setPrefs((p) => ({ ...p, allocationsBandFilter: v }))}
             options={ALLOCATIONS_BAND_FILTERS.map((o) => ({
               ...o,
-              label: o.value === "both" ? "All" : o.value === "instant" ? "Instant" : "Not instant",
+              label: m.matrix.filter[o.value],
             }))}
           />
         }
         flush
       >
         {report.sources.length === 0 ? (
-          <EmptyState title="Nothing to show yet" description="No sources with balances or reservations." />
+          <EmptyState title={m.matrix.emptyTitle} description={m.matrix.emptyDescription} />
         ) : rows.length === 0 ? (
-          <EmptyState title="No sources match this liquidity filter" />
+          <EmptyState title={m.matrix.noMatch} />
         ) : compact ? (
           <ul className="divide-y">
             {rows.map((row) => (

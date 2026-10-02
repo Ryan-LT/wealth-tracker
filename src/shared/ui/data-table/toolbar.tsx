@@ -3,6 +3,7 @@
 import { Search, X } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { Input } from "@/shared/ui/kit/input";
 
@@ -15,7 +16,9 @@ type DataTableToolbarProps = {
   className?: string;
 };
 
-export function DataTableToolbar({ search, onSearchChange, placeholder = "Search…", children, className }: DataTableToolbarProps) {
+export function DataTableToolbar({ search, onSearchChange, placeholder: placeholderProp, children, className }: DataTableToolbarProps) {
+  const { t } = useI18n();
+  const placeholder = placeholderProp ?? t.shell.ui.searchPlaceholder;
   return (
     <div className={cn("flex flex-col gap-2 sm:flex-row sm:items-center", className)}>
       <div className="relative w-full sm:max-w-xs">
@@ -31,7 +34,7 @@ export function DataTableToolbar({ search, onSearchChange, placeholder = "Search
           <button
             type="button"
             onClick={() => onSearchChange("")}
-            aria-label="Clear search"
+            aria-label={t.shell.ui.clearSearch}
             className="absolute top-1/2 right-1.5 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground"
           >
             <X className="size-3.5" />

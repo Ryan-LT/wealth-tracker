@@ -45,7 +45,7 @@ export function AppSidebar() {
                 <Logo size={32} decorative className="size-8!" />
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-base font-semibold tracking-tight">{BRAND.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">{BRAND.descriptor}</span>
+                  <span className="truncate text-xs text-muted-foreground">{t.common.brandDescriptor}</span>
                 </div>
               </Link>
             </SidebarMenuButton>

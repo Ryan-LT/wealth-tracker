@@ -7,6 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import type { GoalProfile } from "@/entities/goal";
+import { useI18n } from "@/shared/i18n";
 import { formatDate, formatPercent } from "@/shared/lib/format";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Callout } from "@/shared/ui/callout";
@@ -77,18 +78,20 @@ type PlanDetailsCardProps = {
 };
 
 export function PlanDetailsCard({ draft, startEditing, incomeMonthly, householdMonthlyNet, shares, onPreview, onCancel, onSave }: PlanDetailsCardProps) {
+  const { t } = useI18n();
+  const d = t.goals.details;
   const [editing, setEditing] = useState(startEditing);
   const includes = draft.includeMonthlyIncome !== false;
 
   return (
     <Section
-      title="Plan details"
-      description="Name, target, how much of your monthly savings goes here, and expected growth."
+      title={d.title}
+      description={d.description}
       actions={
         editing ? null : (
           <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
             <Pencil />
-            Edit
+            {t.common.edit}
           </Button>
         )
       }
@@ -113,48 +116,52 @@ export function PlanDetailsCard({ draft, startEditing, incomeMonthly, householdM
         <>
           <DescriptionList
             items={[
-              { label: "Name", value: draft.name.trim() || <span className="text-muted-foreground">Untitled plan</span> },
-              { label: "Target amount", value: draft.targetAmount > 0 ? <Money value={draft.targetAmount} /> : "—" },
-              { label: "Target date", value: draft.targetDate ? formatDate(draft.targetDate) : "—" },
+              { label: d.name, value: draft.name.trim() || <span className="text-muted-foreground">{t.common.untitledPlan}</span> },
+              { label: d.targetAmount, value: draft.targetAmount > 0 ? <Money value={draft.targetAmount} /> : "—" },
+              { label: d.targetDate, value: draft.targetDate ? formatDate(draft.targetDate) : "—" },
               {
-                label: "Monthly income",
-                value: includes ? <StatusBadge tone="success" dot>Included</StatusBadge> : <StatusBadge dot>Excluded</StatusBadge>,
+                label: d.monthlyIncome,
+                value: includes ? <StatusBadge tone="success" dot>{t.goals.status.included}</StatusBadge> : <StatusBadge dot>{t.goals.status.excluded}</StatusBadge>,
                 hint: includes ? (
                   <>
-                    Income <Money value={incomeMonthly} /> − spending → <Money value={householdMonthlyNet} signed tone="auto" /> / month
+                    {d.incomeHint.before}
+                    <Money value={incomeMonthly} />
+                    {d.incomeHint.middle}
+                    <Money value={householdMonthlyNet} signed tone="auto" />
+                    {d.incomeHint.after}
                   </>
                 ) : (
-                  "Only the starting balance counts toward this plan."
+                  d.startingOnlyHint
                 ),
               },
               ...(includes
                 ? [
                     {
-                      label: "Share of monthly savings",
+                      label: d.share,
                       value: (
                         <span>
-                          {pct(shares.share)} · <Money value={householdMonthlyNet * shares.share} signed tone="auto" /> / month
+                          {pct(shares.share)} · <Money value={householdMonthlyNet * shares.share} signed tone="auto" /> {t.common.perMonth}
                         </span>
                       ),
                       hint:
                         draft.monthlySharePct === undefined
                           ? shares.otherPlans > 0
-                            ? "Automatic: what plans with a set % leave, split evenly."
-                            : "Automatic: the only plan using monthly savings."
-                          : "Set by you.",
+                            ? d.shareAutoSplit
+                            : d.shareAutoOnly
+                          : d.shareSetByYou,
                     },
                   ]
                 : []),
               {
-                label: "Expected yearly return",
-                value: (draft.expectedReturnPct ?? 0) > 0 ? formatPercent(draft.expectedReturnPct!) : "None",
-                hint: (draft.expectedReturnPct ?? 0) > 0 ? "Compounded monthly on the plan balance." : "Money is assumed to sit as cash.",
+                label: d.expectedReturn,
+                value: (draft.expectedReturnPct ?? 0) > 0 ? formatPercent(draft.expectedReturnPct!) : t.common.none,
+                hint: (draft.expectedReturnPct ?? 0) > 0 ? d.compounded : d.asCash,
               },
             ]}
           />
           {includes && shares.overAllocated ? (
-            <Callout tone="warning" title="Plans claim more than 100 % of your savings" className="mt-3">
-              The shares you set add up to more than 100 %, so each is scaled down to fit. Lower one of them to make the numbers exact.
+            <Callout tone="warning" title={d.overAllocatedTitle} className="mt-3">
+              {d.overAllocatedBody}
             </Callout>
           ) : null}
         </>
@@ -172,6 +179,8 @@ function DetailsForm({
   onCancel,
   onSave,
 }: Omit<PlanDetailsCardProps, "startEditing"> & { draft: GoalProfile }) {
+  const { t } = useI18n();
+  const f = t.goals.details.form;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -200,19 +209,22 @@ function DetailsForm({
   return (
     <Form {...form}>
       <form className="grid gap-4" onSubmit={form.handleSubmit((v) => onSave(toPlanValues(v)))}>
-        <TextField control={form.control} name="name" label="Plan name" placeholder="e.g. House upgrade" autoFocus />
+        <TextField control={form.control} name="name" label={f.planName} placeholder={f.planNamePlaceholder} autoFocus />
         <div className="grid gap-4 sm:grid-cols-2">
-          <MoneyField control={form.control} name="targetAmount" label="Target amount" />
-          <DateField control={form.control} name="targetDate" label="Target date" placeholder="Pick a date" />
+          <MoneyField control={form.control} name="targetAmount" label={f.targetAmount} />
+          <DateField control={form.control} name="targetDate" label={f.targetDate} placeholder={f.pickDate} />
         </div>
         <SwitchField
           control={form.control}
           name="includeMonthlyIncome"
-          label="Include monthly income"
+          label={f.includeIncome}
           description={
             <>
-              Adds your monthly net (<Money value={householdMonthlyNet} signed /> from <Money value={incomeMonthly} /> income) to the
-              projection every month.
+              {f.includeIncomeDescription.before}
+              <Money value={householdMonthlyNet} signed />
+              {f.includeIncomeDescription.middle}
+              <Money value={incomeMonthly} />
+              {f.includeIncomeDescription.after}
             </>
           }
         />
@@ -221,35 +233,35 @@ function DetailsForm({
             <SegmentedField
               control={form.control}
               name="shareMode"
-              label="Share of monthly savings"
+              label={f.share}
               options={[
-                { value: "auto", label: "Split evenly" },
-                { value: "custom", label: "Set %" },
+                { value: "auto", label: f.splitEvenly },
+                { value: "custom", label: f.setPct },
               ]}
               description={
                 shareMode === "auto"
-                  ? `Now ${pct(shares.automatic)}: savings are shared evenly between plans without a set %.`
-                  : "Your savings are never counted twice: plans share 100 %."
+                  ? f.autoDescription({ pct: pct(shares.automatic) })
+                  : f.customDescription
               }
             />
             {shareMode === "custom" ? (
-              <PercentField control={form.control} name="sharePct" label="This plan's share" description={<>Of <Money value={householdMonthlyNet} signed /> per month.</>} />
+              <PercentField control={form.control} name="sharePct" label={f.thisPlanShare} description={<>{f.ofPerMonth.before}<Money value={householdMonthlyNet} signed />{f.ofPerMonth.after}</>} />
             ) : null}
           </div>
         ) : null}
         <PercentField
           control={form.control}
           name="expectedReturnPct"
-          label="Expected yearly return"
-          description="Growth on the plan balance (e.g. 5 % for a savings deposit). Leave 0 for cash."
+          label={f.expectedReturn}
+          description={f.expectedReturnDescription}
         />
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel} disabled={form.formState.isSubmitting}>
-            Cancel
+            {t.common.cancel}
           </Button>
           <Button type="submit" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : null}
-            Save plan
+            {f.savePlan}
           </Button>
         </div>
       </form>

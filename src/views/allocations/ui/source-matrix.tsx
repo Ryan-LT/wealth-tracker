@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, ChevronsUpDown, Info } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { liquidityBandLabel, liquidityBandTone, type AllocationPlanColumn, type AllocationSourceRow } from "@/entities/portfolio";
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/kit/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/kit/tooltip";
@@ -59,12 +60,14 @@ function SortHeader({
 
 /** Desktop matrix: sticky source column, one column per plan, then totals. */
 export function SourceMatrix({ rows, plans, sort, onSort }: SourceMatrixProps) {
+  const { t } = useI18n();
+  const m = t.allocations.matrix;
   return (
     <Table containerClassName="max-w-full">
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <SortHeader sort={sort} click={{ type: "source" }} onSort={onSort} align="left" sticky>
-            Source
+            {m.colSource}
           </SortHeader>
           {plans.map((p) => (
             <SortHeader key={p.id} sort={sort} click={{ type: "plan", planId: p.id }} onSort={onSort}>
@@ -75,21 +78,21 @@ export function SourceMatrix({ rows, plans, sort, onSort }: SourceMatrixProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <span tabIndex={0} className="inline-flex items-center gap-1 rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring">
-                  Income capital
+                  {m.colIncomeCapital}
                   <Info className="size-3.5 opacity-60" aria-hidden />
                 </span>
               </TooltipTrigger>
-              <TooltipContent>Sum of capital allocated to this asset across all income sources (a separate pool).</TooltipContent>
+              <TooltipContent>{m.incomeCapitalHint}</TooltipContent>
             </Tooltip>
           </TableHead>
           <SortHeader sort={sort} click={{ type: "reserved" }} onSort={onSort}>
-            Reserved
+            {m.colReserved}
           </SortHeader>
           <SortHeader sort={sort} click={{ type: "live" }} onSort={onSort}>
-            Live
+            {m.colLive}
           </SortHeader>
           <SortHeader sort={sort} click={{ type: "pool" }} onSort={onSort}>
-            Pool left
+            {m.colPool}
           </SortHeader>
         </TableRow>
       </TableHeader>
@@ -131,6 +134,8 @@ export function SourceMatrix({ rows, plans, sort, onSort }: SourceMatrixProps) {
 
 /** Phone / narrow layout of one matrix row. */
 export function SourceItem({ row, plans }: { row: AllocationSourceRow; plans: AllocationPlanColumn[] }) {
+  const { t } = useI18n();
+  const m = t.allocations.matrix;
   const perPlan = plans.filter((p) => (row.perPlanStored[p.id] ?? 0) > 0);
   return (
     <div className="grid gap-2 px-4 py-3">
@@ -142,19 +147,19 @@ export function SourceItem({ row, plans }: { row: AllocationSourceRow; plans: Al
       </div>
       <dl className="grid grid-cols-3 gap-2 text-xs">
         <div>
-          <dt className="text-muted-foreground">Live</dt>
+          <dt className="text-muted-foreground">{m.colLive}</dt>
           <dd>
             <Money value={row.liveBalance} compact />
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Reserved</dt>
+          <dt className="text-muted-foreground">{m.colReserved}</dt>
           <dd>
             <Money value={row.totalReservedStored} compact />
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Pool left</dt>
+          <dt className="text-muted-foreground">{m.colPool}</dt>
           <dd className="font-medium">
             <Money value={row.remainingPool} compact />
           </dd>
@@ -170,7 +175,7 @@ export function SourceItem({ row, plans }: { row: AllocationSourceRow; plans: Al
           ))}
           {row.totalIncomeCapital > 0 ? (
             <li className="flex justify-between gap-3">
-              <span className="truncate text-muted-foreground">Income capital</span>
+              <span className="truncate text-muted-foreground">{m.colIncomeCapital}</span>
               <Money value={row.totalIncomeCapital} />
             </li>
           ) : null}

@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 
+import { useI18n } from "@/shared/i18n";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { Button } from "@/shared/ui/kit/button";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -12,6 +13,7 @@ import { PlanList, PlanSwitcher } from "./plan-list";
 import { PlanWorkspace } from "./plan-workspace";
 
 export function GoalsPage() {
+  const { t } = useI18n();
   const editor = useGoalPlanEditor();
   const { goals, seedOptions, householdMonthlyNet, isComposingNew, selectPlan, startNewPlan, savedProfile } = editor;
   useCreateParam(startNewPlan);
@@ -29,12 +31,12 @@ export function GoalsPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Goals"
-        description="Set targets, fund them from your assets, and see when you'll get there."
+        title={t.goals.page.title}
+        description={t.goals.page.description}
         actions={
           <Button onClick={startNewPlan} disabled={isComposingNew}>
             <Plus />
-            New plan
+            {t.goals.page.newPlan}
           </Button>
         }
       />
@@ -42,7 +44,7 @@ export function GoalsPage() {
         <PlanSwitcher {...listProps} />
       </div>
       <div className="grid items-start gap-6 xl:grid-cols-[17rem_minmax(0,1fr)]">
-        <aside className="sticky top-6 hidden xl:block" aria-label="Goal plans">
+        <aside className="sticky top-6 hidden xl:block" aria-label={t.goals.page.plansAria}>
           <PlanList {...listProps} />
         </aside>
         <PlanWorkspace key={goals.activeProfileId || savedProfile.id || "new"} editor={editor} />

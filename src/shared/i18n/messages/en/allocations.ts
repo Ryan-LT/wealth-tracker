@@ -1,2 +1,41 @@
 /** Messages for the allocations area. */
-export const allocations = {};
+export const allocations = {
+  title: "Liquidity",
+  description: "How your assets are committed across goal plans and income capital.",
+  kpi: {
+    monthlyIncome: { label: "Monthly income" },
+    avgSpending: { label: "Avg monthly spending" },
+    monthlyNet: { label: "Monthly net savings", hint: "Used when a plan includes monthly income" },
+    instantPool: { label: "Instant pool left", hint: "Uncommitted capacity on instant-access sources" },
+    notInstantPool: { label: "Not-instant pool left", hint: "Real estate, investments, locked assets" },
+    custom: { label: "Custom amounts", hint: "Modelled starting lines with no live balance" },
+  },
+  plans: {
+    title: "Plans",
+    description: "Starting balances after caps, and whether monthly income feeds each projection.",
+    emptyTitle: "No saved goal plans yet",
+    emptyDescription: "Save a plan to see how it reserves your assets.",
+    goToGoals: "Go to goals",
+    colPlan: "Plan",
+    colStarting: "Starting (capped)",
+    colMonthlyIncome: "Monthly income",
+    incomeOn: "On ·",
+    perMonthShort: "/mo",
+    incomeOff: "Off for this plan",
+  },
+  matrix: {
+    title: "Source × plan matrix",
+    description: "What each plan reserves from each source, and what is still uncommitted.",
+    filterLabel: "Liquidity filter",
+    filter: { both: "All", instant: "Instant", not_instant: "Not instant" },
+    emptyTitle: "Nothing to show yet",
+    emptyDescription: "No sources with balances or reservations.",
+    noMatch: "No sources match this liquidity filter",
+    colSource: "Source",
+    colIncomeCapital: "Income capital",
+    incomeCapitalHint: "Sum of capital allocated to this asset across all income sources (a separate pool).",
+    colReserved: "Reserved",
+    colLive: "Live",
+    colPool: "Pool left",
+  },
+};

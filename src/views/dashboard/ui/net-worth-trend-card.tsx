@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { buildNetWorthTrend, type NetWorthMonthSnapshot } from "@/entities/preferences";
+import { useI18n } from "@/shared/i18n";
 import { formatDate, formatMoney, formatMoneyCompact, formatPercent } from "@/shared/lib/format";
 import { chartAxisProps, ChartTooltipCard, ChartViewToggle, type ChartView } from "@/shared/ui/chart";
 import { Money } from "@/shared/ui/money";
@@ -12,6 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMonthSnapshot[]; netWorth: number }) {
   const [view, setView] = useState<ChartView>("chart");
+  const { t } = useI18n();
+  const m = t.dashboard.trend;
   const points = useMemo(() => buildNetWorthTrend(history, netWorth), [history, netWorth]);
   const data = points.map((p) => ({ x: p.date.getTime(), value: p.value, live: p.live }));
   const first = points[0]?.value ?? 0;
@@ -23,25 +26,26 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
 
   return (
     <Section
-      title="Net worth trend"
+      title={m.title}
       description={
         points.length > 1 ? (
           <>
-            Last {points.length} months · <Money value={change} signed tone="auto" compact /> since {formatDate(points[0]?.date, "monthYear")}
+            {m.lastMonths({ count: points.length })} · <Money value={change} signed tone="auto" compact /> {m.since}{" "}
+            {formatDate(points[0]?.date, "monthYear")}
             {lastMonth !== null ? (
               <>
-                {" "}· this month <Money value={lastMonth} signed tone="auto" compact />
+                {" "}· {m.thisMonth} <Money value={lastMonth} signed tone="auto" compact />
               </>
             ) : null}
           </>
         ) : (
-          "Tracking started this month — the trend fills in as months pass."
+          m.empty
         )
       }
       actions={<ChartViewToggle value={view} onChange={setView} />}
     >
       {view === "chart" ? (
-        <div className="h-56 w-full" role="img" aria-label={`Net worth over the last ${points.length} months, now ${formatMoney(netWorth)}`}>
+        <div className="h-56 w-full" role="img" aria-label={m.chartLabel({ count: points.length, value: formatMoney(netWorth) })}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <defs>
@@ -72,8 +76,8 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
                 content={({ active, payload }) =>
                   active && payload?.length ? (
                     <ChartTooltipCard
-                      title={`${formatDate(Number(payload[0].payload.x), "monthYear")}${payload[0].payload.live ? " (today)" : ""}`}
-                      rows={[{ key: "nw", name: "Net worth", color: "var(--chart-1)", value: formatMoney(Number(payload[0].value)) }]}
+                      title={`${formatDate(Number(payload[0].payload.x), "monthYear")}${payload[0].payload.live ? ` ${m.today}` : ""}`}
+                      rows={[{ key: "nw", name: m.netWorth, color: "var(--chart-1)", value: formatMoney(Number(payload[0].value)) }]}
                     />
                   ) : null
                 }
@@ -95,9 +99,9 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
         <Table containerClassName="-mx-5 w-auto">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Month</TableHead>
-              <TableHead className="text-right">Net worth</TableHead>
-              <TableHead className="text-right">Change</TableHead>
+              <TableHead>{m.month}</TableHead>
+              <TableHead className="text-right">{m.netWorth}</TableHead>
+              <TableHead className="text-right">{m.change}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -105,7 +109,7 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
               <TableRow key={p.monthKey}>
                 <TableCell>
                   {formatDate(p.date, "monthYear")}
-                  {p.live ? <span className="ml-1 text-xs text-muted-foreground">(today)</span> : null}
+                  {p.live ? <span className="ml-1 text-xs text-muted-foreground">{m.today}</span> : null}
                 </TableCell>
                 <TableCell className="text-right">
                   <Money value={p.value} />

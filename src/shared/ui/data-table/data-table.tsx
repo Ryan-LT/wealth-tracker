@@ -33,6 +33,7 @@ import {
 import { GripVertical } from "lucide-react";
 import { createContext, useContext, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/shared/ui/kit/table";
@@ -86,7 +87,13 @@ type DragHandleContextValue = {
 
 const DragHandleContext = createContext<DragHandleContextValue>({ disabled: true });
 
+function ReorderHeader() {
+  const { t } = useI18n();
+  return <span className="sr-only">{t.shell.ui.reorder}</span>;
+}
+
 function DragHandle({ label }: { label: string }) {
+  const { t } = useI18n();
   const { attributes, listeners, setActivatorNodeRef, disabled, disabledReason } = useContext(DragHandleContext);
   const button = (
     <button
@@ -95,7 +102,7 @@ function DragHandle({ label }: { label: string }) {
       {...(disabled ? {} : attributes)}
       {...(disabled ? {} : listeners)}
       disabled={disabled}
-      aria-label={`Drag to reorder ${label}`}
+      aria-label={t.shell.ui.dragToReorder({ label })}
       className="inline-flex size-6 touch-none items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 enabled:cursor-grab enabled:active:cursor-grabbing"
     >
       <GripVertical className="size-4" />
@@ -171,7 +178,7 @@ export function DataTable<T>({
     return [
       {
         id: "__drag",
-        header: () => <span className="sr-only">Reorder</span>,
+        header: () => <ReorderHeader />,
         cell: ({ row }) => <DragHandle label={(getRowLabel ?? getRowId)(row.original)} />,
         enableSorting: false,
         meta: { className: "w-8 !pr-0" },

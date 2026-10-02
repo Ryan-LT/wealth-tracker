@@ -42,8 +42,8 @@ export function MoreSheet({ open, onOpenChange, activePath, navigate }: MoreShee
       >
         <div aria-hidden className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-border" />
         <SheetHeader className="pb-3">
-          <SheetTitle>More</SheetTitle>
-          <SheetDescription>Every other page, plus shortcuts.</SheetDescription>
+          <SheetTitle>{t.shell.more.title}</SheetTitle>
+          <SheetDescription>{t.shell.more.description}</SheetDescription>
         </SheetHeader>
 
         <div className="grid gap-5 px-4">
@@ -76,7 +76,7 @@ export function MoreSheet({ open, onOpenChange, activePath, navigate }: MoreShee
 
           <section aria-labelledby="more-quick-add">
             <h3 id="more-quick-add" className="mb-2 text-xs font-medium text-muted-foreground">
-              Quick add
+              {t.shell.more.quickAdd}
             </h3>
             <ul className="grid grid-cols-5 gap-2">
               {QUICK_ADD.map((action) => (
@@ -104,7 +104,7 @@ export function MoreSheet({ open, onOpenChange, activePath, navigate }: MoreShee
             className="flex h-11 items-center gap-2 rounded-xl border bg-muted/50 px-3 text-sm text-muted-foreground transition-colors hover:bg-accent"
           >
             <Search className="size-4" aria-hidden />
-            Search pages and records…
+            {t.shell.more.search}
           </button>
         </div>
       </SheetContent>

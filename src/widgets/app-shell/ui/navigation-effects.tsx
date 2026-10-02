@@ -1,8 +1,9 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
+import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { NAV } from "@/shared/config";
 import { isServiceWorkerUpdateReady } from "@/shared/lib/service-worker";
 
@@ -16,7 +17,7 @@ import { endNavigationProgress, isPlainClick, startNavigationProgress } from "..
  * - loads a freshly installed app version on the next page change.
  */
 export function NavigationEffects() {
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const router = useRouter();
   const firstRender = useRef(true);
 

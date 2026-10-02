@@ -5,6 +5,7 @@ import { ArrowDownLeft, ArrowUpRight, Equal, Minus, PiggyBank, Plus, TriangleAle
 import type { ReactNode } from "react";
 
 import type { CashflowSummary } from "@/entities/portfolio";
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { formatPercent } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/kit/button";
@@ -65,10 +66,13 @@ function Operator({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
 
 /** Income vs spending as one bar: the spent share and the share left to save. */
 function SplitBar({ income, spending }: { income: number; spending: number }) {
+  const { t } = useI18n();
   if (income <= 0) return null;
   const spentShare = Math.min(1, spending / income);
   const saveShare = 1 - spentShare;
-  const label = `Spending takes ${formatPercent(spentShare * 100, { maximumFractionDigits: 0 })} of income, ${formatPercent(saveShare * 100, { maximumFractionDigits: 0 })} is left to save.`;
+  const spent = formatPercent(spentShare * 100, { maximumFractionDigits: 0 });
+  const save = formatPercent(saveShare * 100, { maximumFractionDigits: 0 });
+  const label = t.income.cashFlow.splitLabel({ spent, save });
   return (
     <div className="grid gap-2">
       <div role="img" aria-label={label} className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
@@ -78,11 +82,11 @@ function SplitBar({ income, spending }: { income: number; spending: number }) {
       <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground" aria-hidden>
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-danger" />
-          Spending {formatPercent(spentShare * 100, { maximumFractionDigits: 0 })}
+          {t.income.cashFlow.splitSpending({ pct: spent })}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-success" />
-          Saving {formatPercent(saveShare * 100, { maximumFractionDigits: 0 })}
+          {t.income.cashFlow.splitSaving({ pct: save })}
         </span>
       </div>
     </div>
@@ -104,28 +108,29 @@ export function CashFlowPanel({
   onAddSource: () => void;
   onSaveSpending: (amount: number) => void;
 }) {
+  const { t } = useI18n();
   const savingsRate = cash.totalIncome > 0 ? (cash.monthlyNet / cash.totalIncome) * 100 : null;
   const overspending = cash.monthlyNet < 0;
 
   return (
-    <section aria-label="Monthly cash flow" className="grid gap-3">
+    <section aria-label={t.income.cashFlow.ariaLabel} className="grid gap-3">
       <div className="grid items-stretch gap-3 md:grid-cols-[1fr_auto_1fr]">
         <FlowCard
           tone="in"
           icon={ArrowDownLeft}
-          title="Money in"
-          caption={`Every month, from ${sourceCount} income ${sourceCount === 1 ? "source" : "sources"}`}
+          title={t.income.cashFlow.moneyIn}
+          caption={t.income.cashFlow.moneyInCaption({ count: sourceCount })}
           amount={cash.totalIncome}
         >
           <dl className="grid gap-1.5 text-sm">
             <div className="flex justify-between gap-3">
-              <dt className="text-muted-foreground">Active (salary, work)</dt>
+              <dt className="text-muted-foreground">{t.income.cashFlow.activeRow}</dt>
               <dd className="font-medium tabular-nums">
                 <Money value={cash.activeIncome} />
               </dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-muted-foreground">Passive (interest, rent)</dt>
+              <dt className="text-muted-foreground">{t.income.cashFlow.passiveRow}</dt>
               <dd className="font-medium tabular-nums">
                 <Money value={cash.passiveIncome} />
               </dd>
@@ -135,22 +140,22 @@ export function CashFlowPanel({
           <div className="mt-auto max-md:hidden">
             <Button variant="outline" size="sm" onClick={onAddSource}>
               <Plus />
-              Add income source
+              {t.income.addSource}
             </Button>
           </div>
         </FlowCard>
 
-        <Operator icon={Minus} label="minus" />
+        <Operator icon={Minus} label={t.income.cashFlow.minus} />
 
-        <FlowCard tone="out" icon={ArrowUpRight} title="Money out" caption="Average spending per month" amount={cash.averageSpending}>
-          <p className="text-sm text-muted-foreground">Rent, food, bills, transport — your typical month. A rough number is fine.</p>
+        <FlowCard tone="out" icon={ArrowUpRight} title={t.income.cashFlow.moneyOut} caption={t.income.cashFlow.moneyOutCaption} amount={cash.averageSpending}>
+          <p className="text-sm text-muted-foreground">{t.income.cashFlow.moneyOutHint}</p>
           <div className="mt-auto">
-            <SpendingForm value={cash.averageSpending} onSave={onSaveSpending} label="Update average spending" />
+            <SpendingForm value={cash.averageSpending} onSave={onSaveSpending} label={t.income.cashFlow.updateSpending} />
           </div>
         </FlowCard>
       </div>
 
-      <Operator icon={Equal} label="equals" />
+      <Operator icon={Equal} label={t.income.cashFlow.equals} />
 
       <Card className="gap-4 px-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -164,8 +169,8 @@ export function CashFlowPanel({
               {overspending ? <TriangleAlert className="size-5" aria-hidden /> : <PiggyBank className="size-5" aria-hidden />}
             </span>
             <div>
-              <h2 className="text-base font-semibold">{overspending ? "Spending more than you earn" : "Left to save each month"}</h2>
-              <p className="text-sm text-muted-foreground">Used on the dashboard, in goal plans and the year-end estimate.</p>
+              <h2 className="text-base font-semibold">{overspending ? t.income.cashFlow.overspending : t.income.cashFlow.leftToSave}</h2>
+              <p className="text-sm text-muted-foreground">{t.income.cashFlow.usedIn}</p>
             </div>
           </div>
           <div className="text-right">
@@ -173,7 +178,9 @@ export function CashFlowPanel({
               <Money value={cash.monthlyNet} signed tone="auto" />
             </p>
             <p className="text-xs text-muted-foreground">
-              {savingsRate === null ? "Add income to see your savings rate" : `Savings rate ${formatPercent(savingsRate, { maximumFractionDigits: 0 })}`}
+              {savingsRate === null
+                ? t.income.cashFlow.noRate
+                : t.income.cashFlow.savingsRate({ pct: formatPercent(savingsRate, { maximumFractionDigits: 0 }) })}
             </p>
           </div>
         </div>

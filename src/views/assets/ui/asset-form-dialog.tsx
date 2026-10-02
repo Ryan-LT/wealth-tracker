@@ -5,20 +5,23 @@ import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import { categorySelectOptions, resolveAssetCategoryEmoji, type SettingsAsset } from "@/entities/settings-asset";
+import { assetCategoryLabel, categorySelectOptions, resolveAssetCategoryEmoji, type SettingsAsset } from "@/entities/settings-asset";
+import { useI18n, type Messages } from "@/shared/i18n";
 import { ComboboxField, MoneyField, SegmentedField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/kit/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
 import { Form } from "@/shared/ui/kit/form";
 
-const schema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(80),
-  category: z.string().trim().min(1, "Pick or create a category").max(40),
-  liquidity: z.enum(["instant", "not_instant"]),
-  currentValue: z.number().min(0),
-});
+function makeSchema(f: Messages["assets"]["form"]) {
+  return z.object({
+    name: z.string().trim().min(1, f.nameRequired).max(80),
+    category: z.string().trim().min(1, f.categoryRequired).max(40),
+    liquidity: z.enum(["instant", "not_instant"]),
+    currentValue: z.number().min(0),
+  });
+}
 
-type Values = z.infer<typeof schema>;
+type Values = z.infer<ReturnType<typeof makeSchema>>;
 
 type AssetFormDialogProps = {
   open: boolean;
@@ -64,6 +67,9 @@ function AssetForm({
   onCancel: () => void;
   onSubmit: (asset: SettingsAsset) => void;
 }) {
+  const { t } = useI18n();
+  const f = t.assets.form;
+  const schema = useMemo(() => makeSchema(f), [f]);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -80,42 +86,42 @@ function AssetForm({
     <Form {...form}>
       <form className="flex min-h-0 flex-1 flex-col" onSubmit={form.handleSubmit((v) => onSubmit({ ...asset, ...v }))}>
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Add asset" : "Edit asset"}</DialogTitle>
-          <DialogDescription>Assets count toward net worth and can fund goal plans.</DialogDescription>
+          <DialogTitle>{mode === "create" ? f.addTitle : f.editTitle}</DialogTitle>
+          <DialogDescription>{f.description}</DialogDescription>
         </DialogHeader>
         <DialogBody className="grid gap-4">
-          <TextField control={form.control} name="name" label="Name" placeholder="e.g. Emergency fund, apartment" autoFocus={mode === "create"} />
+          <TextField control={form.control} name="name" label={f.name} placeholder={f.namePlaceholder} autoFocus={mode === "create"} />
           <ComboboxField
             control={form.control}
             name="category"
-            label="Category"
+            label={f.category}
             options={options}
             allowCreate
             renderOption={(c) => (
               <span className="flex items-center gap-2">
                 <span aria-hidden>{resolveAssetCategoryEmoji(c)}</span>
-                {c}
+                {assetCategoryLabel(c)}
               </span>
             )}
-            description="Type a new name to create your own category."
+            description={f.categoryDescription}
           />
           <SegmentedField
             control={form.control}
             name="liquidity"
-            label="Access"
+            label={f.access}
             options={[
-              { value: "instant", label: "Instant" },
-              { value: "not_instant", label: "Not instant" },
+              { value: "instant", label: t.domain.liquidity.instant },
+              { value: "not_instant", label: t.domain.liquidity.notInstant },
             ]}
-            description="Instant: cash or equivalents you can spend now. Not instant: locked, term deposits, property."
+            description={f.accessDescription}
           />
-          <MoneyField control={form.control} name="currentValue" label="Current value" />
+          <MoneyField control={form.control} name="currentValue" label={f.currentValue} />
         </DialogBody>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t.common.cancel}
           </Button>
-          <Button type="submit">{mode === "create" ? "Add asset" : "Save changes"}</Button>
+          <Button type="submit">{mode === "create" ? f.submitAdd : t.common.saveChanges}</Button>
         </DialogFooter>
       </form>
     </Form>

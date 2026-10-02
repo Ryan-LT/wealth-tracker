@@ -20,7 +20,8 @@ import {
 import { summarizeCashflow } from "@/entities/portfolio";
 import { applyAverageMonthlySpending, PREFERENCES_SEED } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
-import { formatOrdinal, formatPercent } from "@/shared/lib/format";
+import { useI18n, type Messages } from "@/shared/i18n";
+import { formatPercent } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
@@ -40,21 +41,23 @@ import { CashFlowPanel } from "./cash-flow-panel";
 type DialogState = { mode: "create" | "edit"; source: IncomeSource };
 
 function KindBadge({ kind }: { kind: IncomeSource["kind"] }) {
+  const { t } = useI18n();
   return kind === "active" ? (
-    <StatusBadge icon={Briefcase}>Active</StatusBadge>
+    <StatusBadge icon={Briefcase}>{t.income.active}</StatusBadge>
   ) : (
     <StatusBadge tone="info" icon={PiggyBank}>
-      Passive
+      {t.income.passive}
     </StatusBadge>
   );
 }
 
-function paymentLabel(s: IncomeSource): string {
-  const parts = [s.paymentDay ? `${formatOrdinal(s.paymentDay)} of month` : null, s.paymentEntity || null].filter(Boolean);
+function paymentLabel(t: Messages, s: IncomeSource): string {
+  const parts = [s.paymentDay ? t.income.paymentDay({ day: s.paymentDay }) : null, s.paymentEntity || null].filter(Boolean);
   return parts.length ? parts.join(" · ") : "—";
 }
 
 export function IncomePage() {
+  const { t } = useI18n();
   const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
@@ -83,18 +86,18 @@ export function IncomePage() {
 
   const actionsFor = useCallback(
     (s: IncomeSource): RowAction[] => [
-      { label: "Edit", icon: Pencil, onSelect: () => openEdit(s) },
+      { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(s) },
       "separator",
-      { label: "Delete", icon: Trash2, destructive: true, onSelect: () => setPendingDelete(s) },
+      { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(s) },
     ],
-    [openEdit],
+    [openEdit, t],
   );
 
   const columns = useMemo<ColumnDef<IncomeSource>[]>(
     () => [
       {
         accessorKey: "name",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Source" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.income.columns.source} />,
         cell: ({ row }) => (
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -109,19 +112,19 @@ export function IncomePage() {
       },
       {
         accessorKey: "kind",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.income.columns.type} />,
         cell: ({ row }) => <KindBadge kind={row.original.kind} />,
       },
       {
         id: "payment",
-        header: "Payment",
+        header: t.income.columns.payment,
         enableSorting: false,
-        cell: ({ row }) => <span className="text-muted-foreground">{paymentLabel(row.original)}</span>,
+        cell: ({ row }) => <span className="text-muted-foreground">{paymentLabel(t, row.original)}</span>,
         meta: { className: "hidden xl:table-cell" },
       },
       {
         id: "capital",
-        header: "Capital",
+        header: t.income.columns.capital,
         accessorFn: (s) => effectiveIncomeCapital(s, sources, seedOptions),
         cell: ({ row }) => {
           const reserved = totalCapitalAmount(row.original.capitalLines);
@@ -131,8 +134,14 @@ export function IncomePage() {
             <div>
               <Money value={capital} />
               <p className="text-xs text-muted-foreground">
-                {yieldPct !== null ? `${formatPercent(yieldPct)} yield / yr` : "No yield"}
-                {capital < reserved ? <> · of <Money value={reserved} /> reserved</> : null}
+                {yieldPct !== null ? t.income.capital.yield({ pct: formatPercent(yieldPct) }) : t.income.capital.noYield}
+                {capital < reserved ? (
+                  <>
+                    {t.income.capital.ofPrefix}
+                    <Money value={reserved} />
+                    {t.income.capital.reservedSuffix}
+                  </>
+                ) : null}
               </p>
             </div>
           ) : (
@@ -143,7 +152,7 @@ export function IncomePage() {
       },
       {
         accessorKey: "monthly",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Monthly" align="right" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={t.income.columns.monthly} align="right" />,
         cell: ({ row }) => <Money value={row.original.monthly} className="font-medium" />,
         footer: () => <Money value={cash.totalIncome} className="font-semibold" />,
         meta: { align: "right" },
@@ -151,23 +160,23 @@ export function IncomePage() {
       {
         id: "actions",
         enableSorting: false,
-        header: () => <span className="sr-only">Actions</span>,
-        cell: ({ row }) => <RowActions label={`Actions for ${row.original.name}`} actions={actionsFor(row.original)} />,
+        header: () => <span className="sr-only">{t.common.actions}</span>,
+        cell: ({ row }) => <RowActions label={t.common.actionsFor({ name: row.original.name })} actions={actionsFor(row.original)} />,
         meta: { className: "w-12" },
       },
     ],
-    [actionsFor, cash.totalIncome, sources, seedOptions],
+    [actionsFor, cash.totalIncome, sources, seedOptions, t],
   );
 
   return (
     <PageContainer>
       <PageHeader
-        title="Income & spending"
-        description="What comes in each month, what goes out, and what is left to save."
+        title={t.income.title}
+        description={t.income.description}
         actions={
           <Button onClick={openCreate}>
             <Plus />
-            Add income source
+            {t.income.addSource}
           </Button>
         }
       />
@@ -178,11 +187,11 @@ export function IncomePage() {
         onAddSource={openCreate}
         onSaveSpending={(amount) => {
           setPrefs((p) => applyAverageMonthlySpending(p, amount));
-          toast.success("Average spending saved");
+          toast.success(t.income.toast.spendingSaved);
         }}
       />
 
-      <Section title="Income sources" description={`${sources.length} ${sources.length === 1 ? "source" : "sources"}`} flush>
+      <Section title={t.income.sourcesTitle} description={t.common.sources({ count: sources.length })} flush>
         <DataTable
           columns={columns}
           data={sources}
@@ -191,12 +200,12 @@ export function IncomePage() {
           empty={
             <EmptyState
               icon={Receipt}
-              title="No income sources yet"
-              description="Add your salary, rental or interest income to power the projections."
+              title={t.income.empty.title}
+              description={t.income.empty.description}
               action={
                 <Button variant="outline" onClick={openCreate}>
                   <Plus />
-                  Add income source
+                  {t.income.addSource}
                 </Button>
               }
             />
@@ -209,11 +218,11 @@ export function IncomePage() {
               <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openEdit(s)}>
                 <p className="truncate font-medium">{s.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {s.kind === "active" ? "Active" : "Passive"} · {paymentLabel(s)}
+                  {s.kind === "active" ? t.income.active : t.income.passive} · {paymentLabel(t, s)}
                 </p>
               </button>
               <Money value={s.monthly} className="text-sm font-medium" />
-              <RowActions label={`Actions for ${s.name}`} actions={actionsFor(s)} />
+              <RowActions label={t.common.actionsFor({ name: s.name })} actions={actionsFor(s)} />
             </div>
           )}
         />
@@ -230,10 +239,10 @@ export function IncomePage() {
           const next = sanitizeIncomeSource(draft);
           if (dialog?.mode === "edit") {
             setSources((prev) => prev.map((s) => (s.id === next.id ? next : s)));
-            toast.success("Income source updated");
+            toast.success(t.income.toast.updated);
           } else {
             setSources((prev) => [...prev, next]);
-            toast.success("Income source added");
+            toast.success(t.income.toast.added);
           }
         }}
       />
@@ -241,13 +250,13 @@ export function IncomePage() {
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(o) => !o && setPendingDelete(null)}
-        title="Delete income source?"
-        description={pendingDelete ? `Remove "${pendingDelete.name}" from your income sources?` : null}
+        title={t.income.confirmDelete.title}
+        description={pendingDelete ? t.income.confirmDelete.description({ name: pendingDelete.name }) : null}
         onConfirm={() => {
           if (!pendingDelete) return;
           const removed = pendingDelete;
           setSources((prev) => prev.filter((s) => s.id !== removed.id));
-          toast.success("Income source deleted", { description: removed.name });
+          toast.success(t.income.toast.deleted, { description: removed.name });
         }}
       />
     </PageContainer>

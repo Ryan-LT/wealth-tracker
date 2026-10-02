@@ -3,10 +3,12 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { useI18n } from "@/shared/i18n";
 import { backgroundRefetchTables, flushTablesNow } from "@/shared/storage/store";
 
 /** Push pending edits, then pull the latest tables — without the full-screen loader. */
 export function useSyncNow() {
+  const { t } = useI18n();
   const [syncing, setSyncing] = useState(false);
 
   const syncNow = useCallback(async () => {
@@ -14,17 +16,17 @@ export function useSyncNow() {
     try {
       const pushed = await flushTablesNow();
       if (!pushed) {
-        toast.error("Couldn't reach the server", {
-          description: "Your changes are saved on this device and will sync automatically.",
+        toast.error(t.shell.sync.unreachable, {
+          description: t.shell.sync.savedLocally,
         });
         return;
       }
       await backgroundRefetchTables();
-      toast.success("Synced with the server");
+      toast.success(t.shell.sync.synced);
     } finally {
       setSyncing(false);
     }
-  }, []);
+  }, [t]);
 
   return { syncNow, syncing };
 }

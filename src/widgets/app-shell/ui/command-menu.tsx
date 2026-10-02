@@ -24,7 +24,7 @@ import { DEBTS_SEED } from "@/entities/debt";
 import { GOALS_SEED } from "@/entities/goal";
 import { INCOME_SOURCES_SEED } from "@/entities/income";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
-import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { assetCategoryLabel, SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
 import { NAV, QUICK_ADD } from "@/shared/config";
 import { formatMoneyCompact } from "@/shared/lib/format";
 import { useTable } from "@/shared/storage";
@@ -69,6 +69,7 @@ function Item({
 export function CommandMenu() {
   const { commandOpen: open, setCommandOpen: setOpen, authEnabled } = useShell();
   const { t } = useI18n();
+  const m = t.shell.command;
   const { navigate } = useOptimisticNavigation();
   const { setTheme } = useTheme();
   const { syncNow } = useSyncNow();
@@ -100,22 +101,22 @@ export function CommandMenu() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent size="lg" showCloseButton={false} className="sm:top-[12%] sm:translate-y-0">
-        <DialogTitle className="sr-only">Search and commands</DialogTitle>
-        <DialogDescription className="sr-only">Jump to a page or record, or run an action.</DialogDescription>
+        <DialogTitle className="sr-only">{m.title}</DialogTitle>
+        <DialogDescription className="sr-only">{m.description}</DialogDescription>
         <Command className="max-sm:pb-[env(safe-area-inset-bottom)] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-item]]:py-2">
-          <CommandInput placeholder="Search pages, records and actions…" />
+          <CommandInput placeholder={m.placeholder} />
           <CommandList className="max-h-[min(60vh,28rem)]">
-            <CommandEmpty>No results.</CommandEmpty>
+            <CommandEmpty>{m.empty}</CommandEmpty>
 
-            <CommandGroup heading="Go to">
+            <CommandGroup heading={m.groups.goTo}>
               {NAV.map((item) => (
-                <Item key={item.href} value={`go ${item.id} ${t.nav.items[item.id].label} ${t.nav.items[item.id].description}`} icon={item.icon} onSelect={() => go(item.href)}>
+                <Item key={item.href} value={`${m.keywords.go} ${item.id} ${t.nav.items[item.id].label} ${t.nav.items[item.id].description}`} icon={item.icon} onSelect={() => go(item.href)}>
                   {t.nav.items[item.id].label}
                 </Item>
               ))}
             </CommandGroup>
 
-            <CommandGroup heading="Quick actions">
+            <CommandGroup heading={m.groups.quickActions}>
               {QUICK_ADD.map((a) => (
                 <Item key={a.href} value={`${t.nav.quickAdd[a.id].label} ${t.nav.quickAdd[a.id].keywords}`} icon={Plus} onSelect={() => go(a.href)}>
                   {t.nav.quickAdd[a.id].label}
@@ -124,11 +125,11 @@ export function CommandMenu() {
             </CommandGroup>
 
             {goals.profiles.length ? (
-              <CommandGroup heading="Goal plans">
+              <CommandGroup heading={m.groups.goalPlans}>
                 {goals.profiles.map((p) => (
                   <Item
                     key={p.id}
-                    value={`plan goal ${p.name} ${p.id}`}
+                    value={`${m.keywords.plan} ${p.name} ${p.id}`}
                     icon={Target}
                     meta={formatMoneyCompact(p.targetAmount)}
                     onSelect={() =>
@@ -138,18 +139,18 @@ export function CommandMenu() {
                       })
                     }
                   >
-                    {p.name.trim() || "Untitled plan"}
+                    {p.name.trim() || t.common.untitledPlan}
                   </Item>
                 ))}
               </CommandGroup>
             ) : null}
 
             {assets.length ? (
-              <CommandGroup heading="Assets">
+              <CommandGroup heading={m.groups.assets}>
                 {assets.map((a) => (
                   <Item
                     key={a.id}
-                    value={`asset ${a.name} ${a.category} ${a.id}`}
+                    value={`${m.keywords.asset} ${a.name} ${a.category} ${assetCategoryLabel(a.category)} ${a.id}`}
                     icon={Landmark}
                     meta={formatMoneyCompact(a.currentValue)}
                     onSelect={() => go(`/assets?edit=${encodeURIComponent(a.id)}`)}
@@ -161,13 +162,13 @@ export function CommandMenu() {
             ) : null}
 
             {sources.length ? (
-              <CommandGroup heading="Income sources">
+              <CommandGroup heading={m.groups.incomeSources}>
                 {sources.map((s) => (
                   <Item
                     key={s.id}
-                    value={`income ${s.name} ${s.details} ${s.id}`}
+                    value={`${m.keywords.income} ${s.name} ${s.details} ${s.id}`}
                     icon={TrendingUp}
-                    meta={`${formatMoneyCompact(s.monthly)}/mo`}
+                    meta={m.perMonth({ amount: formatMoneyCompact(s.monthly) })}
                     onSelect={() => go(`/income?edit=${encodeURIComponent(s.id)}`)}
                   >
                     {s.name}
@@ -177,11 +178,11 @@ export function CommandMenu() {
             ) : null}
 
             {debts.length ? (
-              <CommandGroup heading="Debts">
+              <CommandGroup heading={m.groups.debts}>
                 {debts.map((d) => (
                   <Item
                     key={d.id}
-                    value={`debt ${d.name} ${d.id}`}
+                    value={`${m.keywords.debt} ${d.name} ${d.id}`}
                     icon={CreditCard}
                     meta={formatMoneyCompact(d.balance)}
                     onSelect={() => go(`/debts?edit=${encodeURIComponent(d.id)}`)}
@@ -193,13 +194,13 @@ export function CommandMenu() {
             ) : null}
 
             {loans.length ? (
-              <CommandGroup heading="Personal loans">
+              <CommandGroup heading={m.groups.personalLoans}>
                 {loans.map((l) => (
                   <Item
                     key={l.id}
-                    value={`loan ${l.person} ${l.note ?? ""} ${l.id}`}
+                    value={`${m.keywords.loan} ${l.person} ${l.note ?? ""} ${l.id}`}
                     icon={HandCoins}
-                    meta={`${l.direction === "lent_out" ? "owed to you" : "you owe"} · ${formatMoneyCompact(l.amount)}`}
+                    meta={`${l.direction === "lent_out" ? m.owedToYou : m.youOwe} · ${formatMoneyCompact(l.amount)}`}
                     onSelect={() => go(`/loans?edit=${encodeURIComponent(l.id)}`)}
                   >
                     {l.person}
@@ -209,35 +210,35 @@ export function CommandMenu() {
             ) : null}
 
             <CommandSeparator />
-            <CommandGroup heading="Preferences">
-              <Item value="theme light" icon={Sun} onSelect={() => run(() => setTheme("light"))}>
-                Light theme
+            <CommandGroup heading={m.groups.preferences}>
+              <Item value={m.keywords.themeLight} icon={Sun} onSelect={() => run(() => setTheme("light"))}>
+                {m.lightTheme}
               </Item>
-              <Item value="theme dark" icon={Moon} onSelect={() => run(() => setTheme("dark"))}>
-                Dark theme
+              <Item value={m.keywords.themeDark} icon={Moon} onSelect={() => run(() => setTheme("dark"))}>
+                {m.darkTheme}
               </Item>
-              <Item value="theme system" icon={Monitor} onSelect={() => run(() => setTheme("system"))}>
-                System theme
+              <Item value={m.keywords.themeSystem} icon={Monitor} onSelect={() => run(() => setTheme("system"))}>
+                {m.systemTheme}
               </Item>
-              <Item value="sync now refresh" icon={RefreshCw} onSelect={() => run(() => void syncNow())}>
-                Sync now
+              <Item value={m.keywords.sync} icon={RefreshCw} onSelect={() => run(() => void syncNow())}>
+                {m.syncNow}
               </Item>
               {authEnabled ? (
-                <Item value="sign out log out" icon={LogOut} onSelect={() => run(() => void signOut())}>
-                  Sign out
+                <Item value={m.keywords.signOut} icon={LogOut} onSelect={() => run(() => void signOut())}>
+                  {m.signOut}
                 </Item>
               ) : null}
             </CommandGroup>
           </CommandList>
           <div className="hidden items-center justify-end gap-3 border-t px-3 py-2 text-xs text-muted-foreground sm:flex">
             <span>
-              Navigate <CommandShortcut className="ml-1">↑↓</CommandShortcut>
+              {m.hints.navigate} <CommandShortcut className="ml-1">↑↓</CommandShortcut>
             </span>
             <span>
-              Open <CommandShortcut className="ml-1">↵</CommandShortcut>
+              {m.hints.open} <CommandShortcut className="ml-1">↵</CommandShortcut>
             </span>
             <span>
-              Toggle <CommandShortcut className="ml-1">⌘K</CommandShortcut>
+              {m.hints.toggle} <CommandShortcut className="ml-1">⌘K</CommandShortcut>
             </span>
           </div>
         </Command>

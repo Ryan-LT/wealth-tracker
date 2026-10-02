@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronRight, Search } from "lucide-react";
-import { usePathname } from "next/navigation";
 
+import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { useI18n } from "@/shared/i18n";
 import { findNavItem } from "@/shared/config";
 import { Button } from "@/shared/ui/kit/button";
@@ -15,7 +15,7 @@ import { OfflineStrip } from "./offline-strip";
 import { ThemeToggle } from "./theme-toggle";
 
 export function TopBar() {
-  const pathname = usePathname() ?? "/";
+  const pathname = useAppPathname();
   const { t } = useI18n();
   const match = findNavItem(pathname);
   const { setCommandOpen } = useShell();
@@ -26,7 +26,7 @@ export function TopBar() {
       <div className="flex h-14 items-center gap-2 px-3 md:px-4">
         <SidebarTrigger className="size-9" />
         <Separator orientation="vertical" className="mx-1 hidden data-[orientation=vertical]:h-5 md:block" />
-        <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
+        <nav aria-label={t.shell.breadcrumb} className="min-w-0 flex-1">
           <ol className="flex min-w-0 items-center gap-1.5 text-sm">
             {match ? (
               <>
@@ -48,10 +48,10 @@ export function TopBar() {
             className="hidden h-8 w-56 justify-start gap-2 px-2.5 font-normal text-muted-foreground md:flex"
           >
             <Search />
-            Search or jump to…
+            {t.shell.searchOrJump}
             <kbd className="ml-auto rounded border bg-muted px-1.5 text-xs font-medium text-muted-foreground">⌘K</kbd>
           </Button>
-          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Search" onClick={() => setCommandOpen(true)}>
+          <Button variant="ghost" size="icon" className="md:hidden" aria-label={t.common.search} onClick={() => setCommandOpen(true)}>
             <Search />
           </Button>
           <ThemeToggle />

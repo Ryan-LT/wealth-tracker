@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { CartesianGrid, ComposedChart, Line, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { buildProjectionChartModel, evaluateStartingOnlyStatus, type GoalCheckpoint } from "@/entities/goal";
+import { useI18n } from "@/shared/i18n";
 import { formatDate, formatMoney, formatMoneyCompact, formatMonths, formatPercent } from "@/shared/lib/format";
 import { chartAxisProps, ChartLegendItem, ChartTooltipCard, ChartViewToggle, type ChartView } from "@/shared/ui/chart";
 import { EmptyState } from "@/shared/ui/empty-state";
@@ -26,6 +27,8 @@ type ProjectionCardProps = {
 const MAX_TICKS = 7;
 
 export function ProjectionCard(props: ProjectionCardProps) {
+  const { t } = useI18n();
+  const p = t.goals.projection;
   const [view, setView] = useState<ChartView>("chart");
   const model = useMemo(
     () =>
@@ -53,31 +56,31 @@ export function ProjectionCard(props: ProjectionCardProps) {
   const summary =
     meetTarget.kind === "date" ? (
       <span className={model.afterGoalDate ? "text-warning" : "text-success"}>
-        Reaches the target on <strong className="font-semibold">{formatDate(meetTarget.date)}</strong> (~{formatMonths(meetTarget.months)})
-        {model.afterGoalDate && model.goalDate ? <span className="text-muted-foreground"> — after the goal date ({formatDate(model.goalDate)})</span> : null}
+        {p.reachesOn} <strong className="font-semibold">{formatDate(meetTarget.date)}</strong> {p.reachesIn({ months: formatMonths(meetTarget.months) })}
+        {model.afterGoalDate && model.goalDate ? <span className="text-muted-foreground"> {p.afterGoalDate({ date: formatDate(model.goalDate) })}</span> : null}
       </span>
     ) : meetTarget.kind === "already" ? (
-      <span className="text-success">Starting balance already meets the target.</span>
+      <span className="text-success">{p.alreadyMet}</span>
     ) : meetTarget.kind === "unreachable" ? (
-      <span className="text-danger">Won&apos;t reach the target at this plan&apos;s monthly savings.</span>
+      <span className="text-danger">{p.unreachable}</span>
     ) : (
-      <span>Add a target amount to see the projection.</span>
+      <span>{p.addTarget}</span>
     );
 
   return (
     <Section
-      title="Projection"
+      title={p.title}
       description={summary}
       actions={<ChartViewToggle value={view} onChange={setView} />}
     >
       {view === "chart" ? (
         <div className="grid gap-3">
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <ChartLegendItem color="var(--chart-1)" label="Projected balance" />
-            {model.hasSchedule ? <ChartLegendItem color="var(--chart-2)" label="Cumulative due" /> : null}
-            {props.targetAmount > 0 ? <ChartLegendItem color="var(--muted-foreground)" label="Target" dashed /> : null}
+            <ChartLegendItem color="var(--chart-1)" label={p.projectedBalance} />
+            {model.hasSchedule ? <ChartLegendItem color="var(--chart-2)" label={p.cumulativeDue} /> : null}
+            {props.targetAmount > 0 ? <ChartLegendItem color="var(--muted-foreground)" label={p.target} dashed /> : null}
           </div>
-          <div className="h-72 w-full" role="img" aria-label="Projected balance over time against the target">
+          <div className="h-72 w-full" role="img" aria-label={p.chartAria}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={model.rows} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
                 <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
@@ -101,10 +104,10 @@ export function ProjectionCard(props: ProjectionCardProps) {
                       <ChartTooltipCard
                         title={formatDate(row.x)}
                         rows={[
-                          { key: "p", name: "Projected", color: "var(--chart-1)", value: formatMoney(row.projected) },
-                          ...(row.due !== null ? [{ key: "d", name: "Cumulative due", color: "var(--chart-2)", value: formatMoney(row.due) }] : []),
+                          { key: "p", name: p.projected, color: "var(--chart-1)", value: formatMoney(row.projected) },
+                          ...(row.due !== null ? [{ key: "d", name: p.cumulativeDue, color: "var(--chart-2)", value: formatMoney(row.due) }] : []),
                           ...(props.targetAmount > 0
-                            ? [{ key: "t", name: "Target", color: "var(--muted-foreground)", value: formatMoney(row.target), dashed: true }]
+                            ? [{ key: "t", name: p.target, color: "var(--muted-foreground)", value: formatMoney(row.target), dashed: true }]
                             : []),
                         ]}
                       />
@@ -147,7 +150,7 @@ export function ProjectionCard(props: ProjectionCardProps) {
                     stroke="var(--card)"
                     strokeWidth={2}
                     ifOverflow="discard"
-                    label={{ value: "Target met", position: "top", fontSize: 12, fill: "var(--foreground)" }}
+                    label={{ value: p.targetMet, position: "top", fontSize: 12, fill: "var(--foreground)" }}
                   />
                 ) : null}
               </ComposedChart>
@@ -155,18 +158,18 @@ export function ProjectionCard(props: ProjectionCardProps) {
           </div>
           <p className="text-xs text-muted-foreground">
             {props.annualReturn > 0
-              ? `Starting balance + this plan's monthly savings, growing ${formatPercent(props.annualReturn * 100)} a year.`
-              : "Starting balance + this plan's monthly savings each month."}
-            {visibleDots.length ? " Dots mark paid checkpoints." : ""}
+              ? p.footnoteGrowing({ rate: formatPercent(props.annualReturn * 100) })
+              : p.footnoteFlat}
+            {visibleDots.length ? p.footnoteDots : ""}
           </p>
         </div>
       ) : (
         <Table containerClassName="-mx-5 w-auto max-h-96 overflow-y-auto">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Projected</TableHead>
-              {model.hasSchedule ? <TableHead className="text-right">Cumulative due</TableHead> : null}
+              <TableHead>{p.date}</TableHead>
+              <TableHead className="text-right">{p.projected}</TableHead>
+              {model.hasSchedule ? <TableHead className="text-right">{p.cumulativeDue}</TableHead> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -192,27 +195,33 @@ export function ProjectionCard(props: ProjectionCardProps) {
 
 /** Plans that exclude monthly income: starting balance vs target only. */
 export function StartingOnlyCard({ startingBalance, targetAmount }: { startingBalance: number; targetAmount: number }) {
+  const { t } = useI18n();
+  const m = t.goals.startingOnly;
   const s = evaluateStartingOnlyStatus(startingBalance, targetAmount);
   return (
-    <Section title="Goal status" description="Monthly income is excluded — comparing the starting balance with the target only.">
+    <Section title={m.title} description={m.description}>
       {s.kind === "no_target" ? (
-        <EmptyState title="Add a target amount to evaluate" className="py-8" />
+        <EmptyState title={m.empty} className="py-8" />
       ) : (
         <div className="flex flex-col items-center gap-2 py-6 text-center">
           {s.kind === "met" ? <CircleCheck className="size-10 text-success" /> : <TriangleAlert className="size-10 text-danger" />}
-          <p className="text-xl font-semibold">{s.kind === "met" ? "Goal met" : "Goal not met"}</p>
+          <p className="text-xl font-semibold">{s.kind === "met" ? m.met : m.notMet}</p>
           <p className="text-sm text-muted-foreground">
-            <Money value={startingBalance} /> starting vs <Money value={targetAmount} /> target
+            {m.comparison.before}
+            <Money value={startingBalance} />
+            {m.comparison.middle}
+            <Money value={targetAmount} />
+            {m.comparison.after}
           </p>
           {s.kind === "met" ? (
             s.surplus > 0 ? (
               <p className="text-sm font-medium text-success">
-                Surplus <Money value={s.surplus} />
+                {m.surplus} <Money value={s.surplus} />
               </p>
             ) : null
           ) : (
             <p className="text-sm font-medium text-danger">
-              Short by <Money value={s.gap} />
+              {m.shortBy} <Money value={s.gap} />
             </p>
           )}
         </div>

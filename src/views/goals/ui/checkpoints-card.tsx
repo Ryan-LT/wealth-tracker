@@ -9,6 +9,7 @@ import {
   normalizeStoredCheckpoints,
   type GoalCheckpoint,
 } from "@/entities/goal";
+import { useI18n } from "@/shared/i18n";
 import { formatDate, formatMoney } from "@/shared/lib/format";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { EmptyState } from "@/shared/ui/empty-state";
@@ -28,6 +29,8 @@ type CheckpointsCardProps = {
 };
 
 export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: CheckpointsCardProps) {
+  const { t } = useI18n();
+  const c = t.goals.checkpoints;
   const [editorOpen, setEditorOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ id: string; nextPaid: boolean } | null>(null);
   const rows = checkpointsWithRunningTotal(checkpoints);
@@ -35,25 +38,25 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
 
   return (
     <Section
-      title="Checkpoints"
-      description="Installments due on specific dates. The chart sums them into a cumulative line."
+      title={c.title}
+      description={c.description}
       actions={
         <Button variant="outline" size="sm" onClick={() => setEditorOpen(true)}>
           <Pencil />
-          Edit
+          {t.common.edit}
         </Button>
       }
       flush
     >
       {rows.length === 0 ? (
         <EmptyState
-          title="No checkpoints set"
-          description="Add payment dates if this goal is paid in installments."
+          title={c.emptyTitle}
+          description={c.emptyDescription}
           className="py-8"
           action={
             <Button variant="outline" size="sm" onClick={() => setEditorOpen(true)}>
               <Plus />
-              Add checkpoints
+              {c.addCheckpoints}
             </Button>
           }
         />
@@ -61,10 +64,10 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Payment</TableHead>
-              <TableHead className="text-right max-sm:hidden">Cumulative</TableHead>
-              <TableHead className="text-right">Status</TableHead>
+              <TableHead>{c.date}</TableHead>
+              <TableHead className="text-right">{c.payment}</TableHead>
+              <TableHead className="text-right max-sm:hidden">{c.cumulative}</TableHead>
+              <TableHead className="text-right">{c.status}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -85,7 +88,7 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
                     onClick={() => setConfirm({ id: r.id, nextPaid: !r.paid })}
                   >
                     {r.paid ? <CircleCheck /> : <CircleDashed />}
-                    {r.paid ? "Paid" : "Unpaid"}
+                    {r.paid ? c.paid : c.unpaid}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -100,13 +103,13 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
         open={confirm !== null}
         onOpenChange={(o) => !o && setConfirm(null)}
         destructive={false}
-        confirmLabel={confirm?.nextPaid ? "Mark paid" : "Mark unpaid"}
-        title={confirm?.nextPaid ? "Mark checkpoint as paid?" : "Mark checkpoint as unpaid?"}
+        confirmLabel={confirm?.nextPaid ? c.markPaid : c.markUnpaid}
+        title={confirm?.nextPaid ? c.confirmPaidTitle : c.confirmUnpaidTitle}
         description={
           <>
             {confirm?.nextPaid
-              ? "This records that this installment has been paid. A marker appears on the projection chart at the cumulative amount after this payment."
-              : "This removes the paid marker from the projection chart for this checkpoint."}
+              ? c.confirmPaidDescription
+              : c.confirmUnpaidDescription}
             {confirmRow ? (
               <span className="mt-2 block font-medium text-foreground">
                 {formatDate(confirmRow.date)} — {formatMoney(confirmRow.amount)}
@@ -154,6 +157,8 @@ function CheckpointsEditor({
   onCancel: () => void;
   onApply: (checkpoints: GoalCheckpoint[]) => Promise<void>;
 }) {
+  const { t } = useI18n();
+  const c = t.goals.checkpoints;
   const [rows, setRows] = useState<GoalCheckpoint[]>(() => normalizeStoredCheckpoints(checkpoints).map((c) => ({ ...c })));
   const [busy, setBusy] = useState(false);
   const patch = (id: string, p: Partial<GoalCheckpoint>) => setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...p } : r)));
@@ -162,29 +167,29 @@ function CheckpointsEditor({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Checkpoints</DialogTitle>
-        <DialogDescription>Enter each payment on its date. Cumulative due on the chart is the sum so far.</DialogDescription>
+        <DialogTitle>{c.title}</DialogTitle>
+        <DialogDescription>{c.editorDescription}</DialogDescription>
       </DialogHeader>
       <DialogBody className="grid gap-3">
         {rows.length === 0 ? (
-          <p className="rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">No rows — add one below.</p>
+          <p className="rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">{c.noRows}</p>
         ) : (
           <ul className="grid gap-3">
             {rows.map((r, i) => (
               <li key={r.id} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 rounded-md border p-3">
                 <div className="grid gap-1.5">
-                  <Label>Date</Label>
+                  <Label>{c.date}</Label>
                   <DatePicker value={r.date} onChange={(date) => patch(r.id, { date })} aria-invalid={!r.date} />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor={`cp-amount-${i}`}>Payment</Label>
+                  <Label htmlFor={`cp-amount-${i}`}>{c.payment}</Label>
                   <MoneyInput id={`cp-amount-${i}`} value={r.amount} onChange={(amount) => patch(r.id, { amount })} />
                 </div>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label="Remove checkpoint"
+                  aria-label={c.removeCheckpoint}
                   className="text-muted-foreground hover:text-danger"
                   onClick={() => setRows((prev) => prev.filter((x) => x.id !== r.id))}
                 >
@@ -202,13 +207,13 @@ function CheckpointsEditor({
           onClick={() => setRows((prev) => [...prev, { id: createCheckpointId(), date: "", amount: 0 }])}
         >
           <Plus />
-          Add checkpoint
+          {c.addCheckpoint}
         </Button>
-        {missingDates > 0 ? <p className="text-xs text-warning">Rows without a date are not saved.</p> : null}
+        {missingDates > 0 ? <p className="text-xs text-warning">{c.missingDates}</p> : null}
       </DialogBody>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
-          Cancel
+          {t.common.cancel}
         </Button>
         <Button
           type="button"
@@ -223,7 +228,7 @@ function CheckpointsEditor({
           }}
         >
           {busy ? <Loader2 className="animate-spin" /> : null}
-          Apply to plan
+          {c.applyToPlan}
         </Button>
       </DialogFooter>
     </>

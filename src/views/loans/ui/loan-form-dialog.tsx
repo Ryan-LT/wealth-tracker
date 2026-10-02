@@ -5,21 +5,23 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { PersonalLoan } from "@/entities/personal-loan";
+import { useI18n, type Messages } from "@/shared/i18n";
 import { DateField, MoneyField, SegmentedField, SelectField, TextareaField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/kit/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
 import { Form } from "@/shared/ui/kit/form";
 
-const schema = z.object({
-  direction: z.enum(["lent_out", "borrowed"]),
-  person: z.string().trim().min(1, "Who is this with?").max(80),
-  amount: z.number().min(0),
-  date: z.string().optional(),
-  status: z.enum(["open", "settled"]),
-  note: z.string().max(300).optional(),
-});
+const makeSchema = (t: Messages) =>
+  z.object({
+    direction: z.enum(["lent_out", "borrowed"]),
+    person: z.string().trim().min(1, t.loans.form.personRequired).max(80),
+    amount: z.number().min(0),
+    date: z.string().optional(),
+    status: z.enum(["open", "settled"]),
+    note: z.string().max(300).optional(),
+  });
 
-type Values = z.infer<typeof schema>;
+type Values = z.infer<ReturnType<typeof makeSchema>>;
 
 type LoanFormDialogProps = {
   open: boolean;
@@ -61,8 +63,9 @@ function LoanForm({
   onCancel: () => void;
   onSubmit: (loan: PersonalLoan) => void;
 }) {
+  const { t } = useI18n();
   const form = useForm<Values>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(makeSchema(t)),
     defaultValues: {
       direction: loan.direction,
       person: loan.person,
@@ -82,40 +85,40 @@ function LoanForm({
         )}
       >
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Add personal loan" : "Edit personal loan"}</DialogTitle>
-          <DialogDescription>A private log only — never counted in net worth.</DialogDescription>
+          <DialogTitle>{mode === "create" ? t.loans.form.addTitle : t.loans.form.editTitle}</DialogTitle>
+          <DialogDescription>{t.loans.form.description}</DialogDescription>
         </DialogHeader>
         <DialogBody className="grid gap-4">
           <SelectField
             control={form.control}
             name="direction"
-            label="Direction"
+            label={t.loans.form.direction}
             options={[
-              { value: "lent_out", label: "Owed to you — you lent the money" },
-              { value: "borrowed", label: "You owe — you borrowed the money" },
+              { value: "lent_out", label: t.loans.form.directionLent },
+              { value: "borrowed", label: t.loans.form.directionBorrowed },
             ]}
           />
-          <TextField control={form.control} name="person" label="Person" placeholder="e.g. Anh Minh, Mom" autoFocus={mode === "create"} />
+          <TextField control={form.control} name="person" label={t.loans.form.person} placeholder={t.loans.form.personPlaceholder} autoFocus={mode === "create"} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <MoneyField control={form.control} name="amount" label="Amount" />
-            <DateField control={form.control} name="date" label="Date" clearable placeholder="No date" />
+            <MoneyField control={form.control} name="amount" label={t.loans.form.amount} />
+            <DateField control={form.control} name="date" label={t.loans.form.date} clearable placeholder={t.loans.form.datePlaceholder} />
           </div>
           <SegmentedField
             control={form.control}
             name="status"
-            label="Status"
+            label={t.loans.form.status}
             options={[
-              { value: "open", label: "Open" },
-              { value: "settled", label: "Settled" },
+              { value: "open", label: t.loans.open },
+              { value: "settled", label: t.loans.settled },
             ]}
           />
-          <TextareaField control={form.control} name="note" label="Note" placeholder="What it was for, expected return…" />
+          <TextareaField control={form.control} name="note" label={t.loans.form.note} placeholder={t.loans.form.notePlaceholder} />
         </DialogBody>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t.common.cancel}
           </Button>
-          <Button type="submit">{mode === "create" ? "Add loan" : "Save changes"}</Button>
+          <Button type="submit">{mode === "create" ? t.loans.form.submitAdd : t.common.saveChanges}</Button>
         </DialogFooter>
       </form>
     </Form>

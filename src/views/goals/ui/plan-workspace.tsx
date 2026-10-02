@@ -15,6 +15,7 @@ import {
   totalGoalStartingBalance,
   type GoalProfile,
 } from "@/entities/goal";
+import { useI18n } from "@/shared/i18n";
 import { formatDate, formatMoney, formatMonths, formatPercent } from "@/shared/lib/format";
 import { Callout } from "@/shared/ui/callout";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
@@ -36,6 +37,8 @@ import { StartingBalancesCard } from "./starting-balances-card";
  * whenever another plan is selected (or a new plan gets its id).
  */
 export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
+  const { t } = useI18n();
+  const g = t.goals;
   const { goals, savedProfile, seedOptions, incomeMonthly, householdMonthlyNet, isComposingNew, persistPlan, deletePlan } = editor;
   const [draft, setDraft] = useState<GoalProfile>(savedProfile);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -78,9 +81,9 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
       setDraft(next);
       const ok = await persistPlan(next);
       if (ok) toast.success(message);
-      else toast.warning("Saved on this device", { description: "It will sync when the server is reachable." });
+      else toast.warning(g.workspace.toasts.savedLocally, { description: g.workspace.toasts.savedLocallyDescription });
     },
-    [persistPlan],
+    [persistPlan, g],
   );
 
   const preview = useCallback(
@@ -97,7 +100,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
   );
 
   const delta = projection.projectedAtTarget - draft.targetAmount;
-  const displayName = draft.name.trim() || (isComposingNew ? "New plan" : "Untitled plan");
+  const displayName = draft.name.trim() || (isComposingNew ? g.list.newPlan : t.common.untitledPlan);
 
   const details = (
     <PlanDetailsCard
@@ -108,7 +111,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
       shares={shares}
       onPreview={preview}
       onCancel={() => setDraft((d) => revertPlanSection(revertPlanSection(d, savedProfile, "basics"), savedProfile, "income"))}
-      onSave={(v) => save({ ...draft, ...v }, isComposingNew ? "Plan created" : "Plan saved")}
+      onSave={(v) => save({ ...draft, ...v }, isComposingNew ? g.workspace.toasts.planCreated : g.workspace.toasts.planSaved)}
     />
   );
 
@@ -118,15 +121,15 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
         <div className="min-w-0">
           <h2 className="truncate text-lg font-semibold tracking-tight">{displayName}</h2>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            {isComposingNew ? <StatusBadge tone="info">Unsaved</StatusBadge> : null}
+            {isComposingNew ? <StatusBadge tone="info">{g.status.unsaved}</StatusBadge> : null}
             {draft.targetDate ? (
               <span className="inline-flex items-center gap-1">
-                <CalendarClock className="size-3.5" /> Target date {formatDate(draft.targetDate)}
+                <CalendarClock className="size-3.5" /> {g.workspace.targetDate({ date: formatDate(draft.targetDate) })}
               </span>
             ) : null}
             {projection.status !== "unset" ? (
               <StatusBadge tone={projection.status === "feasible" ? "success" : "danger"} dot>
-                {projection.status === "feasible" ? "Feasible" : "Shortfall"}
+                {projection.status === "feasible" ? g.status.feasible : g.status.shortfall}
               </StatusBadge>
             ) : null}
           </div>
@@ -134,14 +137,14 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
         {!isComposingNew ? (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Plan actions">
+              <Button variant="outline" size="icon" aria-label={g.workspace.planActions}>
                 <MoreHorizontal />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
                 <Trash2 />
-                Delete plan
+                {g.workspace.deletePlan}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -152,39 +155,44 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
 
       <StatGrid>
         <StatCard
-          label="Target"
+          label={g.workspace.kpi.target}
           icon={Target}
           value={draft.targetAmount > 0 ? <Money value={draft.targetAmount} compact /> : "—"}
-          hint={draft.targetDate ? `by ${formatDate(draft.targetDate)}` : "No date set"}
+          hint={draft.targetDate ? g.workspace.kpi.byDate({ date: formatDate(draft.targetDate) }) : g.workspace.kpi.noDate}
         />
         <StatCard
-          label="Allocated starting"
+          label={g.workspace.kpi.allocated}
           icon={Coins}
           value={<Money value={startingBalance} compact />}
-          hint={`${draft.seedLines?.length ?? 0} ${(draft.seedLines?.length ?? 0) === 1 ? "source" : "sources"}`}
+          hint={t.common.sources({ count: draft.seedLines?.length ?? 0 })}
         />
         <StatCard
-          label="Projected at target date"
+          label={g.workspace.kpi.projected}
           icon={TrendingUp}
           value={<Money value={projection.projectedAtTarget} compact />}
-          hint={draft.targetAmount > 0 ? <Money value={delta} compact signed tone="auto" /> : "Set a target"}
-          aside={draft.targetAmount > 0 ? <span>vs target</span> : null}
+          hint={draft.targetAmount > 0 ? <Money value={delta} compact signed tone="auto" /> : g.workspace.kpi.setTarget}
+          aside={draft.targetAmount > 0 ? <span>{g.workspace.kpi.vsTarget}</span> : null}
         />
         <StatCard
-          label="Monthly savings for this plan"
+          label={g.workspace.kpi.monthly}
           icon={Wallet}
-          value={projection.applyMonthlyIncome ? <Money value={projection.effectiveMonthlyContribution} compact signed tone="auto" /> : "Excluded"}
+          value={projection.applyMonthlyIncome ? <Money value={projection.effectiveMonthlyContribution} compact signed tone="auto" /> : g.status.excluded}
           hint={
             projection.applyMonthlyIncome
-              ? `${formatPercent(projection.monthlyShare * 100, { maximumFractionDigits: 0 })} of monthly savings · ${projection.pastDue ? "date passed" : `${formatMonths(projection.monthsToTarget)} left`}`
+              ? g.workspace.kpi.shareHint({
+                  pct: formatPercent(projection.monthlyShare * 100, { maximumFractionDigits: 0 }),
+                  rest: projection.pastDue
+                    ? g.workspace.kpi.datePassedLower
+                    : g.workspace.kpi.monthsLeftInline({ months: formatMonths(projection.monthsToTarget) }),
+                })
               : projection.pastDue
-                ? "Date passed"
-                : `${formatMonths(projection.monthsToTarget)} left`
+                ? g.status.datePassed
+                : g.workspace.kpi.monthsLeft({ months: formatMonths(projection.monthsToTarget) })
           }
         />
       </StatGrid>
 
-      <Callout tone={goalProjectionNoteTone(projection.note)}>{describeGoalProjectionNote(projection.note, (n) => formatMoney(n))}</Callout>
+      <Callout tone={goalProjectionNoteTone(projection.note)}>{describeGoalProjectionNote(projection.note, (n) => formatMoney(n), t.domain.projectionNote)}</Callout>
 
       {projection.applyMonthlyIncome ? (
         <ProjectionCard
@@ -206,13 +214,13 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
           savedPlans={goals.profiles}
           seedOptions={seedOptions}
           total={startingBalance}
-          onApply={(seedLines) => save({ ...draft, seedLines }, isComposingNew ? "Plan created" : "Starting balances saved")}
+          onApply={(seedLines) => save({ ...draft, seedLines }, isComposingNew ? g.workspace.toasts.planCreated : g.workspace.toasts.startingSaved)}
         />
         <CheckpointsCard
           checkpoints={draft.checkpoints ?? []}
-          onApply={(checkpoints) => save({ ...draft, checkpoints }, isComposingNew ? "Plan created" : "Checkpoints saved")}
+          onApply={(checkpoints) => save({ ...draft, checkpoints }, isComposingNew ? g.workspace.toasts.planCreated : g.workspace.toasts.checkpointsSaved)}
           onTogglePaid={(id, paid) =>
-            save({ ...draft, checkpoints: setCheckpointPaid(draft.checkpoints ?? [], id, paid) }, paid ? "Marked as paid" : "Marked as unpaid")
+            save({ ...draft, checkpoints: setCheckpointPaid(draft.checkpoints ?? [], id, paid) }, paid ? g.workspace.toasts.markedPaid : g.workspace.toasts.markedUnpaid)
           }
         />
       </div>
@@ -225,11 +233,11 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title="Delete this plan?"
-        description={`"${savedProfile.name || "Untitled plan"}" will be removed permanently. This cannot be undone.`}
+        title={g.workspace.deleteDialog.title}
+        description={g.workspace.deleteDialog.description({ name: savedProfile.name || t.common.untitledPlan })}
         onConfirm={() => {
           deletePlan(savedProfile.id);
-          toast.success("Plan deleted", { description: savedProfile.name });
+          toast.success(g.workspace.toasts.planDeleted, { description: savedProfile.name });
         }}
       />
     </div>

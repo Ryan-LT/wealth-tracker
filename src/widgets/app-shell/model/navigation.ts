@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { startTransition, useCallback, useOptimistic, useSyncExternalStore, type MouseEvent } from "react";
 
 /*
@@ -76,7 +77,7 @@ export function isPlainClick(event: MouseEvent | globalThis.MouseEvent): boolean
  */
 export function useOptimisticNavigation() {
   const router = useRouter();
-  const pathname = usePathname() ?? "/";
+  const pathname = useAppPathname();
   const [activePath, setActivePath] = useOptimistic(pathname);
 
   const navigate = useCallback(

@@ -11,6 +11,7 @@ import {
   MIN_MILESTONE_AGE,
   type MilestoneSettings,
 } from "@/entities/milestone";
+import { useI18n } from "@/shared/i18n";
 import { Button } from "@/shared/ui/kit/button";
 import { DatePicker } from "@/shared/ui/kit/date-picker";
 import { Input } from "@/shared/ui/kit/input";
@@ -38,6 +39,8 @@ export function MilestoneForm({
   value: MilestoneSettings | undefined;
   onSave: (next: MilestoneSettings) => void;
 }) {
+  const { t } = useI18n();
+  const m = t.settings.milestone;
   const saved = toDraft(value);
   const [draft, setDraft] = useState(saved);
   const [synced, setSynced] = useState(saved);
@@ -67,17 +70,17 @@ export function MilestoneForm({
     >
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="grid gap-1.5">
-          <Label htmlFor="milestone-birth-date">Date of birth</Label>
+          <Label htmlFor="milestone-birth-date">{m.birthDate}</Label>
           <DatePicker
             id="milestone-birth-date"
             value={draft.birthDate}
             onChange={(birthDate) => setDraft((d) => ({ ...d, birthDate }))}
-            placeholder="Pick your birthday"
+            placeholder={m.birthDatePlaceholder}
             clearable
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="milestone-target">Target net worth (USD)</Label>
+          <Label htmlFor="milestone-target">{m.target}</Label>
           <NumericFormat
             id="milestone-target"
             customInput={Input}
@@ -95,7 +98,7 @@ export function MilestoneForm({
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="milestone-age">By age</Label>
+          <Label htmlFor="milestone-age">{m.targetAge}</Label>
           <Input
             id="milestone-age"
             type="number"
@@ -114,18 +117,16 @@ export function MilestoneForm({
         </div>
       </div>
       {!ageValid ? (
-        <p className="text-xs text-destructive">
-          Age must be between {MIN_MILESTONE_AGE} and {MAX_MILESTONE_AGE}.
-        </p>
+        <p className="text-xs text-destructive">{m.ageRange({ min: MIN_MILESTONE_AGE, max: MAX_MILESTONE_AGE })}</p>
       ) : null}
       <div className="flex gap-2">
         <Button type="submit" disabled={!dirty || !ageValid || !targetValid}>
           <Check />
-          Save
+          {t.common.save}
         </Button>
         {dirty ? (
           <Button type="button" variant="ghost" onClick={() => setDraft(saved)}>
-            Reset
+            {t.common.reset}
           </Button>
         ) : null}
       </div>

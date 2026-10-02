@@ -72,6 +72,25 @@ then remove `AUTH_USERNAME`, `AUTH_PASSWORD`, `USER_DATE_OF_BIRTH` and
 `WEALTH_MILESTONE_TARGET_USD` from the environment. Your birth date and milestone
 target now live in Settings → Milestone goal.
 
+## Languages
+
+The app is in **English and Vietnamese**. New visitors get the language of their
+browser; the switcher (Settings → Appearance, the user menu, or the sign-in page)
+saves the choice on the device (`wt_lang` cookie) and in the account, so it follows
+the person to other devices.
+
+- URLs don't change: every page is prerendered once per language under `src/app/[lang]/`
+  and `src/proxy.ts` rewrites `/goals` to `/vi/goals` or `/en/goals`.
+- Text lives in `src/shared/i18n/messages/en/*.ts` (source of truth) and
+  `messages/vi/*.ts`. Vietnamese is typed against English, so a missing key fails
+  `pnpm typecheck`; `pnpm test` checks both dictionaries match and that nothing was
+  left untranslated; `pnpm lint` rejects hard-coded English in components.
+- In a component: `const { t } = useI18n();` then `t.goals.title` or
+  `t.common.months({ count })`. Dates and compact money follow the page language
+  (`2 thg 10, 2026`, `4,82 tỷ ₫`); full money is `1.245.670.000 ₫` in both.
+- To change wording, edit the message files. To add a language, add a folder under
+  `messages/`, list it in `src/shared/i18n/locale.ts`, and translate every key.
+
 ## Scripts
 
 | Command | What it does |

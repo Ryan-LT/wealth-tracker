@@ -23,6 +23,7 @@ import {
   type SettingsAsset,
 } from "@/entities/settings-asset";
 import { CategoryBadge, LiquidityBadge } from "@/entities/settings-asset/ui";
+import { useI18n } from "@/shared/i18n";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
@@ -57,6 +58,8 @@ export function AssetsPage() {
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [legacy] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const { t } = useI18n();
+  const m = t.assets;
 
   const [sort, setSort] = useState<AssetSortState | null>(null);
   const [search, setSearch] = useState("");
@@ -104,13 +107,13 @@ export function AssetsPage() {
       const moves: RowAction[] = withMove
         ? [
             {
-              label: "Move up",
+              label: m.list.moveUp,
               icon: ArrowUp,
               disabled: !canMove || index <= 0,
               onSelect: () => reorder(asset.id, displayed[index - 1].id),
             },
             {
-              label: "Move down",
+              label: m.list.moveDown,
               icon: ArrowDown,
               disabled: !canMove || index === -1 || index >= displayed.length - 1,
               onSelect: () => reorder(asset.id, displayed[index + 1].id),
@@ -119,13 +122,13 @@ export function AssetsPage() {
           ]
         : [];
       return [
-        { label: "Edit", icon: Pencil, onSelect: () => openEdit(asset) },
+        { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(asset) },
         ...moves,
         ...(withMove ? [] : (["separator"] as RowAction[])),
-        { label: "Delete", icon: Trash2, destructive: true, onSelect: () => setPendingDelete(asset) },
+        { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(asset) },
       ];
     },
-    [displayed, search, reorder, openEdit],
+    [displayed, search, reorder, openEdit, m, t.common],
   );
 
   const catalogTotal = totalSettingsAssetsValue(assets);
@@ -138,23 +141,23 @@ export function AssetsPage() {
     () => [
       {
         accessorKey: "name",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colName} />,
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "category",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Category" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colCategory} />,
         cell: ({ row }) => <CategoryBadge category={row.original.category} />,
       },
       {
         id: "liquidity",
         accessorFn: (a) => resolveSettingsAssetLiquidity(a.liquidity),
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Access" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colAccess} />,
         cell: ({ row }) => <LiquidityBadge liquidity={row.original.liquidity} />,
       },
       {
         accessorKey: "currentValue",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Value" align="right" />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colValue} align="right" />,
         cell: ({ row }) => <Money value={row.original.currentValue} className="font-medium" />,
         footer: () => <Money value={catalogTotal} className="font-semibold" />,
         meta: { align: "right" },
@@ -162,37 +165,37 @@ export function AssetsPage() {
       {
         id: "actions",
         enableSorting: false,
-        header: () => <span className="sr-only">Actions</span>,
-        cell: ({ row }) => <RowActions label={`Actions for ${row.original.name}`} actions={actionsFor(row.original, false)} />,
+        header: () => <span className="sr-only">{t.common.actions}</span>,
+        cell: ({ row }) => <RowActions label={t.common.actionsFor({ name: row.original.name })} actions={actionsFor(row.original, false)} />,
         meta: { className: "w-12" },
       },
     ],
-    [actionsFor, catalogTotal],
+    [actionsFor, catalogTotal, m, t.common],
   );
 
   return (
     <PageContainer>
       <PageHeader
-        title="Assets"
-        description="Everything you own and how quickly you can access it."
+        title={m.title}
+        description={m.description}
         actions={
           <Button onClick={openCreate}>
             <Plus />
-            Add asset
+            {m.addAsset}
           </Button>
         }
       />
 
       <StatGrid>
-        <StatCard label="Total assets" icon={Landmark} value={<Money value={grossTotal} compact />} hint={`${assets.length} tracked ${assets.length === 1 ? "asset" : "assets"}`} />
-        <StatCard label="Instant access" icon={Zap} value={<Money value={instantTotal} compact />} hint="Cash and equivalents" />
-        <StatCard label="Not instant" icon={Clock} value={<Money value={catalogTotal - instantTotal} compact />} hint="Locked, property, term" />
-        <StatCard label="Categories" value={new Set(assets.map((a) => a.category.trim())).size} hint={`${categoryOptions.length} available`} />
+        <StatCard label={m.kpi.total.label} icon={Landmark} value={<Money value={grossTotal} compact />} hint={m.kpi.total.hint({ count: assets.length })} />
+        <StatCard label={m.kpi.instant.label} icon={Zap} value={<Money value={instantTotal} compact />} hint={m.kpi.instant.hint} />
+        <StatCard label={m.kpi.notInstant.label} icon={Clock} value={<Money value={catalogTotal - instantTotal} compact />} hint={m.kpi.notInstant.hint} />
+        <StatCard label={m.kpi.categories.label} value={new Set(assets.map((a) => a.category.trim())).size} hint={m.kpi.categories.hint({ count: categoryOptions.length })} />
       </StatGrid>
 
-      <Section title="All assets" description="Drag rows to set your preferred order." flush>
+      <Section title={m.list.title} description={m.list.description} flush>
         <div className="border-b px-5 py-3">
-          <DataTableToolbar search={search} onSearchChange={setSearch} placeholder="Search name or category…" />
+          <DataTableToolbar search={search} onSearchChange={setSearch} placeholder={m.list.searchPlaceholder} />
         </div>
         <DataTable
           columns={columns}
@@ -208,7 +211,7 @@ export function AssetsPage() {
           }}
           reorder={{
             enabled: !search.trim(),
-            disabledReason: "Clear the search to reorder",
+            disabledReason: m.list.reorderDisabled,
             onReorder: reorder,
           }}
           onRowClick={openEdit}
@@ -216,17 +219,17 @@ export function AssetsPage() {
             assets.length === 0 ? (
               <EmptyState
                 icon={Landmark}
-                title="No assets yet"
-                description="Add cash, investments, property and anything else you own."
+                title={m.list.emptyTitle}
+                description={m.list.emptyDescription}
                 action={
                   <Button variant="outline" onClick={openCreate}>
                     <Plus />
-                    Add asset
+                    {m.addAsset}
                   </Button>
                 }
               />
             ) : (
-              <EmptyState title="No assets match your search" />
+              <EmptyState title={m.list.noMatch} />
             )
           }
           renderMobileItem={(a) => (
@@ -239,7 +242,7 @@ export function AssetsPage() {
                 </div>
               </button>
               <Money value={a.currentValue} className="text-sm font-medium" />
-              <RowActions label={`Actions for ${a.name}`} actions={actionsFor(a, true)} />
+              <RowActions label={t.common.actionsFor({ name: a.name })} actions={actionsFor(a, true)} />
             </div>
           )}
         />
@@ -259,10 +262,10 @@ export function AssetsPage() {
           if (custom) setPrefs((p) => registerExtraAssetCategory(p, custom));
           if (dialog?.mode === "edit") {
             setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)));
-            toast.success("Asset updated");
+            toast.success(m.toast.updated);
           } else {
             setAssets((prev) => [...prev, next]);
-            toast.success("Asset added");
+            toast.success(m.toast.added);
           }
         }}
       />
@@ -270,15 +273,17 @@ export function AssetsPage() {
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(o) => !o && setPendingDelete(null)}
-        title="Delete asset?"
+        title={m.confirmDelete.title}
+        confirmLabel={t.common.delete}
+        cancelLabel={t.common.cancel}
         description={
-          pendingDelete ? `This removes "${pendingDelete.name}" from your list. Goal plans using it lose that allocation.` : null
+          pendingDelete ? m.confirmDelete.description({ name: pendingDelete.name }) : null
         }
         onConfirm={() => {
           if (!pendingDelete) return;
           const removed = pendingDelete;
           setAssets((prev) => prev.filter((a) => a.id !== removed.id));
-          toast.success("Asset deleted", { description: removed.name });
+          toast.success(m.toast.deleted, { description: removed.name });
         }}
       />
     </PageContainer>

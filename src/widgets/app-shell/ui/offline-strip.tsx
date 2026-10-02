@@ -3,6 +3,7 @@
 import { CloudOff } from "lucide-react";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { formatTime } from "@/shared/lib/format";
 import { backgroundRefetchTables, useLastSyncedAt } from "@/shared/storage/store";
 
@@ -22,6 +23,7 @@ export function useOnline(): boolean {
 /** Thin strip inside the sticky top bar while offline; resyncs when back online. */
 export function OfflineStrip() {
   const online = useOnline();
+  const { t } = useI18n();
   const lastSyncedAt = useLastSyncedAt();
   const wasOffline = useRef(false);
 
@@ -35,8 +37,8 @@ export function OfflineStrip() {
     <div role="status" aria-live="polite" className="flex h-7 items-center justify-center gap-2 bg-warning-muted px-4 text-xs font-medium text-foreground">
       <CloudOff className="size-3.5 text-warning" aria-hidden />
       {lastSyncedAt != null
-        ? `Offline — showing data from ${formatTime(lastSyncedAt)}. Changes sync when you reconnect.`
-        : "Offline — showing data saved on this device."}
+        ? t.shell.offline.since({ time: formatTime(lastSyncedAt) })
+        : t.shell.offline.local}
     </div>
   );
 }

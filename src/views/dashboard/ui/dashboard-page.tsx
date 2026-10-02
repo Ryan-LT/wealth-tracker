@@ -22,7 +22,8 @@ import {
   syncNetWorthTracking,
 } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
-import { formatPercent } from "@/shared/lib/format";
+import { useI18n } from "@/shared/i18n";
+import { formatDate, formatPercent } from "@/shared/lib/format";
 import { useInitialLoadDone, useTable } from "@/shared/storage";
 import { Money } from "@/shared/ui/money";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -39,6 +40,8 @@ import { MilestoneCard } from "./milestone-card";
 import { NetWorthTrendCard } from "./net-worth-trend-card";
 
 export function DashboardPage() {
+  const { t } = useI18n();
+  const k = t.dashboard.kpi;
   const initialLoadDone = useInitialLoadDone();
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts] = useTable("debts", DEBTS_SEED);
@@ -81,42 +84,42 @@ export function DashboardPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Dashboard" description="Your financial position at a glance." />
+      <PageHeader title={t.dashboard.title} description={t.dashboard.description} />
 
       <StatGrid>
         <StatCard
-          label="Net worth"
+          label={k.netWorth.label}
           icon={Landmark}
           value={<Money value={netWorth} compact />}
-          hint={prefs.includeLoansInNetWorth ? "Assets − debts, incl. personal loans" : "Assets − debts"}
+          hint={prefs.includeLoansInNetWorth ? k.netWorth.hintWithLoans : k.netWorth.hint}
           aside={
             Math.abs(mtd) >= 0.05 ? (
-              <StatusBadge tone={mtd >= 0 ? "success" : "danger"} title="Change since the start of this month">
-                {formatPercent(mtd, { signDisplay: "exceptZero" })} MTD
+              <StatusBadge tone={mtd >= 0 ? "success" : "danger"} title={k.netWorth.mtdTitle}>
+                {k.netWorth.mtd({ pct: formatPercent(mtd, { signDisplay: "exceptZero" }) })}
               </StatusBadge>
             ) : null
           }
           href="/assets"
         />
         <StatCard
-          label="Instant pool left"
+          label={k.instantPool.label}
           icon={Droplets}
           value={<Money value={report.totals.instantRemainingPool} compact />}
-          hint="Uncommitted instant-access money"
+          hint={k.instantPool.hint}
           href="/allocations"
         />
         <StatCard
-          label="Monthly net"
+          label={k.monthlyNet.label}
           icon={Wallet}
           value={<Money value={summary.monthlyNet} compact signed tone="auto" />}
-          hint="Income − average spending"
+          hint={k.monthlyNet.hint}
           href="/income"
         />
         <StatCard
-          label="Year-end projection"
+          label={k.yearEnd.label}
           icon={CalendarRange}
           value={<Money value={summary.eoyProjection} compact />}
-          hint={`At current monthly net, 31 Dec ${year}`}
+          hint={k.yearEnd.hint({ date: formatDate(new Date(year, 11, 31)) })}
         />
       </StatGrid>
 

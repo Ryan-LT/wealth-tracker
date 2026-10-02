@@ -1,4 +1,5 @@
 import type { GoalProjectionSummary } from "@/entities/goal";
+import { useI18n } from "@/shared/i18n";
 import { formatMonths, formatPercent } from "@/shared/lib/format";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Money } from "@/shared/ui/money";
@@ -14,40 +15,42 @@ type BreakdownCardProps = {
 
 /** Every number behind the feasibility verdict. */
 export function BreakdownCard({ projection, incomeMonthly, startingBalance, targetAmount }: BreakdownCardProps) {
+  const { t } = useI18n();
+  const b = t.goals.breakdown;
   return (
-    <Section title="Feasibility" description="How the projection is calculated.">
+    <Section title={b.title} description={b.description}>
       <DescriptionList
         items={[
           {
-            label: "Status",
+            label: b.status,
             value:
               projection.status === "unset" ? (
                 "—"
               ) : projection.status === "feasible" ? (
-                <StatusBadge tone="success" dot>Feasible</StatusBadge>
+                <StatusBadge tone="success" dot>{t.goals.status.feasible}</StatusBadge>
               ) : (
-                <StatusBadge tone="danger" dot>Shortfall</StatusBadge>
+                <StatusBadge tone="danger" dot>{t.goals.status.shortfall}</StatusBadge>
               ),
           },
-          ...(incomeMonthly > 0 ? [{ label: "Household income", value: <Money value={incomeMonthly} /> }] : []),
+          ...(incomeMonthly > 0 ? [{ label: b.householdIncome, value: <Money value={incomeMonthly} /> }] : []),
           {
-            label: "Monthly savings for this plan",
+            label: b.monthly,
             value: <Money value={projection.effectiveMonthlyContribution} signed tone="auto" />,
             hint: !projection.applyMonthlyIncome
-              ? "Monthly income is excluded from this plan."
+              ? b.incomeExcluded
               : projection.incomeOffsetBySpending
-                ? "Income is offset by average monthly spending."
-                : `${formatPercent(projection.monthlyShare * 100, { maximumFractionDigits: 0 })} of your monthly savings`,
+                ? b.incomeOffset
+                : b.shareHint({ pct: formatPercent(projection.monthlyShare * 100, { maximumFractionDigits: 0 }) }),
           },
-          { label: "Allocated starting total", value: <Money value={startingBalance} /> },
+          { label: b.allocatedTotal, value: <Money value={startingBalance} /> },
           {
-            label: "Expected yearly return",
-            value: projection.annualReturn > 0 ? formatPercent(projection.annualReturn * 100) : "None",
-            hint: projection.annualReturn > 0 ? "Compounded monthly on the plan balance." : undefined,
+            label: b.expectedReturn,
+            value: projection.annualReturn > 0 ? formatPercent(projection.annualReturn * 100) : t.common.none,
+            hint: projection.annualReturn > 0 ? b.compounded : undefined,
           },
-          { label: "Time to target", value: projection.pastDue ? "Date passed" : formatMonths(projection.monthsToTarget) },
-          { label: "Projected balance at date", value: <Money value={projection.projectedAtTarget} /> },
-          { label: "Goal target", value: <Money value={targetAmount} />, emphasis: true },
+          { label: b.timeToTarget, value: projection.pastDue ? t.goals.status.datePassed : formatMonths(projection.monthsToTarget) },
+          { label: b.projectedAtDate, value: <Money value={projection.projectedAtTarget} /> },
+          { label: b.goalTarget, value: <Money value={targetAmount} />, emphasis: true },
         ]}
       />
     </Section>

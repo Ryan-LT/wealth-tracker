@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 import type { CategoryTotal } from "@/entities/portfolio";
-import { resolveAssetCategoryEmoji } from "@/entities/settings-asset";
+import { assetCategoryLabel, resolveAssetCategoryEmoji } from "@/entities/settings-asset";
+import { useI18n } from "@/shared/i18n";
 import { formatPercent } from "@/shared/lib/format";
 import { BarList } from "@/shared/ui/bar-list";
 import { ChartViewToggle, type ChartView } from "@/shared/ui/chart";
@@ -14,14 +15,16 @@ import { Section } from "@/shared/ui/section";
 
 export function AllocationCard({ rows }: { rows: CategoryTotal[] }) {
   const [view, setView] = useState<ChartView>("chart");
+  const { t } = useI18n();
+  const m = t.dashboard.allocation;
   return (
     <Section
-      title="Assets by category"
-      description="Share of gross assets."
+      title={m.title}
+      description={m.description}
       actions={rows.length ? <ChartViewToggle value={view} onChange={setView} /> : null}
     >
       {rows.length === 0 ? (
-        <EmptyState title="No assets yet" description="Add assets to see how your wealth is split." className="py-6" />
+        <EmptyState title={m.emptyTitle} description={m.emptyDescription} className="py-6" />
       ) : view === "chart" ? (
         <BarList
           items={rows.map((r) => ({
@@ -29,7 +32,7 @@ export function AllocationCard({ rows }: { rows: CategoryTotal[] }) {
             label: (
               <span className="flex items-center gap-2">
                 <span aria-hidden>{resolveAssetCategoryEmoji(r.category)}</span>
-                {r.category}
+                {assetCategoryLabel(r.category)}
               </span>
             ),
             value: r.value,
@@ -41,16 +44,16 @@ export function AllocationCard({ rows }: { rows: CategoryTotal[] }) {
         <Table containerClassName="-mx-5 w-auto">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Assets</TableHead>
-              <TableHead className="text-right">Value</TableHead>
-              <TableHead className="text-right">Share</TableHead>
+              <TableHead>{m.category}</TableHead>
+              <TableHead className="text-right">{m.assets}</TableHead>
+              <TableHead className="text-right">{m.value}</TableHead>
+              <TableHead className="text-right">{m.share}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.category}>
-                <TableCell>{r.category}</TableCell>
+                <TableCell>{assetCategoryLabel(r.category)}</TableCell>
                 <TableCell className="text-right tabular-nums">{r.count}</TableCell>
                 <TableCell className="text-right">
                   <Money value={r.value} />

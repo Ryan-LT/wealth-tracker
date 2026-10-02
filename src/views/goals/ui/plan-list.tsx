@@ -12,6 +12,7 @@ import {
   type GoalsState,
 } from "@/entities/goal";
 import { FeasibilityBadge } from "@/entities/goal/ui";
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { formatDate } from "@/shared/lib/format";
 import { Card } from "@/shared/ui/kit/card";
@@ -53,15 +54,16 @@ function usePlanRows(goals: GoalsState, seedOptions: GoalStartingOption[], month
 
 /** Desktop master list. */
 export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposingNew, onSelect }: PlanListProps) {
+  const { t } = useI18n();
   const rows = usePlanRows(goals, seedOptions, monthlyNet);
   return (
     <Card className="gap-0 py-2">
-      <p className="px-4 pt-2 pb-2 text-xs font-medium text-muted-foreground">Plans · {goals.profiles.length}</p>
+      <p className="px-4 pt-2 pb-2 text-xs font-medium text-muted-foreground">{t.goals.list.count({ count: goals.profiles.length })}</p>
       <ul className="grid gap-0.5 px-2">
         {isComposingNew ? (
           <li>
             <div className="rounded-md border border-dashed border-primary/40 bg-primary-soft px-3 py-2.5 text-sm font-medium text-primary-soft-foreground" aria-current="true">
-              New plan (unsaved)
+              {t.goals.list.newPlanUnsaved}
             </div>
           </li>
         ) : null}
@@ -95,7 +97,7 @@ export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposing
         })}
       </ul>
       {rows.length === 0 && !isComposingNew ? (
-        <p className="px-4 py-3 text-sm text-muted-foreground">None saved — use New plan, then Save.</p>
+        <p className="px-4 py-3 text-sm text-muted-foreground">{t.goals.list.empty}</p>
       ) : null}
     </Card>
   );
@@ -103,22 +105,23 @@ export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposing
 
 /** Phone / narrow switcher. */
 export function PlanSwitcher({ goals, activeId, isComposingNew, onSelect, onNew }: PlanListProps) {
+  const { t } = useI18n();
   const value = isComposingNew ? GOAL_PLAN_NEW_SENTINEL : activeId || goals.profiles[0]?.id || GOAL_PLAN_NEW_SENTINEL;
   return (
     <Select value={value} onValueChange={(v) => (v === GOAL_PLAN_NEW_SENTINEL ? onNew() : onSelect(v))}>
-      <SelectTrigger aria-label="Choose a plan" className="h-10">
+      <SelectTrigger aria-label={t.goals.list.choosePlan} className="h-10">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {goals.profiles.map((p) => (
           <SelectItem key={p.id} value={p.id}>
-            {p.name.trim() || "Untitled plan"}
+            {p.name.trim() || t.common.untitledPlan}
           </SelectItem>
         ))}
         {goals.profiles.length > 0 ? <SelectSeparator /> : null}
         <SelectItem value={GOAL_PLAN_NEW_SENTINEL}>
           <Plus className="size-4" />
-          {isComposingNew ? "New plan (unsaved)" : "New plan"}
+          {isComposingNew ? t.goals.list.newPlanUnsaved : t.goals.list.newPlan}
         </SelectItem>
       </SelectContent>
     </Select>

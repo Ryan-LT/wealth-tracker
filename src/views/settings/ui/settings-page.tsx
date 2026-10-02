@@ -8,7 +8,9 @@ import { toast } from "sonner";
 import { PREFERENCES_SEED } from "@/entities/preferences";
 import { useSignOut } from "@/features/sign-out";
 import { useSyncNow } from "@/features/sync-now";
+import { LanguageSwitcher } from "@/features/switch-language";
 import { BRAND } from "@/shared/config";
+import { useI18n } from "@/shared/i18n";
 import { formatRelative, formatTime } from "@/shared/lib/format";
 import { useLastSyncedAt, useTable } from "@/shared/storage";
 import { Callout } from "@/shared/ui/callout";
@@ -24,15 +26,16 @@ import { downloadBackup } from "../lib/export-backup";
 import { ChangePasswordForm } from "./change-password-form";
 import { MilestoneForm } from "./milestone-form";
 
-const THEMES = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "System" },
-] as const;
-
-type ThemeValue = (typeof THEMES)[number]["value"];
+type ThemeValue = "light" | "dark" | "system";
 
 export function SettingsPage() {
+  const { t, locale } = useI18n();
+  const s = t.settings;
+  const themes: { value: ThemeValue; label: string }[] = [
+    { value: "light", label: t.common.themeLight },
+    { value: "dark", label: t.common.themeDark },
+    { value: "system", label: t.common.themeSystem },
+  ];
   const { theme, setTheme } = useTheme();
   const { userName, authEnabled } = useShell();
   const online = useOnline();
@@ -43,72 +46,76 @@ export function SettingsPage() {
 
   return (
     <PageContainer className="max-w-3xl">
-      <PageHeader title="Settings" description="Your milestone goal, appearance, data sync, password and session." />
+      <PageHeader title={t.nav.items.settings.label} description={s.description} />
 
       <div id="milestone" className="scroll-mt-20">
-        <Section
-          title="Milestone goal"
-          description="The net worth you want to reach and by what age. Shown on the dashboard; the deadline is your birthday at that age."
-        >
+        <Section title={s.milestone.title} description={s.milestone.description}>
           <MilestoneForm
             value={prefs.milestone}
             onSave={(milestone) => {
               setPrefs((p) => ({ ...p, milestone }));
-              toast.success("Milestone goal saved");
+              toast.success(s.milestone.saved);
             }}
           />
         </Section>
       </div>
 
-      <Section title="Appearance" description={`Choose how ${BRAND.name} looks on this device.`}>
+      <Section title={s.appearance.title} description={s.appearance.description({ brand: BRAND.name })}>
         <SegmentedControl<ThemeValue>
-          aria-label="Theme"
+          aria-label={t.common.theme}
           value={(theme as ThemeValue) ?? "system"}
           onValueChange={setTheme}
-          options={[...THEMES]}
+          options={themes}
         />
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t pt-4">
+          <div className="min-w-0 flex-1 basis-56">
+            <p className="text-sm font-medium">{t.common.language}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{s.appearance.languageHint}</p>
+          </div>
+          <LanguageSwitcher ariaLabel={t.common.language} />
+        </div>
       </Section>
 
       <Section
-        title="Data & sync"
-        description="Your data is private to your account. It is saved to the server and cached on this device so the app works offline."
+        title={s.data.title}
+        description={s.data.description}
         actions={
           <Button variant="outline" size="sm" onClick={() => void syncNow()} disabled={syncing || !online}>
             <RefreshCw className={syncing ? "animate-spin" : undefined} />
-            Sync now
+            {s.data.syncNow}
           </Button>
         }
       >
         <DescriptionList
           items={[
             {
-              label: "Connection",
-              value: online ? <StatusBadge tone="success" dot>Online</StatusBadge> : <StatusBadge tone="warning" dot>Offline</StatusBadge>,
+              label: s.data.connection,
+              value: online ? <StatusBadge tone="success" dot>{t.common.online}</StatusBadge> : <StatusBadge tone="warning" dot>{t.common.offline}</StatusBadge>,
             },
             {
-              label: "Last synced",
+              label: s.data.lastSynced,
               value: lastSyncedAt ? (
-                <span title={new Date(lastSyncedAt).toLocaleString()}>
+                <span title={new Date(lastSyncedAt).toLocaleString(locale)}>
                   {formatRelative(lastSyncedAt)} · {formatTime(lastSyncedAt)}
                 </span>
               ) : (
-                "Not yet"
+                s.data.notYet
               ),
             },
             {
-              label: "Backup",
-              hint: "Downloads every table as JSON (same shape as the API).",
+              label: s.data.backup,
+              hint: s.data.backupHint,
               value: (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     downloadBackup();
-                    toast.success("Backup downloaded");
+                    toast.success(s.data.backupDownloaded);
                   }}
                 >
                   <Download />
-                  Export JSON
+                  {s.data.exportJson}
                 </Button>
               ),
             },
@@ -117,45 +124,42 @@ export function SettingsPage() {
       </Section>
 
       {authEnabled ? (
-        <Section
-          title="Password"
-          description="Changing it signs you out on your other devices. Forgot it? Ask the app admin to reset it."
-        >
+        <Section title={s.password.title} description={s.password.description}>
           <ChangePasswordForm />
         </Section>
       ) : null}
 
-      <Section title="Session">
+      <Section title={s.session.title}>
         <DescriptionList
           items={[
-            { label: "Signed in as", value: userName },
+            { label: s.session.signedInAs, value: userName },
             {
-              label: "Login",
-              value: authEnabled ? <StatusBadge tone="success" dot>Enabled</StatusBadge> : <StatusBadge dot>Disabled</StatusBadge>,
-              hint: authEnabled ? undefined : "Set DATABASE_URL and AUTH_SECRET on the server and add accounts with db/create-user.sql.",
+              label: s.session.login,
+              value: authEnabled ? <StatusBadge tone="success" dot>{s.session.enabled}</StatusBadge> : <StatusBadge dot>{s.session.disabled}</StatusBadge>,
+              hint: authEnabled ? undefined : s.session.disabledHint,
             },
           ]}
         />
         {authEnabled ? (
           <Button variant="outline" className="mt-4" onClick={() => void signOut()} disabled={pending}>
             <LogOut />
-            Sign out
+            {s.session.signOut}
           </Button>
         ) : null}
       </Section>
 
-      <Callout tone="info" title="Looking for asset, income or debt settings?">
-        They now have their own pages:{" "}
+      <Callout tone="info" title={s.moved.title}>
+        {s.moved.lead}{" "}
         <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/assets">
-          <Landmark className="size-3.5" /> Assets
+          <Landmark className="size-3.5" /> {t.nav.items.assets.label}
         </Link>
         ,{" "}
         <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/income">
-          <TrendingUp className="size-3.5" /> Income &amp; spending
+          <TrendingUp className="size-3.5" /> {t.nav.items.income.label}
         </Link>{" "}
-        and{" "}
+        {s.moved.and}{" "}
         <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/debts">
-          <CreditCard className="size-3.5" /> Debts
+          <CreditCard className="size-3.5" /> {t.nav.items.debts.label}
         </Link>
         .
       </Callout>

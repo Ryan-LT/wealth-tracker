@@ -4,7 +4,8 @@ import { KeyRound } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { validateNewPassword } from "@/shared/lib/password-policy";
+import { apiErrorText, errorText, useI18n } from "@/shared/i18n";
+import { PASSWORD_MIN_LENGTH, validateNewPassword } from "@/shared/lib/password-policy";
 import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
 import { Button } from "@/shared/ui/kit/button";
 import { Input } from "@/shared/ui/kit/input";
@@ -14,6 +15,8 @@ const EMPTY = { current: "", next: "", confirm: "" };
 
 /** Current + new password. Other devices are signed out on success; this one stays signed in. */
 export function ChangePasswordForm() {
+  const { t } = useI18n();
+  const p = t.settings.password;
   const [values, setValues] = useState(EMPTY);
   const [touched, setTouched] = useState({ next: false, confirm: false });
   const [error, setError] = useState<string | null>(null);
@@ -41,15 +44,14 @@ export function ChangePasswordForm() {
             body: JSON.stringify({ currentPassword: values.current, newPassword: values.next }),
           });
           if (!res.ok) {
-            const data = (await res.json().catch(() => null)) as { error?: string } | null;
-            setError(data?.error ?? `Couldn't change the password (${res.status})`);
+            setError((await apiErrorText(t, res)).message);
             return;
           }
           setValues(EMPTY);
           setTouched({ next: false, confirm: false });
-          toast.success("Password changed", { description: "Other devices were signed out." });
+          toast.success(p.changed, { description: p.changedDescription });
         } catch {
-          setError("Couldn't reach the server. Check your connection and try again.");
+          setError(t.common.networkError);
         } finally {
           setBusy(false);
         }
@@ -61,7 +63,7 @@ export function ChangePasswordForm() {
         </Alert>
       ) : null}
       <div className="grid gap-1.5">
-        <Label htmlFor="current-password">Current password</Label>
+        <Label htmlFor="current-password">{p.current}</Label>
         <Input
           id="current-password"
           type="password"
@@ -71,38 +73,38 @@ export function ChangePasswordForm() {
         />
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="new-password">New password</Label>
+        <Label htmlFor="new-password">{p.next}</Label>
         <Input
           id="new-password"
           type="password"
           autoComplete="new-password"
           value={values.next}
           onChange={set("next")}
-          onBlur={() => setTouched((t) => ({ ...t, next: true }))}
+          onBlur={() => setTouched((prev) => ({ ...prev, next: true }))}
           aria-invalid={touched.next && !!policyError}
           aria-describedby="new-password-hint"
         />
         <p id="new-password-hint" className={touched.next && policyError ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>
-          {touched.next && policyError ? policyError : "At least 10 characters."}
+          {touched.next && policyError ? errorText(t, policyError) : p.hint({ min: PASSWORD_MIN_LENGTH })}
         </p>
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="confirm-password">Confirm new password</Label>
+        <Label htmlFor="confirm-password">{p.confirm}</Label>
         <Input
           id="confirm-password"
           type="password"
           autoComplete="new-password"
           value={values.confirm}
           onChange={set("confirm")}
-          onBlur={() => setTouched((t) => ({ ...t, confirm: true }))}
+          onBlur={() => setTouched((prev) => ({ ...prev, confirm: true }))}
           aria-invalid={touched.confirm && mismatch}
         />
-        {touched.confirm && mismatch ? <p className="text-xs text-destructive">{"Passwords don't match."}</p> : null}
+        {touched.confirm && mismatch ? <p className="text-xs text-destructive">{t.errors.password_mismatch}</p> : null}
       </div>
       <div>
         <Button type="submit" disabled={!valid || busy}>
           <KeyRound />
-          {busy ? "Changing…" : "Change password"}
+          {busy ? p.submitting : p.submit}
         </Button>
       </div>
     </form>

@@ -8,7 +8,7 @@ export const nav: Messages["nav"] = {
     system: "Hệ thống",
   },
   items: {
-    dashboard: { label: "Tổng quan", short: "Trang chủ", description: "Tài sản ròng, dòng tiền và tình trạng mục tiêu trong nháy mắt" },
+    dashboard: { label: "Bảng điều khiển", short: "Trang chủ", description: "Tài sản ròng, dòng tiền và tình trạng mục tiêu trong nháy mắt" },
     goals: { label: "Mục tiêu", short: "Mục tiêu", description: "Kế hoạch mục tiêu, dự phóng và các mốc thanh toán" },
     allocations: { label: "Thanh khoản", short: "Thanh khoản", description: "Tài sản đang được phân bổ cho các kế hoạch ra sao" },
     assets: { label: "Tài sản", short: "Tài sản", description: "Mọi thứ bạn sở hữu và tốc độ bạn có thể dùng đến" },

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { SignedOutLanguageSwitcher } from "@/features/switch-language";
 import { BRAND } from "@/shared/config";
+import { apiErrorText, errorText as codeText, type ErrorCode, useI18n } from "@/shared/i18n";
 import { validateDisplayName, validateEmail, validateUsername } from "@/shared/lib/account-fields";
-import { validateNewPassword } from "@/shared/lib/password-policy";
+import { PASSWORD_MIN_LENGTH, validateNewPassword } from "@/shared/lib/password-policy";
 import { clearTablesResponseCache } from "@/shared/lib/service-worker";
 import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
 import { Button } from "@/shared/ui/kit/button";
@@ -16,9 +18,12 @@ import { Logo } from "@/shared/ui/logo";
 
 type Field = "username" | "displayName" | "email" | "password" | "confirm";
 const EMPTY: Record<Field, string> = { username: "", displayName: "", email: "", password: "", confirm: "" };
+/** Honeypot label: hidden from people, meant for bots, so it stays in English. */
+const HONEYPOT_LABEL = "Website";
 
-function fieldErrors(v: Record<Field, string>): Partial<Record<Field, string>> {
-  const errors: Partial<Record<Field, string>> = {};
+/** Validation codes per field (`t.errors[code]`). */
+function fieldErrors(v: Record<Field, string>): Partial<Record<Field, ErrorCode>> {
+  const errors: Partial<Record<Field, ErrorCode>> = {};
   const username = validateUsername(v.username);
   if (username) errors.username = username;
   const displayName = validateDisplayName(v.displayName);
@@ -27,12 +32,13 @@ function fieldErrors(v: Record<Field, string>): Partial<Record<Field, string>> {
   if (email) errors.email = email;
   const password = validateNewPassword(v.password, { username: v.username.trim(), email: v.email.trim() || null });
   if (password) errors.password = password;
-  if (v.confirm !== v.password) errors.confirm = "Passwords don't match.";
+  if (v.confirm !== v.password) errors.confirm = "password_mismatch";
   return errors;
 }
 
 /** Public sign-up: a new, empty account that is signed in right away. */
 export function RegisterForm() {
+  const { t } = useI18n();
   const [values, setValues] = useState(EMPTY);
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
   const [serverError, setServerError] = useState<{ message: string; field?: string } | null>(null);
@@ -41,7 +47,8 @@ export function RegisterForm() {
 
   const errors = fieldErrors(values);
   const valid = Object.keys(errors).length === 0;
-  const shown = (f: Field) => (touched[f] ? errors[f] : undefined) ?? (serverError?.field === f ? serverError.message : undefined);
+  const shown = (f: Field) =>
+    (touched[f] && errors[f] ? codeText(t, errors[f]) : undefined) ?? (serverError?.field === f ? serverError.message : undefined);
 
   const bind = (f: Field) => ({
     id: `register-${f}`,
@@ -51,7 +58,7 @@ export function RegisterForm() {
       setValues((v) => ({ ...v, [f]: value }));
       if (serverError?.field === f) setServerError(null);
     },
-    onBlur: () => setTouched((t) => ({ ...t, [f]: true })),
+    onBlur: () => setTouched((prev) => ({ ...prev, [f]: true })),
     "aria-invalid": !!shown(f),
     "aria-describedby": shown(f) ? `register-${f}-error` : undefined,
   });
@@ -64,17 +71,20 @@ export function RegisterForm() {
     ) : null;
 
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-12">
+    <main className="relative flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-12">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+        <SignedOutLanguageSwitcher ariaLabel={t.common.language} />
+      </div>
       <div className="flex flex-col items-center gap-2 text-center">
         <Logo size={48} decorative />
         <h1 className="text-xl font-semibold tracking-tight">{BRAND.name}</h1>
-        <p className="text-sm text-muted-foreground">{BRAND.tagline}</p>
+        <p className="text-sm text-muted-foreground">{t.common.tagline}</p>
       </div>
 
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Create an account</CardTitle>
-          <CardDescription>Your account starts empty and only you can see its data.</CardDescription>
+          <CardTitle>{t.auth.register.title}</CardTitle>
+          <CardDescription>{t.auth.register.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -99,8 +109,7 @@ export function RegisterForm() {
                   }),
                 });
                 if (!res.ok) {
-                  const data = (await res.json().catch(() => null)) as { error?: string; field?: string } | null;
-                  setServerError({ message: data?.error ?? `Sign-up failed (${res.status})`, field: data?.field });
+                  setServerError(await apiErrorText(t, res));
                   setBusy(false);
                   return;
                 }
@@ -108,7 +117,7 @@ export function RegisterForm() {
                 // Full load so the new account starts with a clean in-memory store.
                 window.location.replace("/settings#milestone");
               } catch {
-                setServerError({ message: "Couldn't reach the server. Check your connection and try again." });
+                setServerError({ message: t.common.networkError });
                 setBusy(false);
               }
             }}
@@ -119,45 +128,45 @@ export function RegisterForm() {
               </Alert>
             ) : null}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-username">Username</Label>
+              <Label htmlFor="register-username">{t.auth.register.username}</Label>
               <Input {...bind("username")} name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} />
-              {errorText("username") ?? <p className="text-xs text-muted-foreground">You sign in with this. 3–32 letters or numbers.</p>}
+              {errorText("username") ?? <p className="text-xs text-muted-foreground">{t.auth.register.usernameHint}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-displayName">Name (optional)</Label>
+              <Label htmlFor="register-displayName">{t.auth.register.displayName}</Label>
               <Input {...bind("displayName")} name="name" autoComplete="name" />
               {errorText("displayName")}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-email">Email (optional)</Label>
+              <Label htmlFor="register-email">{t.auth.register.email}</Label>
               <Input {...bind("email")} name="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} />
-              {errorText("email") ?? <p className="text-xs text-muted-foreground">Lets you sign in with your email too.</p>}
+              {errorText("email") ?? <p className="text-xs text-muted-foreground">{t.auth.register.emailHint}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-password">Password</Label>
+              <Label htmlFor="register-password">{t.auth.register.password}</Label>
               <Input {...bind("password")} name="new-password" type="password" autoComplete="new-password" />
-              {errorText("password") ?? <p className="text-xs text-muted-foreground">At least 10 characters.</p>}
+              {errorText("password") ?? <p className="text-xs text-muted-foreground">{t.auth.register.passwordHint({ min: PASSWORD_MIN_LENGTH })}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="register-confirm">Confirm password</Label>
+              <Label htmlFor="register-confirm">{t.auth.register.confirm}</Label>
               <Input {...bind("confirm")} name="confirm-password" type="password" autoComplete="new-password" />
               {errorText("confirm")}
             </div>
             {/* Honeypot: hidden from people and assistive tech; bots tend to fill it. */}
             <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
               <label>
-                Website
+                {HONEYPOT_LABEL}
                 <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} name="website" />
               </label>
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? "Creating account…" : "Create account"}
+              {busy ? t.auth.register.submitting : t.auth.register.submit}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t.auth.register.haveAccount}{" "}
             <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">
-              Sign in
+              {t.auth.register.signIn}
             </Link>
           </p>
         </CardContent>

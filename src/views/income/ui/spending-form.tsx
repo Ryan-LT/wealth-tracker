@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import { useState } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { MoneyInput } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/kit/button";
 import { Label } from "@/shared/ui/kit/label";
@@ -11,12 +12,13 @@ import { Label } from "@/shared/ui/kit/label";
 export function SpendingForm({
   value,
   onSave,
-  label = "Average monthly spending",
+  label,
 }: {
   value: number;
   onSave: (amount: number) => void;
   label?: string;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState(value);
   const [synced, setSynced] = useState(value);
   if (synced !== value) {
@@ -35,17 +37,17 @@ export function SpendingForm({
       }}
     >
       <div className="grid flex-1 gap-1.5">
-        <Label htmlFor="avg-spending">{label}</Label>
+        <Label htmlFor="avg-spending">{label ?? t.income.spendingForm.label}</Label>
         <MoneyInput id="avg-spending" value={draft} onChange={setDraft} min={0} />
       </div>
       <div className="flex gap-2">
         <Button type="submit" disabled={!dirty}>
           <Check />
-          Save
+          {t.common.save}
         </Button>
         {dirty ? (
           <Button type="button" variant="ghost" onClick={() => setDraft(value)}>
-            Reset
+            {t.common.reset}
           </Button>
         ) : null}
       </div>

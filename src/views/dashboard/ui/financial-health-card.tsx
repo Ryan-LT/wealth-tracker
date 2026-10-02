@@ -5,6 +5,7 @@ import { Flame, HandCoins, LifeBuoy, Percent, Scale, Waves } from "lucide-react"
 import type { ReactNode } from "react";
 
 import type { FinancialHealth } from "@/entities/portfolio";
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { formatNumber, formatPercent } from "@/shared/lib/format";
 import type { StatusTone } from "@/shared/lib/tone";
@@ -55,11 +56,13 @@ function Metric({
 }
 
 const pct = (fraction: number) => formatPercent(fraction * 100, { maximumFractionDigits: 0 });
-const months = (n: number) => `${formatNumber(n, { maximumFractionDigits: 1 })} ${n === 1 ? "month" : "months"}`;
 
 /** Six plain-language health checks computed from the user's tables. */
 export function FinancialHealthCard({ health, annualRealRate }: { health: FinancialHealth; annualRealRate: number }) {
   const h = health;
+  const { t } = useI18n();
+  const m = t.dashboard.health;
+  const months = (n: number) => m.months({ value: formatNumber(n, { maximumFractionDigits: 1 }), count: n });
   const emergencyTone: StatusTone =
     h.emergencyMonths === null ? "neutral" : h.emergencyMonths >= 6 ? "success" : h.emergencyMonths >= 3 ? "warning" : "danger";
   const debtTone: StatusTone =
@@ -67,74 +70,76 @@ export function FinancialHealthCard({ health, annualRealRate }: { health: Financ
   const liquidTone: StatusTone = h.liquidShare === null ? "neutral" : h.liquidShare >= 0.1 ? "success" : "warning";
 
   return (
-    <Section title="Financial health" description="Quick checks from your assets, debts, income and spending.">
+    <Section title={m.title} description={m.description}>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <Metric
           icon={LifeBuoy}
-          label="Emergency fund"
+          label={m.emergency.label}
           value={h.emergencyMonths === null ? "—" : months(h.emergencyMonths)}
           tone={emergencyTone}
-          verdict={h.emergencyMonths === null ? undefined : h.emergencyMonths >= 6 ? "Healthy" : h.emergencyMonths >= 3 ? "Okay" : "Low"}
+          verdict={h.emergencyMonths === null ? undefined : h.emergencyMonths >= 6 ? m.emergency.healthy : h.emergencyMonths >= 3 ? m.emergency.okay : m.emergency.low}
           explain={
             h.emergencyMonths === null ? (
-              "Set your average spending to see this."
+              m.needSpending
             ) : (
               <>
-                <Money value={h.instantAssets} compact /> of instant-access money covers this long without income. 3–6 months is the usual
-                advice.
+                <Money value={h.instantAssets} compact /> {m.emergency.explain}
               </>
             )
           }
         />
         <Metric
           icon={Flame}
-          label="Financial independence"
+          label={m.fi.label}
           value={h.fiProgress === null ? "—" : pct(h.fiProgress)}
           tone={h.fiProgress !== null && h.fiProgress >= 1 ? "success" : "neutral"}
-          verdict={h.fiProgress !== null && h.fiProgress >= 1 ? "Reached" : undefined}
+          verdict={h.fiProgress !== null && h.fiProgress >= 1 ? m.fi.reached : undefined}
           explain={
             h.fiNumber === null ? (
-              "Set your average spending to see this."
+              m.needSpending
             ) : (
               <>
-                Of <Money value={h.fiNumber} compact /> (25× yearly spending).{" "}
+                {m.fi.ofPrefix} <Money value={h.fiNumber} compact /> {m.fi.ofSuffix}{" "}
                 {h.fiProgress !== null && h.fiProgress >= 1
-                  ? "Your net worth could cover spending at a 4 % yearly withdrawal."
+                  ? m.fi.reachedExplain
                   : h.yearsToFi === null
-                    ? "Not reachable at the current monthly savings."
-                    : `About ${formatNumber(h.yearsToFi, { maximumFractionDigits: 1 })} years at the current savings${annualRealRate > 0 ? ` and ${formatPercent(annualRealRate * 100)} real growth` : ""}.`}
+                    ? m.fi.unreachable
+                    : m.fi.years({
+                        years: formatNumber(h.yearsToFi, { maximumFractionDigits: 1 }),
+                        growth: annualRealRate > 0 ? formatPercent(annualRealRate * 100) : undefined,
+                      })}
               </>
             )
           }
         />
         <Metric
           icon={HandCoins}
-          label="Passive income covers"
+          label={m.passive.label}
           value={h.passiveCoverage === null ? "—" : pct(h.passiveCoverage)}
           tone={h.passiveCoverage !== null && h.passiveCoverage >= 1 ? "success" : "neutral"}
-          explain={h.passiveCoverage === null ? "Set your average spending to see this." : "Share of your monthly spending paid by passive income (interest, rent)."}
+          explain={h.passiveCoverage === null ? m.needSpending : m.passive.explain}
         />
         <Metric
           icon={Scale}
-          label="Debt to assets"
+          label={m.debt.label}
           value={h.debtToAssets === null ? "—" : pct(h.debtToAssets)}
           tone={debtTone}
-          verdict={h.debtToAssets === null ? undefined : h.debtToAssets <= 0.3 ? "Low" : h.debtToAssets <= 0.5 ? "Moderate" : "High"}
-          explain="What you owe as a share of what you own. Under 30 % is comfortable."
+          verdict={h.debtToAssets === null ? undefined : h.debtToAssets <= 0.3 ? m.debt.low : h.debtToAssets <= 0.5 ? m.debt.moderate : m.debt.high}
+          explain={m.debt.explain}
         />
         <Metric
           icon={Waves}
-          label="Liquid assets"
+          label={m.liquid.label}
           value={h.liquidShare === null ? "—" : pct(h.liquidShare)}
           tone={liquidTone}
-          explain="Share of your assets you can use right away (cash and instant-access)."
+          explain={m.liquid.explain}
         />
         <Metric
           icon={Percent}
-          label="Interest cost"
+          label={m.interest.label}
           value={<Money value={h.monthlyInterest} compact />}
           tone={h.monthlyInterest > 0 ? "danger" : "neutral"}
-          explain={h.monthlyInterest > 0 ? "Interest your debts add each month (balance × rate ÷ 12)." : "No interest-bearing debt."}
+          explain={h.monthlyInterest > 0 ? m.interest.explain : m.interest.none}
         />
       </div>
     </Section>

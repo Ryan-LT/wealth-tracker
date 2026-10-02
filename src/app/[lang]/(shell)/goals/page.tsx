@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { messagesFor } from "@/shared/i18n/active";
+import { isLocale } from "@/shared/i18n/locale";
 import { GoalsPage } from "@/views/goals";
 
-export const metadata: Metadata = { title: "Goals" };
+export async function generateMetadata({ params }: PageProps<"/[lang]/goals">): Promise<Metadata> {
+  const { lang } = await params;
+  const t = messagesFor(isLocale(lang) ? lang : "en");
+  return { title: t.nav.items.goals.label };
+}
 
 export default function Page() {
   return (

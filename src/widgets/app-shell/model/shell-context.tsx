@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { useSessionUser } from "@/shared/lib/session-user";
 
 type ShellContextValue = {
@@ -22,7 +23,8 @@ export function ShellProvider({
 }) {
   // The shell is prerendered, so the account name comes from the readable session cookie.
   const user = useSessionUser();
-  const userName = user?.name || (authEnabled ? "" : "Owner");
+  const { t } = useI18n();
+  const userName = user?.name || (authEnabled ? "" : t.shell.ownerFallback);
   const [commandOpen, setCommandOpen] = useState(false);
   const value = useMemo(
     () => ({ userName, authEnabled, commandOpen, setCommandOpen }),

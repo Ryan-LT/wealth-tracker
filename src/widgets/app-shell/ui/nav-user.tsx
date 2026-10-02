@@ -49,7 +49,7 @@ export function NavUser() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{userName}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {authEnabled ? "Signed in" : "Local mode (no login)"}
+                  {authEnabled ? t.shell.user.signedIn : t.shell.user.localMode}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" />
@@ -63,17 +63,17 @@ export function NavUser() {
           >
             <DropdownMenuLabel className="font-normal">
               <p className="text-sm font-medium">{userName}</p>
-              <p className="text-xs text-muted-foreground">Personal workspace</p>
+              <p className="text-xs text-muted-foreground">{t.shell.user.workspace}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
+              <DropdownMenuSubTrigger>{t.common.theme}</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 <DropdownMenuRadioGroup value={theme ?? "system"} onValueChange={setTheme}>
                   {THEME_OPTIONS.map((o) => (
                     <DropdownMenuRadioItem key={o.value} value={o.value}>
                       <o.icon />
-                      {o.label}
+                      {t.common[o.labelKey]}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
@@ -83,7 +83,7 @@ export function NavUser() {
             <DropdownMenuItem asChild>
               <Link href="/settings" onClick={() => setOpenMobile(false)}>
                 <Settings />
-                Settings
+                {t.nav.items.settings.label}
               </Link>
             </DropdownMenuItem>
             {authEnabled ? (
@@ -91,7 +91,7 @@ export function NavUser() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem disabled={pending} onSelect={() => void signOut()}>
                   <LogOut />
-                  Sign out
+                  {t.shell.user.signOut}
                 </DropdownMenuItem>
               </>
             ) : null}

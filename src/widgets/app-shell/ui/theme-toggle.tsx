@@ -3,6 +3,7 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
+import { useI18n } from "@/shared/i18n";
 import { Button } from "@/shared/ui/kit/button";
 import {
   DropdownMenu,
@@ -14,28 +15,29 @@ import {
 } from "@/shared/ui/kit/dropdown-menu";
 
 export const THEME_OPTIONS = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+  { value: "light", labelKey: "themeLight", icon: Sun },
+  { value: "dark", labelKey: "themeDark", icon: Moon },
+  { value: "system", labelKey: "themeSystem", icon: Monitor },
 ] as const;
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const { t } = useI18n();
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Change theme">
+        <Button variant="ghost" size="icon" aria-label={t.shell.changeTheme}>
           <Sun className="dark:hidden" />
           <Moon className="hidden dark:block" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
-        <DropdownMenuLabel>Theme</DropdownMenuLabel>
+        <DropdownMenuLabel>{t.common.theme}</DropdownMenuLabel>
         <DropdownMenuRadioGroup value={theme ?? "system"} onValueChange={setTheme}>
           {THEME_OPTIONS.map((o) => (
             <DropdownMenuRadioItem key={o.value} value={o.value}>
               <o.icon />
-              {o.label}
+              {t.common[o.labelKey]}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>

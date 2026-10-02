@@ -7,21 +7,33 @@ const RAW_PALETTE = "/\\b(emerald|amber|orange|red|green|rose|lime|yellow)-\\d{2
 const TYPE_SCALE_MSG = "Use the type scale (text-xs / sm / base / xl / 2xl) instead of arbitrary font sizes.";
 const TOKEN_MSG = "Use semantic tokens (text-success, bg-danger-muted, <Money tone>, <StatusBadge>) instead of raw palette colours.";
 
+const DESIGN_SYSTEM = [
+  { selector: `Literal[value=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
+  { selector: `TemplateElement[value.raw=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
+  { selector: `Literal[value=${RAW_PALETTE}]`, message: TOKEN_MSG },
+  { selector: `TemplateElement[value.raw=${RAW_PALETTE}]`, message: TOKEN_MSG },
+];
+
+// Words in JSX must come from the message files (src/shared/i18n/messages) so every screen is translated.
+const I18N_MSG = "User-visible text must come from the i18n messages (useI18n → t.…), not a hard-coded string.";
+const TEXT_ATTRS = "/^(placeholder|title|alt|aria-label|label|description|hint|caption)$/";
+const UNTRANSLATED = [
+  { selector: "JSXText[value=/[A-Za-z]{3,}/]", message: I18N_MSG },
+  { selector: `JSXAttribute[name.name=${TEXT_ATTRS}] > Literal[value=/[A-Za-z]{3,}/]`, message: I18N_MSG },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
     // Design-system guardrails.
     files: ["src/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-syntax": [
-        "error",
-        { selector: `Literal[value=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
-        { selector: `TemplateElement[value.raw=${ARBITRARY_TEXT}]`, message: TYPE_SCALE_MSG },
-        { selector: `Literal[value=${RAW_PALETTE}]`, message: TOKEN_MSG },
-        { selector: `TemplateElement[value.raw=${RAW_PALETTE}]`, message: TOKEN_MSG },
-      ],
-    },
+    rules: { "no-restricted-syntax": ["error", ...DESIGN_SYSTEM] },
+  },
+  {
+    // Screens and shared UI: design system + no untranslated text.
+    files: ["src/views/**/*.tsx", "src/widgets/**/*.tsx", "src/features/**/*.tsx", "src/app/**/*.tsx", "src/shared/ui/**/*.tsx", "src/entities/**/*.tsx"],
+    rules: { "no-restricted-syntax": ["error", ...DESIGN_SYSTEM, ...UNTRANSLATED] },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([

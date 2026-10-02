@@ -29,7 +29,7 @@ export function MobileTabBar() {
   return (
     <>
       <nav
-        aria-label="Primary"
+        aria-label={t.shell.primaryNav}
         className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl supports-[backdrop-filter]:bg-card/75 md:hidden"
       >
         <ul
@@ -81,7 +81,7 @@ export function MobileTabBar() {
                   activeIndex === TABS.length && "-translate-y-px scale-110 fill-primary/15",
                 )}
               />
-              <span className="leading-none">More</span>
+              <span className="leading-none">{t.shell.more.tab}</span>
             </button>
           </li>
         </ul>

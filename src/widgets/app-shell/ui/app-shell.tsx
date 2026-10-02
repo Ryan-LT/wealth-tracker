@@ -1,9 +1,10 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 
+import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { useFollowAccountLanguage } from "@/features/switch-language";
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { SidebarInset, SidebarProvider } from "@/shared/ui/kit/sidebar";
 
@@ -32,6 +33,7 @@ export function AppShell({ authEnabled, children }: AppShellProps) {
   const dataState = useAppDataState();
   useAppSync(dataState);
   useFollowAccountLanguage();
+  const { t } = useI18n();
   const sidebarOpen = useSidebarOpenPreference();
 
   return (
@@ -41,7 +43,7 @@ export function AppShell({ authEnabled, children }: AppShellProps) {
           href="#main-content"
           className="fixed top-2 left-2 z-[60] -translate-y-16 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground focus:translate-y-0"
         >
-          Skip to content
+          {t.shell.skipToContent}
         </a>
         <AppSidebar />
         <SidebarInset className="min-h-0 min-w-0 overflow-hidden md:peer-data-[variant=inset]:border">
@@ -93,7 +95,7 @@ function useSidebarOpenPreference(): boolean {
  * back/forward restores the previous position.
  */
 function ScrollArea({ dataState, children }: { dataState: AppDataState; children: ReactNode }) {
-  const pathname = usePathname() ?? "/";
+  const pathname = useAppPathname();
   const skeletonPath = useNavigationSkeletonPath();
   const ref = useRef<HTMLElement>(null);
   const positions = useRef(new Map<string, number>());

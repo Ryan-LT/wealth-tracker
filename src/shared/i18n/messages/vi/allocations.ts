@@ -1,3 +1,42 @@
 import type { Messages } from "../en";
 
-export const allocations: Messages["allocations"] = {};
+export const allocations: Messages["allocations"] = {
+  title: "Thanh khoản",
+  description: "Tài sản của bạn đang được phân bổ thế nào cho các kế hoạch mục tiêu và vốn tạo thu nhập.",
+  kpi: {
+    monthlyIncome: { label: "Thu nhập hằng tháng" },
+    avgSpending: { label: "Chi tiêu TB hằng tháng" },
+    monthlyNet: { label: "Tiết kiệm ròng hằng tháng", hint: "Dùng khi kế hoạch có tính thu nhập hằng tháng" },
+    instantPool: { label: "Quỹ dùng ngay còn lại", hint: "Phần chưa phân bổ của các nguồn dùng ngay được" },
+    notInstantPool: { label: "Quỹ không dùng ngay còn lại", hint: "Bất động sản, khoản đầu tư, tài sản bị khóa" },
+    custom: { label: "Số tiền tự nhập", hint: "Số dư ban đầu tự nhập, không gắn với số dư thực tế" },
+  },
+  plans: {
+    title: "Kế hoạch",
+    description: "Số dư ban đầu sau khi áp giới hạn, và kế hoạch nào có tính thu nhập hằng tháng vào dự phóng.",
+    emptyTitle: "Chưa có kế hoạch mục tiêu nào được lưu",
+    emptyDescription: "Lưu một kế hoạch để xem nó giữ chỗ tài sản của bạn ra sao.",
+    goToGoals: "Đến trang mục tiêu",
+    colPlan: "Kế hoạch",
+    colStarting: "Ban đầu (đã giới hạn)",
+    colMonthlyIncome: "Thu nhập hằng tháng",
+    incomeOn: "Bật ·",
+    perMonthShort: "/tháng",
+    incomeOff: "Tắt cho kế hoạch này",
+  },
+  matrix: {
+    title: "Ma trận nguồn × kế hoạch",
+    description: "Mỗi kế hoạch giữ chỗ bao nhiêu từ từng nguồn, và phần nào vẫn chưa phân bổ.",
+    filterLabel: "Lọc theo thanh khoản",
+    filter: { both: "Tất cả", instant: "Dùng ngay", not_instant: "Không dùng ngay" },
+    emptyTitle: "Chưa có gì để hiển thị",
+    emptyDescription: "Không có nguồn nào có số dư hoặc phần giữ chỗ.",
+    noMatch: "Không có nguồn nào khớp bộ lọc thanh khoản này",
+    colSource: "Nguồn",
+    colIncomeCapital: "Vốn tạo thu nhập",
+    incomeCapitalHint: "Tổng vốn của tài sản này được phân bổ cho mọi nguồn thu nhập (một quỹ riêng).",
+    colReserved: "Đã giữ chỗ",
+    colLive: "Hiện có",
+    colPool: "Quỹ còn lại",
+  },
+};

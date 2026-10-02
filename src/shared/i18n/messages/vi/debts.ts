@@ -1,3 +1,65 @@
 import type { Messages } from "../en";
 
-export const debts: Messages["debts"] = {};
+export const debts: Messages["debts"] = {
+  title: "Khoản nợ",
+  description: "Khoản vay, thẻ tín dụng và các khoản nợ phải trả khác. Số dư được trừ khỏi tài sản ròng.",
+  add: "Thêm khoản nợ",
+  allDebts: "Tất cả khoản nợ",
+  rateKind: { Fixed: "Cố định", Variable: "Thả nổi" },
+  rateKindLower: { Fixed: "cố định", Variable: "thả nổi" },
+  kpi: {
+    total: { label: "Tổng dư nợ", hint: (p) => `${p.count} khoản nợ` },
+    avgRate: { label: "Lãi suất trung bình", hint: "Tính theo tỷ trọng số dư" },
+    variable: { label: "Dư nợ lãi suất thả nổi", hint: (p) => `${p.pct} tổng dư nợ`, none: "Không có nợ" },
+    interest: { label: "Lãi mỗi tháng", hint: "Số dư × lãi suất ÷ 12" },
+  },
+  columns: {
+    name: "Tên",
+    balance: "Số dư",
+    rate: "Lãi suất",
+    payoff: "Trả hết",
+    payment: "Thanh toán",
+  },
+  payoff: {
+    paidOff: "Đã trả hết",
+    addPayment: "Thêm khoản trả hằng tháng",
+    never: "Không bao giờ trả hết với mức này",
+    interestAlonePrefix: "Riêng tiền lãi đã là ",
+    interestAloneSuffix: " / tháng",
+    interestLeft: " tiền lãi còn lại",
+  },
+  paymentDay: (p) => `Ngày ${p.day} hằng tháng`,
+  empty: {
+    title: "Chưa có khoản nợ nào",
+    description: "Theo dõi khoản vay mua nhà, vay mua xe và thẻ tín dụng để thấy tài sản ròng thực của bạn.",
+  },
+  toast: {
+    updated: "Đã cập nhật khoản nợ",
+    added: "Đã thêm khoản nợ",
+    deleted: "Đã xóa khoản nợ",
+  },
+  confirmDelete: {
+    title: "Xóa khoản nợ?",
+    description: (p) => `Xóa "${p.name}" khỏi danh sách nợ phải trả của bạn?`,
+  },
+  form: {
+    addTitle: "Thêm khoản nợ",
+    editTitle: "Sửa khoản nợ",
+    description: "Dư nợ hiện tại được trừ vào tài sản ròng của bạn.",
+    nameRequired: "Hãy đặt tên cho khoản nợ này",
+    name: "Tên",
+    namePlaceholder: "VD: Vay mua nhà, thẻ tín dụng",
+    balance: "Dư nợ hiện tại",
+    rate: "Lãi suất",
+    rateHint: "Theo năm, 0–100%.",
+    rateKind: "Loại lãi suất",
+    monthlyPayment: "Khoản trả hằng tháng",
+    monthlyPaymentHint: "Số tiền bạn trả mỗi tháng. Dùng để tính ngày trả hết.",
+    paymentDay: "Ngày trả hằng tháng",
+    paymentDayHint: "Ngày trong tháng đến hạn thanh toán.",
+    note: "Ghi chú thanh toán",
+    notePlaceholder: "VD: 12.500.000 ₫, tự động trích từ VCB",
+    noteHint: "Ghi nhớ thêm (không bắt buộc) — số tiền, ngân hàng, mã tham chiếu.",
+    submitAdd: "Thêm khoản nợ",
+  },
+};

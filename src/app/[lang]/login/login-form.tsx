@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { SignedOutLanguageSwitcher } from "@/features/switch-language";
 import { BRAND } from "@/shared/config";
+import { apiErrorText, useI18n } from "@/shared/i18n";
 import { clearTablesResponseCache } from "@/shared/lib/service-worker";
 import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
 import { Button } from "@/shared/ui/kit/button";
@@ -20,6 +22,7 @@ import { Label } from "@/shared/ui/kit/label";
 import { Logo } from "@/shared/ui/logo";
 
 export function LoginForm() {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -38,8 +41,7 @@ export function LoginForm() {
           body: JSON.stringify({ username, password }),
         });
         if (!res.ok) {
-          const data = (await res.json().catch(() => null)) as { error?: string } | null;
-          setError(data?.error ?? `Sign-in failed (${res.status})`);
+          setError((await apiErrorText(t, res)).message);
           setBusy(false);
           return;
         }
@@ -51,25 +53,28 @@ export function LoginForm() {
         );
         return;
       } catch {
-        setError("Couldn't reach the server. Check your connection and try again.");
+        setError(t.common.networkError);
       }
       setBusy(false);
     },
-    [username, password, searchParams],
+    [username, password, searchParams, t],
   );
 
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-12">
+    <main className="relative flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-12">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+        <SignedOutLanguageSwitcher ariaLabel={t.common.language} />
+      </div>
       <div className="flex flex-col items-center gap-2 text-center">
         <Logo size={48} decorative />
         <h1 className="text-xl font-semibold tracking-tight">{BRAND.name}</h1>
-        <p className="text-sm text-muted-foreground">{BRAND.tagline}</p>
+        <p className="text-sm text-muted-foreground">{t.common.tagline}</p>
       </div>
 
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
-          <CardDescription>Enter your credentials to continue.</CardDescription>
+          <CardTitle>{t.auth.login.title}</CardTitle>
+          <CardDescription>{t.auth.login.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
@@ -79,7 +84,7 @@ export function LoginForm() {
               </Alert>
             ) : null}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-username">Username or email</Label>
+              <Label htmlFor="login-username">{t.auth.login.username}</Label>
               <Input
                 id="login-username"
                 name="username"
@@ -90,7 +95,7 @@ export function LoginForm() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-password">Password</Label>
+              <Label htmlFor="login-password">{t.auth.login.password}</Label>
               <Input
                 id="login-password"
                 name="password"
@@ -102,13 +107,13 @@ export function LoginForm() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in"}
+              {busy ? t.auth.login.submitting : t.auth.login.submit}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            New here?{" "}
+            {t.auth.login.newHere}{" "}
             <Link href="/register" className="font-medium text-foreground underline-offset-4 hover:underline">
-              Create an account
+              {t.auth.login.createAccount}
             </Link>
           </p>
         </CardContent>

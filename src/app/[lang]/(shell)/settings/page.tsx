@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 
+import { messagesFor } from "@/shared/i18n/active";
+import { isLocale } from "@/shared/i18n/locale";
 import { SettingsPage } from "@/views/settings";
 
-export const metadata: Metadata = { title: "Settings" };
+export async function generateMetadata({ params }: PageProps<"/[lang]/settings">): Promise<Metadata> {
+  const { lang } = await params;
+  const t = messagesFor(isLocale(lang) ? lang : "en");
+  return { title: t.nav.items.settings.label };
+}
 
 export default function Page() {
   return <SettingsPage />;

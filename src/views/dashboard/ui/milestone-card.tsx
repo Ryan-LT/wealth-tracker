@@ -27,11 +27,12 @@ import { StatusBadge } from "@/shared/ui/status-badge";
 
 /** Every state of the card links to where the goal (target, age, birth date) is set. */
 function EditGoalLink() {
+  const { t } = useI18n();
   return (
     <Button asChild variant="ghost" size="sm">
       <Link href="/settings#milestone">
         <Pencil />
-        Edit goal
+        {t.dashboard.milestone.editGoal}
       </Link>
     </Button>
   );
@@ -41,10 +42,6 @@ const FMT: MilestoneFormatters = {
   money: (n, o) => formatMoney(n, { signDisplay: o?.signed ? "always" : "auto" }),
   usd: formatUsd,
 };
-
-function title(targetUsd: number, targetAge: number) {
-  return `${formatUsdCompact(targetUsd)} by ${targetAge}`;
-}
 
 export function MilestoneCard({
   netWorth,
@@ -61,17 +58,18 @@ export function MilestoneCard({
 }) {
   const { config, error, reload } = configState;
   const { t } = useI18n();
+  const m = t.dashboard.milestone;
   const settings = resolveMilestoneSettings(rawSettings);
-  const heading = title(settings.targetUsd, settings.targetAge);
+  const heading = m.title({ target: formatUsdCompact(settings.targetUsd), age: settings.targetAge });
 
   if (error) {
     return (
       <Section title={heading}>
-        <Callout tone="danger" title="Couldn't load milestone settings">
+        <Callout tone="danger" title={m.loadError}>
           {error}
           <Button variant="outline" size="sm" className="mt-2" onClick={reload}>
             <RotateCw />
-            Retry
+            {t.common.retry}
           </Button>
         </Callout>
       </Section>
@@ -97,16 +95,16 @@ export function MilestoneCard({
     return (
       <Section
         title={heading}
-        description={`Net worth target by your ${formatOrdinal(a.targetAge)} birthday.`}
+        description={m.description({ age: a.targetAge, ordinal: formatOrdinal(a.targetAge) })}
         actions={a.missing === "BIRTH_DATE" ? undefined : <EditGoalLink />}
       >
-        <Callout tone="info" title="Finish setup to track this milestone">
+        <Callout tone="info" title={m.finishSetup}>
           {hint}
           {a.missing === "BIRTH_DATE" ? (
             <Button asChild variant="outline" size="sm" className="mt-2">
               <Link href="/settings#milestone">
                 <Settings />
-                Open settings
+                {m.openSettings}
               </Link>
             </Button>
           ) : null}
@@ -128,8 +126,8 @@ export function MilestoneCard({
       title={heading}
       description={
         a.kind === "projection" && a.annualRealRate > 0
-          ? `Deadline ${formatDate(a.deadline)} · assumes ${formatPercent(a.annualRealRate * 100)} yearly growth after inflation`
-          : `Deadline ${formatDate(a.deadline)}`
+          ? m.deadlineWithGrowth({ date: formatDate(a.deadline), rate: formatPercent(a.annualRealRate * 100) })
+          : m.deadline({ date: formatDate(a.deadline) })
       }
       actions={
         <>
@@ -156,12 +154,12 @@ export function MilestoneCard({
             <Progress value={a.pct} className="flex-1" />
             <span className="w-10 text-right text-xs font-medium tabular-nums">{a.pct}%</span>
           </div>
-          {detail ? <p className="mt-1.5 text-xs text-muted-foreground">{detail} vs target</p> : null}
+          {detail ? <p className="mt-1.5 text-xs text-muted-foreground">{m.vsTarget({ detail })}</p> : null}
         </div>
         <DescriptionList
           items={[
             {
-              label: "Target",
+              label: m.target,
               value: (
                 <span>
                   <Money value={a.targetVnd} compact /> <span className="text-xs text-muted-foreground">≈ {formatUsd(a.targetUsd)}</span>
@@ -170,8 +168,8 @@ export function MilestoneCard({
             },
             ...(a.kind === "projection"
               ? [
-                  { label: `Projected at ${a.targetAge}`, value: <Money value={a.projectedEndingNetWorth} compact /> },
-                  { label: "Time left", value: formatMonths(a.monthsRemaining) },
+                  { label: m.projectedAt({ age: a.targetAge }), value: <Money value={a.projectedEndingNetWorth} compact /> },
+                  { label: m.timeLeft, value: formatMonths(a.monthsRemaining) },
                 ]
               : []),
           ]}

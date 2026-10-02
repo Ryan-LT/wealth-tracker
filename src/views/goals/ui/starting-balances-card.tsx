@@ -12,6 +12,7 @@ import {
   type GoalStartingOption,
 } from "@/entities/goal";
 import { CategoryBadge, LiquidityBadge } from "@/entities/settings-asset/ui";
+import { useI18n } from "@/shared/i18n";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
 import { Money } from "@/shared/ui/money";
@@ -26,30 +27,32 @@ type StartingBalancesCardProps = {
 };
 
 export function StartingBalancesCard({ draft, savedPlans, seedOptions, total, onApply }: StartingBalancesCardProps) {
+  const { t } = useI18n();
+  const m = t.goals.starting;
   const [open, setOpen] = useState(false);
   const lines = draft.seedLines ?? [];
 
   return (
     <Section
-      title="Starting balances"
-      description="Money already set aside for this plan, capped by what other plans reserve."
+      title={m.title}
+      description={m.description}
       actions={
         <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
           <Pencil />
-          Edit
+          {t.common.edit}
         </Button>
       }
       flush
     >
       {lines.length === 0 ? (
         <EmptyState
-          title="No sources allocated"
-          description="Allocate part of your assets to give this plan a head start."
+          title={m.emptyTitle}
+          description={m.emptyDescription}
           className="py-8"
           action={
             <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
               <Plus />
-              Allocate sources
+              {m.allocateSources}
             </Button>
           }
         />
@@ -75,7 +78,7 @@ export function StartingBalancesCard({ draft, savedPlans, seedOptions, total, on
             })}
           </ul>
           <div className="flex items-center justify-between gap-3 border-t bg-muted/40 px-5 py-3 text-sm font-medium">
-            <span>Combined allocated starting</span>
+            <span>{m.combined}</span>
             <Money value={total} />
           </div>
         </>
@@ -84,12 +87,12 @@ export function StartingBalancesCard({ draft, savedPlans, seedOptions, total, on
       <AllocateSourcesDialog
         open={open}
         onOpenChange={setOpen}
-        title="Starting balances"
-        description="Choose how much of each source counts toward this plan. Amounts are capped by what your other plans already reserve."
+        title={m.title}
+        description={m.dialogDescription}
         profile={draft}
         savedPlans={savedPlans}
         seedOptions={seedOptions}
-        applyLabel="Apply to plan"
+        applyLabel={m.applyToPlan}
         onApply={onApply}
       />
     </Section>

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { DatePicker } from "@/shared/ui/kit/date-picker";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/kit/form";
@@ -221,6 +222,7 @@ export function DayOfMonthField<T extends FieldValues, N extends FieldPath<T>>({
   description,
   className,
 }: BaseFieldProps<T, N>) {
+  const { t } = useI18n();
   return (
     <FormField
       control={control}
@@ -238,7 +240,7 @@ export function DayOfMonthField<T extends FieldValues, N extends FieldPath<T>>({
               </SelectTrigger>
             </FormControl>
             <SelectContent className="max-h-72">
-              <SelectItem value={UNSET}>Not set</SelectItem>
+              <SelectItem value={UNSET}>{t.shell.ui.notSet}</SelectItem>
               {DAYS.map((d) => (
                 <SelectItem key={d} value={String(d)}>
                   {d}

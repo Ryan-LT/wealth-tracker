@@ -1,2 +1,40 @@
-/** Messages for the auth area. */
-export const auth = {};
+/** Messages for the auth area (sign-in, sign-up) and the standalone offline / error pages. */
+export const auth = {
+  login: {
+    title: "Sign in",
+    description: "Enter your credentials to continue.",
+    username: "Username or email",
+    password: "Password",
+    submit: "Sign in",
+    submitting: "Signing in…",
+    newHere: "New here?",
+    createAccount: "Create an account",
+  },
+  register: {
+    pageTitle: "Create account",
+    title: "Create an account",
+    description: "Your account starts empty and only you can see its data.",
+    username: "Username",
+    usernameHint: "You sign in with this. 3–32 letters or numbers.",
+    displayName: "Name (optional)",
+    email: "Email (optional)",
+    emailHint: "Lets you sign in with your email too.",
+    password: "Password",
+    passwordHint: (p: { min: number }) => `At least ${p.min} characters.`,
+    confirm: "Confirm password",
+    submit: "Create account",
+    submitting: "Creating account…",
+    haveAccount: "Already have an account?",
+    signIn: "Sign in",
+  },
+  offline: {
+    title: "You're offline",
+    body: "This page hasn't been saved for offline use yet. Pages you've opened before still work — your data is kept on this device and syncs when you reconnect.",
+    openDashboard: "Open dashboard",
+  },
+  pageError: {
+    title: "This page hit an error",
+    fallback: "Something went wrong while rendering this page. Your data is safe.",
+    retry: "Try again",
+  },
+};

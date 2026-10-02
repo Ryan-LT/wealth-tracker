@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/shared/i18n";
 import { findNavItem } from "@/shared/config";
 import { cn } from "@/shared/lib/cn";
 import { Card } from "@/shared/ui/kit/card";
@@ -167,10 +170,11 @@ const SKELETONS: Record<string, () => React.ReactNode> = {
 export function RouteSkeleton({ pathname }: { pathname: string }) {
   const href = findNavItem(pathname)?.item.href ?? "/";
   const Body = SKELETONS[href] ?? DashboardSkeleton;
+  const { t } = useI18n();
   return (
     <PageContainer skeleton className={href === "/settings" ? "max-w-3xl" : undefined}>
       <span className="sr-only" role="status">
-        Loading…
+        {t.common.loading}
       </span>
       <Body />
     </PageContainer>

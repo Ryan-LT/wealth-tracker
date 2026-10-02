@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { computeGoalFeasibility, goalProgressPercent, type GoalPlanSummary } from "@/entities/goal";
 import { FeasibilityBadge } from "@/entities/goal/ui";
+import { useI18n } from "@/shared/i18n";
 import { formatDate } from "@/shared/lib/format";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
@@ -21,16 +22,18 @@ type GoalPlansCardProps = {
 
 export function GoalPlansCard({ plans, monthlyNet, onOpenPlan }: GoalPlansCardProps) {
   const router = useRouter();
+  const { t } = useI18n();
+  const m = t.dashboard.goalPlans;
   const hasRealPlans = plans.some((p) => p.planId);
 
   return (
     <Section
-      title="Goal plans"
-      description="Progress counts allocated starting balances; health compares pace with your monthly net."
+      title={m.title}
+      description={m.description}
       actions={
         <Button variant="ghost" size="sm" asChild>
           <Link href="/goals">
-            View all
+            {m.viewAll}
             <ChevronRight />
           </Link>
         </Button>
@@ -40,11 +43,11 @@ export function GoalPlansCard({ plans, monthlyNet, onOpenPlan }: GoalPlansCardPr
       {plans.length === 0 || (!hasRealPlans && plans[0].targetAmount <= 0) ? (
         <EmptyState
           icon={Target}
-          title="No goal plans yet"
-          description="Create a plan to see whether your savings pace reaches the target in time."
+          title={m.emptyTitle}
+          description={m.emptyDescription}
           action={
             <Button variant="outline" asChild>
-              <Link href="/goals?new=1">Create a plan</Link>
+              <Link href="/goals?new=1">{m.createPlan}</Link>
             </Button>
           }
         />
@@ -80,9 +83,10 @@ export function GoalPlansCard({ plans, monthlyNet, onOpenPlan }: GoalPlansCardPr
                     <span className="w-10 text-right text-xs font-medium tabular-nums">{pct}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    <Money value={plan.saved} compact interactive={false} className="font-medium text-foreground" /> {plan.savedCaption.toLowerCase()} of{" "}
+                    <Money value={plan.saved} compact interactive={false} className="font-medium text-foreground" />{" "}
+                    {plan.savedCaption === "Saved" ? m.captionSaved : m.captionAllocated} {m.of}{" "}
                     <Money value={plan.targetAmount} compact interactive={false} />
-                    {plan.targetDate ? ` · by ${formatDate(plan.targetDate)}` : ""}
+                    {plan.targetDate ? m.byDate({ date: formatDate(plan.targetDate) }) : ""}
                   </p>
                 </button>
               </li>

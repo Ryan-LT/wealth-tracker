@@ -4,7 +4,9 @@ import { format, parse } from "date-fns";
 import { CalendarIcon, X } from "lucide-react";
 import * as React from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
+import { formatDate } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/kit/button";
 import { Calendar } from "@/shared/ui/kit/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/kit/popover";
@@ -37,13 +39,14 @@ function calendarNavBounds(reference = new Date()) {
 export function DatePicker({
   value,
   onChange,
-  placeholder = "Pick a date",
+  placeholder,
   disabled,
   clearable,
   className,
   id,
   ...rest
 }: DatePickerProps) {
+  const { t } = useI18n();
   const selected = parseValue(value);
   const [open, setOpen] = React.useState(false);
   const { startMonth, endMonth } = calendarNavBounds();
@@ -60,7 +63,7 @@ export function DatePicker({
           className={cn("w-full justify-start px-3 font-normal", !selected && "text-muted-foreground", className)}
         >
           <CalendarIcon className="text-muted-foreground" />
-          {selected ? format(selected, "d MMM yyyy") : placeholder}
+          {selected ? formatDate(selected) : (placeholder ?? t.shell.ui.pickDate)}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
@@ -90,7 +93,7 @@ export function DatePicker({
               }}
             >
               <X />
-              Clear date
+              {t.shell.ui.clearDate}
             </Button>
           </div>
         ) : null}

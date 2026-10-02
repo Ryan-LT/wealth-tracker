@@ -78,7 +78,7 @@ export function LoginForm() {
               </Alert>
             ) : null}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="login-username">Username</Label>
+              <Label htmlFor="login-username">Username or email</Label>
               <Input
                 id="login-username"
                 name="username"

@@ -21,6 +21,7 @@ import { StatusBadge } from "@/shared/ui/status-badge";
 import { PageContainer, useOnline, useShell } from "@/widgets/app-shell";
 
 import { downloadBackup } from "../lib/export-backup";
+import { ChangePasswordForm } from "./change-password-form";
 import { MilestoneForm } from "./milestone-form";
 
 const THEMES = [
@@ -42,7 +43,7 @@ export function SettingsPage() {
 
   return (
     <PageContainer className="max-w-3xl">
-      <PageHeader title="Settings" description="Your milestone goal, appearance, data sync and session." />
+      <PageHeader title="Settings" description="Your milestone goal, appearance, data sync, password and session." />
 
       <div id="milestone" className="scroll-mt-20">
         <Section
@@ -114,6 +115,15 @@ export function SettingsPage() {
           ]}
         />
       </Section>
+
+      {authEnabled ? (
+        <Section
+          title="Password"
+          description="Changing it signs you out on your other devices. Forgot it? Ask the app admin to reset it."
+        >
+          <ChangePasswordForm />
+        </Section>
+      ) : null}
 
       <Section title="Session">
         <DescriptionList

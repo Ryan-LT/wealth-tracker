@@ -1,18 +1,28 @@
--- Add a login account. Replace the three values, then run it in the Neon SQL Editor.
--- The new account starts with no data; the person fills it in after signing in.
--- Usernames are case-insensitive (stored lowercase); the password is stored as a bcrypt hash.
+-- Add a login account. Replace the values, then run it in the Neon SQL Editor.
+-- The new account starts with no data; the person fills it in after signing in,
+-- and can change the password themselves in Settings.
+-- Usernames and emails are case-insensitive (stored lowercase); the password is stored as a bcrypt hash.
 
-INSERT INTO wealthtracker_users (username, display_name, password_hash)
+INSERT INTO wealthtracker_users (username, display_name, email, password_hash)
 VALUES (
   lower('alice'),                                -- username used to sign in
   'Alice Nguyen',                                -- name shown in the app (optional, can be NULL)
+  lower('alice@example.com'),                    -- optional second sign-in name (or NULL)
   crypt('change-me-strong-password', gen_salt('bf', 12))
 );
 
--- Change a password:
+-- Set or change someone's email (they can then sign in with it):
+--   UPDATE wealthtracker_users SET email = lower('alice@example.com') WHERE username = 'alice';
+--
+-- Forgotten password (admin reset; signs out their devices). Ask them to change it in Settings afterwards:
 --   UPDATE wealthtracker_users
---   SET password_hash = crypt('new-password', gen_salt('bf', 12))
+--   SET password_hash = crypt('temporary-password', gen_salt('bf', 12)),
+--       password_changed_at = date_trunc('second', now()),
+--       failed_attempts = 0, locked_until = NULL
 --   WHERE username = 'alice';
+--
+-- Unlock an account after 5 wrong passwords (otherwise it unlocks itself after 15 minutes):
+--   UPDATE wealthtracker_users SET failed_attempts = 0, locked_until = NULL WHERE username = 'alice';
 --
 -- Delete an account and all of its data:
 --   DELETE FROM wealthtracker_users WHERE username = 'alice';

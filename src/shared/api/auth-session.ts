@@ -55,11 +55,18 @@ async function hmacSha256B64Url(payloadB64: string, secret: string): Promise<str
 }
 
 /** Who a session belongs to: `sub` is the `wealthtracker_users.id`. */
-export type SessionClaims = { sub: string; name: string };
+export type SessionUserClaims = { sub: string; name: string };
 
-export async function createSessionToken(secret: string, claims: SessionClaims): Promise<string> {
-  const exp = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SEC;
-  const payloadB64 = base64urlEncode(encoder.encode(JSON.stringify({ sub: claims.sub, name: claims.name, exp })));
+/**
+ * A verified session. `iat` (issued at, epoch seconds) lets a password change
+ * void older sessions; tokens from before it was added read as `0`.
+ */
+export type SessionClaims = SessionUserClaims & { iat: number };
+
+export async function createSessionToken(secret: string, claims: SessionUserClaims): Promise<string> {
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + SESSION_MAX_AGE_SEC;
+  const payloadB64 = base64urlEncode(encoder.encode(JSON.stringify({ sub: claims.sub, name: claims.name, iat, exp })));
   const sig = await hmacSha256B64Url(payloadB64, secret);
   return `${payloadB64}.${sig}`;
 }
@@ -81,21 +88,21 @@ export async function verifySessionToken(token: string, secret: string): Promise
   }
   try {
     const json = new TextDecoder().decode(base64urlToBytes(payloadB64));
-    const { sub, name, exp } = JSON.parse(json) as { sub?: unknown; name?: unknown; exp?: unknown };
+    const { sub, name, iat, exp } = JSON.parse(json) as { sub?: unknown; name?: unknown; iat?: unknown; exp?: unknown };
     if (typeof exp !== "number" || exp <= Math.floor(Date.now() / 1000)) {
       return null;
     }
     if (typeof sub !== "string" || sub.length === 0) {
       return null;
     }
-    return { sub, name: typeof name === "string" ? name : "" };
+    return { sub, name: typeof name === "string" ? name : "", iat: typeof iat === "number" ? iat : 0 };
   } catch {
     return null;
   }
 }
 
 /** Value of the readable {@link WT_USER_COOKIE}. */
-export function encodeUserCookie(claims: SessionClaims): string {
+export function encodeUserCookie(claims: SessionUserClaims): string {
   return base64urlEncode(encoder.encode(JSON.stringify({ id: claims.sub, name: claims.name })));
 }
 

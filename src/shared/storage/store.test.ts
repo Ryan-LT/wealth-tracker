@@ -10,7 +10,7 @@ function installBrowser(fetchImpl: FetchMock, storage = new Map<string, string>(
       setItem: (k: string, v: string) => void storage.set(k, v),
       removeItem: (k: string) => void storage.delete(k),
     },
-    location: { reload: vi.fn() },
+    location: { reload: vi.fn(), replace: vi.fn(), pathname: "/debts" },
   });
   vi.stubGlobal("fetch", fetchImpl);
   if (opts.userId) signInAs(opts.userId);
@@ -184,5 +184,31 @@ describe("per-account cache", () => {
     store.writeTable("debts", [{ id: "after" }]);
     expect(storage.has("wealthtracker:tables:v1:user-a")).toBe(false);
     expect(storage.has("wealthtracker:tables:v1:user-b")).toBe(true);
+  });
+});
+
+describe("revoked session (401)", () => {
+  it("signs out once, keeps unsynced edits and goes to /login", async () => {
+    const fetchMock = vi.fn(async (url: string) =>
+      url === "/api/auth/logout" ? ok({ ok: true }) : { ok: false, status: 401, json: async () => ({ error: "Unauthorized" }) },
+    );
+    const storage = installBrowser(fetchMock, new Map(), { userId: "user-a" });
+    const store = await import("@/shared/storage/store");
+    store.writeTable("debts", [{ id: "unsynced" }]);
+    await expect(store.flushTablesNow()).resolves.toBe(false);
+    await store.backgroundRefetchTables();
+    await vi.waitFor(() => expect(window.location.replace).toHaveBeenCalledWith("/login?from=%2Fdebts"));
+    expect(fetchMock.mock.calls.filter(([u]) => u === "/api/auth/logout")).toHaveLength(1);
+    expect(window.location.replace).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(storage.get("wealthtracker:tables:v1:user-a") ?? "{}").dirty).toEqual(["debts"]);
+  });
+
+  it("does nothing without a signed-in cookie (local sandbox)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => ({}) });
+    installBrowser(fetchMock);
+    const store = await import("@/shared/storage/store");
+    await store.backgroundRefetchTables();
+    expect(window.location.replace).not.toHaveBeenCalled();
+    expect(fetchMock.mock.calls.some(([u]) => u === "/api/auth/logout")).toBe(false);
   });
 });

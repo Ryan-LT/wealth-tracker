@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/shared/api/auth-session";
+import { requireActiveUser } from "@/shared/api/account";
 import { getSql } from "@/shared/api/db";
 import { isTableKey } from "@/shared/storage/table-keys";
 
@@ -15,12 +15,11 @@ type Row = { key: string; value: unknown };
 
 /** The signed-in user's tables (missing keys → client uses empty seeds). */
 export async function GET(req: Request) {
-  const user = await getSessionUser(req);
-  if (!user) {
-    return jsonError("Unauthorized", 401);
-  }
-
   try {
+    const user = await requireActiveUser(req);
+    if (!user) {
+      return jsonError("Unauthorized", 401);
+    }
     const sql = getSql();
     const rows = (await sql`
       SELECT key, value
@@ -43,7 +42,13 @@ export async function GET(req: Request) {
 
 /** Upsert one or more of the signed-in user's tables (partial updates allowed). */
 export async function PUT(req: Request) {
-  const user = await getSessionUser(req);
+  let user: Awaited<ReturnType<typeof requireActiveUser>>;
+  try {
+    user = await requireActiveUser(req);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Database error";
+    return jsonError(message, 500);
+  }
   if (!user) {
     return jsonError("Unauthorized", 401);
   }

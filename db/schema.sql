@@ -10,8 +10,17 @@ CREATE TABLE IF NOT EXISTS wealthtracker_users (
   username TEXT NOT NULL UNIQUE CHECK (username = lower(username) AND char_length(username) BETWEEN 1 AND 64),
   display_name TEXT,
   password_hash TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  /** Optional second sign-in name. */
+  email TEXT CHECK (email = lower(email)),
+  /** Sessions issued before this instant are void (set when the password changes). */
+  password_changed_at TIMESTAMPTZ,
+  /** Wrong passwords in a row; 5 locks the account for 15 minutes. */
+  failed_attempts INT NOT NULL DEFAULT 0,
+  locked_until TIMESTAMPTZ
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS wealthtracker_users_email_idx ON wealthtracker_users (email) WHERE email IS NOT NULL;
 
 -- App tables (assets, debts, …) as one JSON document per user and key.
 CREATE TABLE IF NOT EXISTS wealthtracker_kv (

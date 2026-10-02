@@ -20,9 +20,19 @@ afterEach(() => {
 });
 
 describe("session tokens", () => {
-  it("round-trips the user claims", async () => {
+  it("round-trips the user claims with the issue time", async () => {
+    const before = Math.floor(Date.now() / 1000);
     const token = await createSessionToken(secret, { sub: "u-1", name: "Thịnh" });
-    await expect(verifySessionToken(token, secret)).resolves.toEqual({ sub: "u-1", name: "Thịnh" });
+    const claims = await verifySessionToken(token, secret);
+    expect(claims).toMatchObject({ sub: "u-1", name: "Thịnh" });
+    expect(claims!.iat).toBeGreaterThanOrEqual(before);
+  });
+
+  it("reads tokens issued before `iat` existed as iat 0", async () => {
+    const payload = b64url(JSON.stringify({ sub: "u-1", name: "A", exp: Math.floor(Date.now() / 1000) + 3600 }));
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const sig = Buffer.from(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload))).toString("base64url");
+    await expect(verifySessionToken(`${payload}.${sig}`, secret)).resolves.toEqual({ sub: "u-1", name: "A", iat: 0 });
   });
 
   it("rejects a token signed with another secret or tampered with", async () => {
@@ -54,7 +64,7 @@ describe("getSessionUser", () => {
     vi.stubEnv("AUTH_SECRET", secret);
     const token = await createSessionToken(secret, { sub: "u-9", name: "N" });
     const req = new Request("http://x/api/tables", { headers: { cookie: `a=1; wt_session=${token}; wt_user=zz` } });
-    await expect(getSessionUser(req)).resolves.toEqual({ sub: "u-9", name: "N" });
+    await expect(getSessionUser(req)).resolves.toMatchObject({ sub: "u-9", name: "N" });
     await expect(getSessionUser(new Request("http://x/api/tables"))).resolves.toBeNull();
   });
 });

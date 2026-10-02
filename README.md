@@ -43,9 +43,20 @@ INSERT INTO wealthtracker_users (username, display_name, password_hash)
 VALUES (lower('alice'), 'Alice Nguyen', crypt('a-strong-password', gen_salt('bf', 12)));
 ```
 
-Passwords are bcrypt hashes (`pgcrypto`). The same file shows how to change a
-password or delete an account with its data. Login needs `DATABASE_URL` and
+Passwords are bcrypt hashes (`pgcrypto`). Login needs `DATABASE_URL` and
 `AUTH_SECRET`; the session lasts 30 days.
+
+- **Sign in** with the username, or the email once one is set for the account.
+- **Change password:** each person does it in Settings → Password (current password
+  required). It signs them out on their other devices.
+- **Forgot password:** an admin resets it in SQL, then the person changes it in Settings.
+- **Lockout:** 5 wrong passwords in a row lock the account for 15 minutes.
+
+[`db/create-user.sql`](db/create-user.sql) has the snippets for setting an email,
+an admin password reset, unlocking an account and deleting one with its data.
+
+**Database upgrades** live in [`db/migrations/`](db/migrations/); run each one in
+the Neon SQL Editor before deploying the code that needs it.
 
 **Upgrading from the single-login version:** sync every device, run
 [`db/migrations/2026-10-multi-user.sql`](db/migrations/2026-10-multi-user.sql) with

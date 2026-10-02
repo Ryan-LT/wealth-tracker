@@ -47,10 +47,28 @@ let owner: string | null = null;
 let disposed = false;
 /** Server refused this tab's edits because the session is another account's; stop retrying. */
 let accountBlocked = false;
+/** The session expired or was revoked (password changed elsewhere); the page is leaving for /login. */
+let signedOut = false;
 
 function ownerId(): string | null {
   if (owner === null) owner = readSessionUser()?.id ?? "";
   return owner || null;
+}
+
+/**
+ * A 401 while signed in: the session expired or was revoked (e.g. the password
+ * changed on another device). Unsynced edits stay in this account's device
+ * cache and sync after the next sign-in. The cookies are cleared first, since
+ * a validly signed but revoked cookie would bounce /login back to the app.
+ */
+function handleSignedOut(): void {
+  if (signedOut || !readSessionUser()) return;
+  signedOut = true;
+  persistLocalCache();
+  const from = `${window.location?.pathname ?? "/"}`;
+  void fetch("/api/auth/logout", { method: "POST" })
+    .catch(() => undefined)
+    .finally(() => window.location?.replace?.(`/login?from=${encodeURIComponent(from)}`));
 }
 
 function localCacheKey(userId = ownerId()): string {
@@ -156,6 +174,7 @@ function syncFromServer(): Promise<void> {
     try {
       const res = await fetch(tablesUrl, { cache: "no-store" });
       if (!res.ok) {
+        if (res.status === 401) handleSignedOut();
         throw new Error(`GET ${tablesUrl} ${res.status}`);
       }
       const data = (await res.json()) as { userId?: string; tables?: Partial<Record<TableKey, unknown>> };
@@ -209,7 +228,7 @@ function ensureHydrated(): Promise<void> {
 
 /** `retry`: back off after failures; user writes always use the short debounce. */
 function scheduleFlush(retry = false): void {
-  if (!isBrowser() || disposed || accountBlocked) {
+  if (!isBrowser() || disposed || accountBlocked || signedOut) {
     return;
   }
   if (flushTimer) {
@@ -229,7 +248,7 @@ async function flushDirty(): Promise<boolean> {
   if (dirty.size === 0) {
     return true;
   }
-  if (accountBlocked) {
+  if (accountBlocked || signedOut) {
     return false;
   }
   if (flushInFlight) {
@@ -251,6 +270,7 @@ async function flushDirty(): Promise<boolean> {
         body: JSON.stringify({ tables }),
         cache: "no-store",
       });
+      if (res.status === 401) handleSignedOut();
       if (res.status === 409) {
         // Keep the edits in this account's device cache; they sync on its next sign-in.
         accountBlocked = true;

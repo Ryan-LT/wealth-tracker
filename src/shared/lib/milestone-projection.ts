@@ -25,20 +25,20 @@ export function monthsBetween(from: Date, to: Date): number {
   return Math.max(0, (to.getTime() - from.getTime()) / MS_PER_MONTH);
 }
 
-export type Milestone35Feasibility = {
+export type MilestoneFeasibility = {
   projectedEndingNetWorth: number;
   /** True when projected balance meets or exceeds the VND target. */
   feasible: boolean;
   monthsRemaining: number;
 };
 
-export function evaluateMilestone35Feasibility(input: {
+export function evaluateMilestoneFeasibility(input: {
   currentNetWorth: number;
   monthlyNetContribution: number;
   targetNetWorthVnd: number;
   deadline: Date;
   now?: Date;
-}): Milestone35Feasibility {
+}): MilestoneFeasibility {
   const now = input.now ?? new Date();
   const monthsRemaining = monthsBetween(now, input.deadline);
   const projectedEndingNetWorth =

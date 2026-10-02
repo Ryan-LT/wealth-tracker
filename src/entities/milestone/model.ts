@@ -1,4 +1,4 @@
-/** Response contract of `GET /api/finance/milestone-35-config`: shared FX inputs only. */
+/** Response contract of `GET /api/finance/milestone-35-config` (path kept for installed clients): shared FX inputs only. */
 export type FxSource = "env" | "cache" | "exchangerate-api" | "stale_cache" | null;
 
 export type MilestoneConfigResponse = {

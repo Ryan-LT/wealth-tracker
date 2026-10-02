@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  analyzeMilestone35,
+  analyzeMilestone,
   formatAheadOfTarget,
   milestoneChipDetail,
   milestoneHint,
@@ -49,9 +49,9 @@ describe("resolveMilestoneSettings", () => {
   });
 });
 
-describe("analyzeMilestone35", () => {
+describe("analyzeMilestone", () => {
   it("asks for a birth date first", () => {
-    const a = analyzeMilestone35({
+    const a = analyzeMilestone({
       config,
       settings: { ...settings, birthDate: null },
       currentNetWorth: 0,
@@ -63,7 +63,7 @@ describe("analyzeMilestone35", () => {
   });
 
   it("incomplete without an FX rate", () => {
-    const a = analyzeMilestone35({
+    const a = analyzeMilestone({
       config: { ...config, vndPerUsd: null },
       settings,
       currentNetWorth: 0,
@@ -75,14 +75,14 @@ describe("analyzeMilestone35", () => {
   });
 
   it("achieved", () => {
-    const a = analyzeMilestone35({ config, settings, currentNetWorth: 12_500, monthlyNetContribution: 0, now });
+    const a = analyzeMilestone({ config, settings, currentNetWorth: 12_500, monthlyNetContribution: 0, now });
     expect(a).toMatchObject({ kind: "achieved", pct: 100, surplus: 2_500, pastDeadline: false, targetVnd: 10_000 });
     expect(milestoneChipDetail(a, 12_500, fmt)).toBe("+25.0% · +2500₫");
     expect(milestoneHint(a, fmt)).toBe("Already +25.0% · +2500₫ above the $1000 target.");
   });
 
   it("past deadline", () => {
-    const a = analyzeMilestone35({
+    const a = analyzeMilestone({
       config,
       settings: { ...settings, birthDate: new Date(1990, 0, 1, 12) },
       currentNetWorth: 2_500,
@@ -94,7 +94,7 @@ describe("analyzeMilestone35", () => {
   });
 
   it("uses the user's own target and age", () => {
-    const a = analyzeMilestone35({
+    const a = analyzeMilestone({
       config,
       settings: { birthDate: new Date(1990, 0, 1, 12), targetUsd: 2_000, targetAge: 45 },
       currentNetWorth: 0,
@@ -108,12 +108,12 @@ describe("analyzeMilestone35", () => {
   });
 
   it("projection tones", () => {
-    const onTrack = analyzeMilestone35({ config, settings, currentNetWorth: 1_000, monthlyNetContribution: 1_000, now });
+    const onTrack = analyzeMilestone({ config, settings, currentNetWorth: 1_000, monthlyNetContribution: 1_000, now });
     expect(onTrack).toMatchObject({ kind: "projection", tone: "on_track", label: "On track", feasible: true, pct: 10 });
     expect(milestoneHint(onTrack, fmt)).toMatch(/^Projected \d+(\.\d+)?₫ at age 35 — \+\d/);
     expect(milestoneChipDetail(onTrack, 1_000, fmt)).toMatch(/^\+\d+\.\d% · \+/);
 
-    const tight = analyzeMilestone35({
+    const tight = analyzeMilestone({
       config,
       settings: { ...settings, birthDate: new Date(1991, 0, 19, 12) },
       currentNetWorth: 9_990,
@@ -122,7 +122,7 @@ describe("analyzeMilestone35", () => {
     });
     expect(tight).toMatchObject({ kind: "projection", tone: "steady", label: "Tight but possible" });
 
-    const behind = analyzeMilestone35({ config, settings, currentNetWorth: 0, monthlyNetContribution: 10, now });
+    const behind = analyzeMilestone({ config, settings, currentNetWorth: 0, monthlyNetContribution: 10, now });
     expect(behind).toMatchObject({ kind: "projection", tone: "at_risk", label: "Below projection", feasible: false });
     expect(milestoneHint(behind, fmt)).toMatch(/^Trajectory lands near .* below target\.$/);
     expect(milestoneChipDetail(behind, 0, fmt)).toBeUndefined();

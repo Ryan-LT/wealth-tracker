@@ -1,18 +1,18 @@
 "use client";
 
-import { CircleCheck, RotateCw, Settings, TriangleAlert } from "lucide-react";
+import { CircleCheck, Pencil, RotateCw, Settings, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 
 import { feasibilityToneMeta } from "@/entities/goal/ui";
 import {
-  analyzeMilestone35,
+  analyzeMilestone,
   milestoneChipDetail,
   milestoneHint,
   resolveMilestoneSettings,
   type MilestoneFormatters,
   type MilestoneSettings,
 } from "@/entities/milestone";
-import { useMilestone35Config } from "@/entities/milestone/api/use-milestone-config";
+import { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
 import { formatDate, formatMoney, formatMonths, formatUsd, formatUsdCompact } from "@/shared/lib/format";
 import { Callout } from "@/shared/ui/callout";
 import { DescriptionList } from "@/shared/ui/description-list";
@@ -29,6 +29,18 @@ function ordinal(n: number): string {
   const mod100 = n % 100;
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
   return `${n}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th"}`;
+}
+
+/** Every state of the card links to where the goal (target, age, birth date) is set. */
+function EditGoalLink() {
+  return (
+    <Button asChild variant="ghost" size="sm">
+      <Link href="/settings#milestone">
+        <Pencil />
+        Edit goal
+      </Link>
+    </Button>
+  );
 }
 
 const FMT: MilestoneFormatters = {
@@ -50,7 +62,7 @@ export function MilestoneCard({
   /** The user's `preferences.milestone`. */
   settings: MilestoneSettings | undefined;
 }) {
-  const { config, error, reload } = useMilestone35Config();
+  const { config, error, reload } = useMilestoneConfig();
   const settings = resolveMilestoneSettings(rawSettings);
   const heading = title(settings.targetUsd, settings.targetAge);
 
@@ -80,12 +92,16 @@ export function MilestoneCard({
     );
   }
 
-  const a = analyzeMilestone35({ config, settings, currentNetWorth: netWorth, monthlyNetContribution: monthlyNet });
+  const a = analyzeMilestone({ config, settings, currentNetWorth: netWorth, monthlyNetContribution: monthlyNet });
   const hint = milestoneHint(a, FMT);
 
   if (a.kind === "incomplete") {
     return (
-      <Section title={heading} description={`Net worth target by your ${ordinal(a.targetAge)} birthday.`}>
+      <Section
+        title={heading}
+        description={`Net worth target by your ${ordinal(a.targetAge)} birthday.`}
+        actions={a.missing === "BIRTH_DATE" ? undefined : <EditGoalLink />}
+      >
         <Callout tone="info" title="Finish setup to track this milestone">
           {hint}
           {a.missing === "BIRTH_DATE" ? (
@@ -114,16 +130,19 @@ export function MilestoneCard({
       title={heading}
       description={`Deadline ${formatDate(a.deadline)}`}
       actions={
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span tabIndex={0} className="rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring">
-              <StatusBadge tone={badge.tone} icon={badge.icon}>
-                {badge.label}
-              </StatusBadge>
-            </span>
-          </TooltipTrigger>
-          {hint ? <TooltipContent>{hint}</TooltipContent> : null}
-        </Tooltip>
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={0} className="rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring">
+                <StatusBadge tone={badge.tone} icon={badge.icon}>
+                  {badge.label}
+                </StatusBadge>
+              </span>
+            </TooltipTrigger>
+            {hint ? <TooltipContent>{hint}</TooltipContent> : null}
+          </Tooltip>
+          <EditGoalLink />
+        </>
       }
     >
       <div className="grid gap-4">

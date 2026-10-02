@@ -36,7 +36,7 @@ function writeCache(data: MilestoneConfigResponse): void {
  * away and refreshing it in the background (also when the app returns to the
  * foreground). An error is only reported when there is nothing to show.
  */
-export function useMilestone35Config(): {
+export function useMilestoneConfig(): {
   config: MilestoneConfigResponse | null;
   error: string | null;
   reload: () => void;

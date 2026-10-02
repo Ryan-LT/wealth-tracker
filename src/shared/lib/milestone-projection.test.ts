@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   birthdayAtAge,
-  evaluateMilestone35Feasibility,
+  evaluateMilestoneFeasibility,
   monthsBetween,
   parseIsoDateOnly,
-} from "@/shared/lib/milestone-35-projection";
+} from "@/shared/lib/milestone-projection";
 
-describe("milestone-35 projection", () => {
+describe("milestone projection", () => {
   it("parses DOB and computes the target birthday end-of-day", () => {
     expect(parseIsoDateOnly("1995-02-03")?.toISOString()).toBe("1995-02-03T05:00:00.000Z");
     expect(parseIsoDateOnly("1995-2-3")).toBeNull();
@@ -21,7 +21,7 @@ describe("milestone-35 projection", () => {
     const deadline = new Date("2027-01-01T00:00:00Z");
     expect(monthsBetween(now, deadline)).toBeCloseTo(11.9918, 3);
     expect(monthsBetween(deadline, now)).toBe(0);
-    const r = evaluateMilestone35Feasibility({
+    const r = evaluateMilestoneFeasibility({
       currentNetWorth: 1_000,
       monthlyNetContribution: 100,
       targetNetWorthVnd: 2_200,

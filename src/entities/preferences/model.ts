@@ -46,7 +46,7 @@ export type Preferences = {
   /** Column sort on the allocations matrix; `null`/unset = default order. */
   allocationsMatrixColumnSort?: AllocationsMatrixColumnSort;
 
-  /** Net-worth milestone (dashboard "$1M by 35" card): birth date, USD target and age. */
+  /** Net-worth milestone (dashboard card, Settings → Milestone goal): birth date, USD target and age. */
   milestone?: {
     /** `YYYY-MM-DD`. */
     birthDate?: string;

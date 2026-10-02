@@ -8,11 +8,11 @@ import {
   birthdayAtAge,
   DEFAULT_MILESTONE_AGE,
   DEFAULT_MILESTONE_USD,
-  evaluateMilestone35Feasibility,
+  evaluateMilestoneFeasibility,
   MAX_MILESTONE_AGE,
   MIN_MILESTONE_AGE,
   parseIsoDateOnly,
-} from "@/shared/lib/milestone-35-projection";
+} from "@/shared/lib/milestone-projection";
 
 type Target = { targetUsd: number; targetAge: number };
 
@@ -60,8 +60,8 @@ export function resolveMilestoneSettings(settings: MilestoneSettings | undefined
   return { birthDate, targetUsd, targetAge };
 }
 
-/** Pure state machine behind the "$1M by 35" card (target and age are per user). */
-export function analyzeMilestone35(input: {
+/** Pure state machine behind the dashboard milestone card (target and age are per user). */
+export function analyzeMilestone(input: {
   config: MilestoneConfigResponse;
   settings: ResolvedMilestoneSettings;
   currentNetWorth: number;
@@ -102,7 +102,7 @@ export function analyzeMilestone35(input: {
     return { kind: "past_deadline", targetUsd, targetAge, targetVnd, pct, deadline };
   }
 
-  const { projectedEndingNetWorth, feasible, monthsRemaining } = evaluateMilestone35Feasibility({
+  const { projectedEndingNetWorth, feasible, monthsRemaining } = evaluateMilestoneFeasibility({
     currentNetWorth,
     monthlyNetContribution,
     targetNetWorthVnd: targetVnd,

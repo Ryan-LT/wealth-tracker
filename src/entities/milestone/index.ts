@@ -5,7 +5,7 @@ export type {
   ResolvedMilestoneSettings,
 } from "@/entities/milestone/model";
 export {
-  analyzeMilestone35,
+  analyzeMilestone,
   formatAheadOfTarget,
   milestoneChipDetail,
   milestoneHint,
@@ -18,4 +18,4 @@ export {
   DEFAULT_MILESTONE_USD,
   MAX_MILESTONE_AGE,
   MIN_MILESTONE_AGE,
-} from "@/shared/lib/milestone-35-projection";
+} from "@/shared/lib/milestone-projection";

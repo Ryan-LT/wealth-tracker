@@ -10,21 +10,21 @@ describe("account fields", () => {
   it("validates usernames", () => {
     expect(validateUsername("justin")).toBeNull();
     expect(validateUsername("J.Le_99")).toBeNull();
-    expect(validateUsername("ab")).toMatch(/3–32/);
-    expect(validateUsername("a".repeat(33))).toMatch(/3–32/);
-    expect(validateUsername("-justin")).toMatch(/letters, numbers/);
-    expect(validateUsername("jus tin")).toMatch(/letters, numbers/);
-    expect(validateUsername("justin@x.com")).toMatch(/letters, numbers/);
+    expect(validateUsername("ab")).toBe("username_length");
+    expect(validateUsername("a".repeat(33))).toBe("username_length");
+    expect(validateUsername("-justin")).toBe("username_chars");
+    expect(validateUsername("jus tin")).toBe("username_chars");
+    expect(validateUsername("justin@x.com")).toBe("username_chars");
   });
 
   it("treats email as optional", () => {
     expect(validateEmail("")).toBeNull();
     expect(validateEmail(" Justin@Example.com ")).toBeNull();
-    expect(validateEmail("not-an-email")).toMatch(/valid email/);
+    expect(validateEmail("not-an-email")).toBe("email_invalid");
   });
 
   it("limits display names", () => {
     expect(validateDisplayName("Justin Tran")).toBeNull();
-    expect(validateDisplayName("x".repeat(61))).toMatch(/at most 60/);
+    expect(validateDisplayName("x".repeat(61))).toBe("display_name_long");
   });
 });

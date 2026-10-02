@@ -23,14 +23,19 @@ export async function proxy(request: NextRequest) {
   const secret = process.env.AUTH_SECRET!.trim();
   const ok = token.length > 0 && (await verifySessionToken(token, secret)) !== null;
 
-  if (pathname === "/login" || pathname.startsWith("/login/")) {
+  // Sign-in and sign-up pages: signed-in visitors go straight to the app.
+  if (["/login", "/register"].some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     if (ok) {
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api/auth/login") || pathname.startsWith("/api/auth/logout")) {
+  if (
+    pathname.startsWith("/api/auth/login") ||
+    pathname.startsWith("/api/auth/logout") ||
+    pathname.startsWith("/api/auth/register")
+  ) {
     return NextResponse.next();
   }
 

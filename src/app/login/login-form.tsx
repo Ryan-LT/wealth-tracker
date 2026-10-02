@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -104,6 +105,12 @@ export function LoginForm() {
               {busy ? "Signing in…" : "Sign in"}
             </Button>
           </form>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            New here?{" "}
+            <Link href="/register" className="font-medium text-foreground underline-offset-4 hover:underline">
+              Create an account
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </main>

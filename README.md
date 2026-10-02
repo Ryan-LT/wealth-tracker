@@ -33,8 +33,15 @@ Point `DATABASE_URL` at a Neon **dev branch** to exercise real round trips.
 
 ## Accounts
 
-Each account has its own data; a new account starts empty. There is no sign-up
-page: accounts are created in SQL (Neon SQL Editor). Copy
+Each account has its own data; a new account starts empty.
+
+**Sign-up is open:** anyone can create an account at `/register` (username, optional
+name and email, password) and is signed in right away. To limit abuse: 3 new accounts
+per IP per hour, 20 attempts per IP per hour, 50 new accounts per day in total, plus a
+hidden honeypot field. IPs are stored only as an HMAC and pruned after a day
+(`wealthtracker_signup_attempts`).
+
+An admin can still create an account in SQL (Neon SQL Editor): copy
 [`db/create-user.sql`](db/create-user.sql), fill in the username, display name
 and password, and run it:
 

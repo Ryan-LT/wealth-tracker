@@ -51,3 +51,14 @@ CREATE INDEX IF NOT EXISTS wealthtracker_fx_cache_fetched_at_idx ON wealthtracke
 -- Existing databases from before `api_time_next_update_utc`:
 ALTER TABLE wealthtracker_fx_cache
   ADD COLUMN IF NOT EXISTS api_time_next_update_utc TIMESTAMPTZ;
+
+-- Rate-limit log for the public sign-up page (rows older than a day are pruned by the app).
+CREATE TABLE IF NOT EXISTS wealthtracker_signup_attempts (
+  /** HMAC of the client IP (never the raw address). */
+  ip_hash TEXT NOT NULL,
+  succeeded BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS wealthtracker_signup_attempts_ip_idx ON wealthtracker_signup_attempts (ip_hash, created_at DESC);
+CREATE INDEX IF NOT EXISTS wealthtracker_signup_attempts_created_idx ON wealthtracker_signup_attempts (created_at DESC);

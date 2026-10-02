@@ -1,7 +1,7 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from "serwist";
 
-import { SHELL_ROUTES } from "./sw-routes";
+import { CACHE_SHELL_ROUTES_MESSAGE, SHELL_ROUTES } from "./sw-routes";
 import {
   ExpirationPlugin,
   NetworkFirst,
@@ -108,19 +108,28 @@ const navigationCaching: RuntimeCaching[] = [
   },
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    (async () => {
-      const cache = await caches.open(NAV_CACHE);
-      await Promise.allSettled(
-        SHELL_ROUTES.map(async (url) => {
-          const res = await fetch(url, { credentials: "same-origin", cache: "reload" });
-          // Never cache a login redirect (signed-out install) as the page itself.
-          if (res.ok && !res.redirected) await cache.put(url, res);
-        }),
-      );
-    })(),
+async function cacheShellRoutes({ onlyMissing }: { onlyMissing: boolean }): Promise<void> {
+  const cache = await caches.open(NAV_CACHE);
+  await Promise.allSettled(
+    SHELL_ROUTES.map(async (url) => {
+      if (onlyMissing && (await cache.match(url))) return;
+      const res = await fetch(url, { credentials: "same-origin", cache: "reload" });
+      // Never cache a login redirect (signed-out install) as the page itself.
+      if (res.ok && !res.redirected) await cache.put(url, res);
+    }),
   );
+}
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(cacheShellRoutes({ onlyMissing: false }));
+});
+
+// A first install usually happens on /login, before sign-in, so the pass above
+// stores nothing; the signed-in shell asks again to fill the gaps.
+self.addEventListener("message", (event) => {
+  if (event.data?.type === CACHE_SHELL_ROUTES_MESSAGE) {
+    event.waitUntil(cacheShellRoutes({ onlyMissing: true }));
+  }
 });
 
 const serwist = new Serwist({

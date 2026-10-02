@@ -9,3 +9,6 @@ export const SHELL_ROUTES = [
   "/loans",
   "/settings",
 ] as const;
+
+/** Client → worker message: cache any shell route missing from the offline cache. */
+export const CACHE_SHELL_ROUTES_MESSAGE = "CACHE_SHELL_ROUTES";

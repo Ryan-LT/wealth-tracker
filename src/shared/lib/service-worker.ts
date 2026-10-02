@@ -4,8 +4,11 @@ function attachReloadOnControllerChange(): void {
   if (reloadListenerAttached || typeof navigator === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
   reloadListenerAttached = true;
+  // A first install only starts controlling the page; nothing stale to replace.
+  let hadController = navigator.serviceWorker.controller !== null;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    window.location.reload();
+    if (hadController) window.location.reload();
+    hadController = true;
   });
 }
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-import { TABLE_KEYS, type TableKey } from "./table-keys";
+import { isTableKey, TABLE_KEYS, type TableKey } from "./table-keys";
 
 const tablesUrl = "/api/tables";
 const LOCAL_CACHE_KEY = "wealthtracker:tables:v1";
@@ -37,6 +37,8 @@ function isBrowser(): boolean {
 type StoredShape = {
   tables?: Partial<Record<TableKey, unknown>>;
   lastSyncedAt?: number | null;
+  /** Tables edited on this device but not yet saved to the server. */
+  dirty?: string[];
 };
 
 function loadLocalCache(): void {
@@ -61,6 +63,12 @@ function loadLocalCache(): void {
     if (typeof parsed.lastSyncedAt === "number") {
       lastSyncedAt = parsed.lastSyncedAt;
     }
+    // Unsynced edits survive a reload or app restart; the next sync keeps and pushes them.
+    if (Array.isArray(parsed.dirty)) {
+      for (const key of parsed.dirty) {
+        if (typeof key === "string" && isTableKey(key) && valueCache.has(key)) dirty.add(key);
+      }
+    }
   } catch {
     // Corrupt cache — ignore.
   }
@@ -75,7 +83,7 @@ function persistLocalCache(): void {
         tables[key] = valueCache.get(key);
       }
     }
-    const envelope: StoredShape = { tables, lastSyncedAt };
+    const envelope: StoredShape = { tables, lastSyncedAt, dirty: [...dirty] };
     window.localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(envelope));
   } catch {
     // Quota or serialization error — non-fatal.
@@ -197,9 +205,11 @@ async function flushDirty(): Promise<boolean> {
         throw new Error(err?.error ?? `PUT ${tablesUrl} ${res.status}`);
       }
       for (const k of keysToFlush) {
-        dirty.delete(k);
+        // A table edited again while this PUT was in flight stays dirty.
+        if (valueCache.get(k) === tables[k]) dirty.delete(k);
       }
       flushFailures = 0;
+      persistLocalCache();
       return true;
     } catch (e) {
       console.error("[wealthtracker] persist to Neon failed", e);

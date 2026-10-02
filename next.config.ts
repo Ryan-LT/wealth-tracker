@@ -6,6 +6,9 @@ const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
   disable: process.env.NODE_ENV !== "production",
+  // The default reload on reconnect would interrupt the offline-edit sync;
+  // the app resyncs on reconnect itself (see OfflineStrip).
+  reloadOnOnline: false,
 });
 
 const nextConfig: NextConfig = {

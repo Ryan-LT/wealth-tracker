@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type FetchMock = ReturnType<typeof vi.fn>;
 
-function installBrowser(fetchImpl: FetchMock) {
-  const storage = new Map<string, string>();
+function installBrowser(fetchImpl: FetchMock, storage = new Map<string, string>()) {
   vi.stubGlobal("window", {
     fetch: fetchImpl,
     localStorage: {
@@ -12,7 +11,10 @@ function installBrowser(fetchImpl: FetchMock) {
     },
   });
   vi.stubGlobal("fetch", fetchImpl);
+  return storage;
 }
+
+const ok = (body: unknown) => ({ ok: true, json: async () => body });
 
 beforeEach(() => {
   vi.resetModules();
@@ -70,5 +72,50 @@ describe("retry backoff", () => {
     store.writeTable("debts", [{ id: "d2" }]); // new edit → short debounce again
     await vi.advanceTimersByTimeAsync(400);
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("unsynced edits", () => {
+  it("survive a reload and win over the server copy on the next sync", async () => {
+    const storage = installBrowser(vi.fn().mockRejectedValue(new TypeError("offline")));
+    let store = await import("@/shared/storage/store");
+    store.writeTable("personalLoans", [{ id: "offline-edit" }]);
+    await expect(store.flushTablesNow()).resolves.toBe(false);
+
+    // Reload: fresh module state, same localStorage, server reachable again.
+    vi.resetModules();
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === "PUT"
+        ? ok({ ok: true })
+        : ok({ tables: { personalLoans: [{ id: "server" }], debts: [{ id: "server-debt" }] } }),
+    );
+    installBrowser(fetchMock, storage);
+    store = await import("@/shared/storage/store");
+    expect(store.readTable("personalLoans", [])).toEqual([{ id: "offline-edit" }]);
+    await store.backgroundRefetchTables();
+    expect(store.readTable("personalLoans", [])).toEqual([{ id: "offline-edit" }]);
+    expect(store.readTable("debts", [])).toEqual([{ id: "server-debt" }]);
+    await expect(store.flushTablesNow()).resolves.toBe(true);
+    const put = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT");
+    expect(JSON.parse(String(put?.[1]?.body))).toEqual({ tables: { personalLoans: [{ id: "offline-edit" }] } });
+    expect(JSON.parse(storage.get("wealthtracker:tables:v1") ?? "{}").dirty).toEqual([]);
+  });
+
+  it("stay dirty when the table is edited again while its PUT is in flight", async () => {
+    let release!: () => void;
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => new Promise((resolve) => (release = () => resolve(ok({ ok: true })))))
+      .mockResolvedValue(ok({ ok: true }));
+    installBrowser(fetchMock);
+    const store = await import("@/shared/storage/store");
+    store.writeTable("debts", [{ id: "first" }]);
+    const flushed = store.flushTablesNow();
+    store.writeTable("debts", [{ id: "second" }]);
+    release();
+    await expect(flushed).resolves.toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const bodies = fetchMock.mock.calls.map(([, init]) => JSON.parse(String((init as RequestInit).body)));
+    expect(bodies.at(-1)).toEqual({ tables: { debts: [{ id: "second" }] } });
   });
 });

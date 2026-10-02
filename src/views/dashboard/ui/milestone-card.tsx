@@ -1,15 +1,16 @@
 "use client";
 
-import { CircleCheck, RotateCw, TriangleAlert } from "lucide-react";
+import { CircleCheck, RotateCw, Settings, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 
 import { feasibilityToneMeta } from "@/entities/goal/ui";
 import {
   analyzeMilestone35,
-  DEFAULT_MILESTONE_USD,
-  MILESTONE_TARGET_AGE,
   milestoneChipDetail,
   milestoneHint,
+  resolveMilestoneSettings,
   type MilestoneFormatters,
+  type MilestoneSettings,
 } from "@/entities/milestone";
 import { useMilestone35Config } from "@/entities/milestone/api/use-milestone-config";
 import { formatDate, formatMoney, formatMonths, formatUsd, formatUsdCompact } from "@/shared/lib/format";
@@ -23,21 +24,39 @@ import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
 import { StatusBadge } from "@/shared/ui/status-badge";
 
+/** 35 → "35th", 21 → "21st". */
+function ordinal(n: number): string {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  return `${n}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th"}`;
+}
+
 const FMT: MilestoneFormatters = {
   money: (n, o) => formatMoney(n, { signDisplay: o?.signed ? "always" : "auto" }),
   usd: formatUsd,
 };
 
-function title(targetUsd: number) {
-  return `${formatUsdCompact(targetUsd)} by ${MILESTONE_TARGET_AGE}`;
+function title(targetUsd: number, targetAge: number) {
+  return `${formatUsdCompact(targetUsd)} by ${targetAge}`;
 }
 
-export function MilestoneCard({ netWorth, monthlyNet }: { netWorth: number; monthlyNet: number }) {
+export function MilestoneCard({
+  netWorth,
+  monthlyNet,
+  settings: rawSettings,
+}: {
+  netWorth: number;
+  monthlyNet: number;
+  /** The user's `preferences.milestone`. */
+  settings: MilestoneSettings | undefined;
+}) {
   const { config, error, reload } = useMilestone35Config();
+  const settings = resolveMilestoneSettings(rawSettings);
+  const heading = title(settings.targetUsd, settings.targetAge);
 
   if (error) {
     return (
-      <Section title={title(DEFAULT_MILESTONE_USD)}>
+      <Section title={heading}>
         <Callout tone="danger" title="Couldn't load milestone settings">
           {error}
           <Button variant="outline" size="sm" className="mt-2" onClick={reload}>
@@ -51,7 +70,7 @@ export function MilestoneCard({ netWorth, monthlyNet }: { netWorth: number; mont
 
   if (!config) {
     return (
-      <Section title={title(DEFAULT_MILESTONE_USD)}>
+      <Section title={heading}>
         <div className="grid gap-3">
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-1.5 w-full" />
@@ -61,14 +80,22 @@ export function MilestoneCard({ netWorth, monthlyNet }: { netWorth: number; mont
     );
   }
 
-  const a = analyzeMilestone35({ config, currentNetWorth: netWorth, monthlyNetContribution: monthlyNet });
+  const a = analyzeMilestone35({ config, settings, currentNetWorth: netWorth, monthlyNetContribution: monthlyNet });
   const hint = milestoneHint(a, FMT);
 
   if (a.kind === "incomplete") {
     return (
-      <Section title={title(a.targetUsd)} description="Net worth target by your 35th birthday.">
+      <Section title={heading} description={`Net worth target by your ${ordinal(a.targetAge)} birthday.`}>
         <Callout tone="info" title="Finish setup to track this milestone">
           {hint}
+          {a.missing === "BIRTH_DATE" ? (
+            <Button asChild variant="outline" size="sm" className="mt-2">
+              <Link href="/settings#milestone">
+                <Settings />
+                Open settings
+              </Link>
+            </Button>
+          ) : null}
         </Callout>
       </Section>
     );
@@ -84,7 +111,7 @@ export function MilestoneCard({ netWorth, monthlyNet }: { netWorth: number; mont
 
   return (
     <Section
-      title={title(a.targetUsd)}
+      title={heading}
       description={`Deadline ${formatDate(a.deadline)}`}
       actions={
         <Tooltip>
@@ -122,7 +149,7 @@ export function MilestoneCard({ netWorth, monthlyNet }: { netWorth: number; mont
             },
             ...(a.kind === "projection"
               ? [
-                  { label: `Projected at ${MILESTONE_TARGET_AGE}`, value: <Money value={a.projectedEndingNetWorth} compact /> },
+                  { label: `Projected at ${a.targetAge}`, value: <Money value={a.projectedEndingNetWorth} compact /> },
                   { label: "Time left", value: formatMonths(a.monthsRemaining) },
                 ]
               : []),

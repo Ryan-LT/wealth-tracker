@@ -1,18 +1,21 @@
 export type {
   FxSource,
-  MilestoneConfigOk,
-  MilestoneConfigPartial,
   MilestoneConfigResponse,
+  MilestoneSettings,
+  ResolvedMilestoneSettings,
 } from "@/entities/milestone/model";
 export {
   analyzeMilestone35,
   formatAheadOfTarget,
   milestoneChipDetail,
   milestoneHint,
+  resolveMilestoneSettings,
   type MilestoneAnalysis,
   type MilestoneFormatters,
 } from "@/entities/milestone/lib/analyze";
 export {
+  DEFAULT_MILESTONE_AGE,
   DEFAULT_MILESTONE_USD,
-  MILESTONE_TARGET_AGE,
+  MAX_MILESTONE_AGE,
+  MIN_MILESTONE_AGE,
 } from "@/shared/lib/milestone-35-projection";

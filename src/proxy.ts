@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
 
   const token = request.cookies.get(WT_SESSION_COOKIE)?.value ?? "";
   const secret = process.env.AUTH_SECRET!.trim();
-  const ok = token.length > 0 && (await verifySessionToken(token, secret));
+  const ok = token.length > 0 && (await verifySessionToken(token, secret)) !== null;
 
   if (pathname === "/login" || pathname.startsWith("/login/")) {
     if (ok) {

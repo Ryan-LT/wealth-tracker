@@ -2,16 +2,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type FetchMock = ReturnType<typeof vi.fn>;
 
-function installBrowser(fetchImpl: FetchMock, storage = new Map<string, string>()) {
+function installBrowser(fetchImpl: FetchMock, storage = new Map<string, string>(), opts: { userId?: string } = {}) {
   vi.stubGlobal("window", {
     fetch: fetchImpl,
     localStorage: {
       getItem: (k: string) => storage.get(k) ?? null,
       setItem: (k: string, v: string) => void storage.set(k, v),
+      removeItem: (k: string) => void storage.delete(k),
     },
+    location: { reload: vi.fn() },
   });
   vi.stubGlobal("fetch", fetchImpl);
+  if (opts.userId) signInAs(opts.userId);
   return storage;
+}
+
+/** Sets the readable `wt_user` cookie the login route writes. */
+function signInAs(userId: string) {
+  const value = Buffer.from(JSON.stringify({ id: userId, name: userId })).toString("base64url");
+  vi.stubGlobal("document", { cookie: `theme=dark; wt_user=${value}` });
 }
 
 const ok = (body: unknown) => ({ ok: true, json: async () => body });
@@ -98,7 +107,7 @@ describe("unsynced edits", () => {
     await expect(store.flushTablesNow()).resolves.toBe(true);
     const put = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT");
     expect(JSON.parse(String(put?.[1]?.body))).toEqual({ tables: { personalLoans: [{ id: "offline-edit" }] } });
-    expect(JSON.parse(storage.get("wealthtracker:tables:v1") ?? "{}").dirty).toEqual([]);
+    expect(JSON.parse(storage.get("wealthtracker:tables:v1:local") ?? "{}").dirty).toEqual([]);
   });
 
   it("stay dirty when the table is edited again while its PUT is in flight", async () => {
@@ -117,5 +126,63 @@ describe("unsynced edits", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     const bodies = fetchMock.mock.calls.map(([, init]) => JSON.parse(String((init as RequestInit).body)));
     expect(bodies.at(-1)).toEqual({ tables: { debts: [{ id: "second" }] } });
+  });
+});
+
+describe("per-account cache", () => {
+  it("keys the device cache by account and drops the legacy shared cache", async () => {
+    const storage = new Map([["wealthtracker:tables:v1", JSON.stringify({ tables: { debts: [{ id: "legacy" }] } })]]);
+    const fetchMock = vi.fn().mockResolvedValue(ok({ ok: true }));
+    installBrowser(fetchMock, storage, { userId: "user-a" });
+    const store = await import("@/shared/storage/store");
+    expect(store.readTable("debts", [])).toEqual([]);
+    expect(storage.has("wealthtracker:tables:v1")).toBe(false);
+
+    store.writeTable("debts", [{ id: "a-debt" }]);
+    await expect(store.flushTablesNow()).resolves.toBe(true);
+    expect(JSON.parse(storage.get("wealthtracker:tables:v1:user-a") ?? "{}").tables).toEqual({ debts: [{ id: "a-debt" }] });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>)["X-WT-User"]).toBe("user-a");
+
+    // Another account on the same device starts empty.
+    vi.resetModules();
+    installBrowser(vi.fn().mockRejectedValue(new TypeError("offline")), storage, { userId: "user-b" });
+    const storeB = await import("@/shared/storage/store");
+    expect(storeB.readTable("debts", [])).toEqual([]);
+  });
+
+  it("ignores tables the server returns for a different account", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(ok({ userId: "user-b", tables: { debts: [{ id: "b-debt" }] } }));
+    installBrowser(fetchMock, new Map(), { userId: "user-a" });
+    const store = await import("@/shared/storage/store");
+    await store.backgroundRefetchTables();
+    expect(store.readTable("debts", [])).toEqual([]);
+  });
+
+  it("stops pushing and keeps edits when the session is another account's (409)", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 409, json: async () => ({ error: "different account" }) });
+    const storage = installBrowser(fetchMock, new Map(), { userId: "user-a" });
+    const store = await import("@/shared/storage/store");
+    store.writeTable("debts", [{ id: "a-edit" }]);
+    signInAs("user-b"); // signed in as B in another tab
+    await expect(store.flushTablesNow()).resolves.toBe(false);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect((window.location.reload as ReturnType<typeof vi.fn>)).toHaveBeenCalled();
+    const cached = JSON.parse(storage.get("wealthtracker:tables:v1:user-a") ?? "{}");
+    expect(cached.dirty).toEqual(["debts"]);
+  });
+
+  it("clearLocalTables removes only this account's cache", async () => {
+    const storage = new Map([["wealthtracker:tables:v1:user-b", "{}"]]);
+    installBrowser(vi.fn().mockResolvedValue(ok({ ok: true })), storage, { userId: "user-a" });
+    const store = await import("@/shared/storage/store");
+    store.writeTable("debts", [{ id: "a" }]);
+    await store.flushTablesNow();
+    store.clearLocalTables();
+    store.writeTable("debts", [{ id: "after" }]);
+    expect(storage.has("wealthtracker:tables:v1:user-a")).toBe(false);
+    expect(storage.has("wealthtracker:tables:v1:user-b")).toBe(true);
   });
 });

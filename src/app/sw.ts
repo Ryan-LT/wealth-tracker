@@ -29,6 +29,7 @@ const apiCaching: RuntimeCaching[] = [
       sameOrigin && request.method === "GET" && pathname === "/api/tables",
     method: "GET",
     handler: new NetworkFirst({
+      // Cleared on sign-in / sign-out (`clearTablesResponseCache`): it holds one account's data.
       cacheName: "wealthtracker-tables",
       networkTimeoutSeconds: 10,
       plugins: [

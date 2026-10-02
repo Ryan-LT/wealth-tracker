@@ -1,13 +1,16 @@
 const MS_PER_MONTH = (1000 * 60 * 60 * 24 * 365.25) / 12;
 
-/** Age target for the wealth milestone (years). */
-export const MILESTONE_TARGET_AGE = 35;
+/** Default age target for the wealth milestone (years) until the user sets their own. */
+export const DEFAULT_MILESTONE_AGE = 35;
+export const MIN_MILESTONE_AGE = 18;
+export const MAX_MILESTONE_AGE = 100;
 
-/** Default goal in USD when env does not override. */
+/** Default goal in USD until the user sets their own. */
 export const DEFAULT_MILESTONE_USD = 1_000_000;
 
-export function thirtyFifthBirthday(dob: Date): Date {
-  return new Date(dob.getFullYear() + MILESTONE_TARGET_AGE, dob.getMonth(), dob.getDate(), 23, 59, 59, 999);
+/** End of the day the person turns `age`. */
+export function birthdayAtAge(dob: Date, age: number): Date {
+  return new Date(dob.getFullYear() + age, dob.getMonth(), dob.getDate(), 23, 59, 59, 999);
 }
 
 /** Parse `YYYY-MM-DD` birth dates for stable local-ish noon handling. */

@@ -1,31 +1,29 @@
-/** Response contract of `GET /api/finance/milestone-35-config` (route unchanged). */
+/** Response contract of `GET /api/finance/milestone-35-config`: shared FX inputs only. */
 export type FxSource = "env" | "cache" | "exchangerate-api" | "stale_cache" | null;
 
-export type MilestoneConfigOk = {
-  ok: true;
-  deadlineIso: string;
-  targetUsd: number;
-  targetVnd: number;
-  vndPerUsd: number;
-  annualRealRate: number;
-  realRateSource: "default" | "env";
-  vndPerUsdSource: FxSource;
-  fxFetchedAtIso: string | null;
-  fxApiLastUpdateIso: string | null;
-};
-
-export type MilestoneConfigPartial = {
-  ok: false;
-  missing: "USER_DATE_OF_BIRTH" | "FX_RATE";
-  annualRealRate: number;
-  realRateSource: "default" | "env";
-  targetUsd: number;
-  targetVnd: number | null;
+export type MilestoneConfigResponse = {
+  /** `null` when no FX rate is available (no API key and no cached rate). */
   vndPerUsd: number | null;
-  deadlineIso?: string;
   vndPerUsdSource: FxSource;
   fxFetchedAtIso: string | null;
   fxApiLastUpdateIso: string | null;
+  annualRealRate: number;
+  realRateSource: "default" | "env";
 };
 
-export type MilestoneConfigResponse = MilestoneConfigOk | MilestoneConfigPartial;
+/** Per-user milestone settings, stored as `preferences.milestone` (all optional). */
+export type MilestoneSettings = {
+  /** Date of birth, `YYYY-MM-DD`. */
+  birthDate?: string;
+  /** Net worth target in USD (default $1,000,000). */
+  targetUsd?: number;
+  /** Age to reach the target by (default 35). */
+  targetAge?: number;
+};
+
+/** {@link MilestoneSettings} with defaults applied. */
+export type ResolvedMilestoneSettings = {
+  birthDate: Date | null;
+  targetUsd: number;
+  targetAge: number;
+};

@@ -109,7 +109,7 @@ export function DashboardPage() {
         <div className="xl:col-span-2">
           <NetWorthTrendCard history={prefs.netWorthMonthlyHistory ?? []} netWorth={netWorth} />
         </div>
-        <MilestoneCard netWorth={netWorth} monthlyNet={summary.monthlyNet} />
+        <MilestoneCard netWorth={netWorth} monthlyNet={summary.monthlyNet} settings={prefs.milestone} />
       </div>
 
       <div className="grid gap-4 md:gap-6 xl:grid-cols-3">

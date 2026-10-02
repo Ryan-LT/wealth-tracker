@@ -10,10 +10,8 @@ import { AppShell } from "@/widgets/app-shell";
  * instant. Access is still enforced per request by `src/proxy.ts`.
  */
 export default function ShellLayout({ children }: { children: ReactNode }) {
-  const userName = process.env.AUTH_USERNAME?.trim() || "Owner";
-
   return (
-    <AppShell userName={userName} authEnabled={isAuthEnvConfigured()}>
+    <AppShell authEnabled={isAuthEnvConfigured()}>
       <OfflineShellWarmup />
       {children}
     </AppShell>

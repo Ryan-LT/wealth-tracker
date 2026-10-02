@@ -1,26 +1,31 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { flushTablesNow } from "@/shared/storage/store";
+import { clearTablesResponseCache } from "@/shared/lib/service-worker";
+import { clearLocalTables, flushTablesNow } from "@/shared/storage/store";
 
-/** Flush pending edits, end the session and go to the login page. */
+/**
+ * Flush pending edits, remove this account's data from the device, end the
+ * session and load the login page fresh (no in-memory data survives).
+ */
 export function useSignOut() {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
 
   const signOut = useCallback(async () => {
     setPending(true);
     try {
-      await flushTablesNow().catch(() => undefined);
+      const synced = await flushTablesNow().catch(() => false);
+      // Unsynced (offline) edits stay in this account's own device cache and
+      // sync the next time it signs in here; otherwise leave nothing behind.
+      if (synced) clearLocalTables();
+      await clearTablesResponseCache();
       await fetch("/api/auth/logout", { method: "POST" });
-      router.replace("/login");
-      router.refresh();
-    } finally {
+      window.location.replace("/login");
+    } catch {
       setPending(false);
     }
-  }, [router]);
+  }, []);
 
   return { signOut, pending };
 }

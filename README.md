@@ -2,7 +2,7 @@
 
 # Cairn
 
-*Build wealth, stone by stone.* Cairn (formerly Wealth Tracker) is a private, single-user personal finance console: net worth, assets, income and
+*Build wealth, stone by stone.* Cairn (formerly Wealth Tracker) is a private personal finance console with separate accounts: net worth, assets, income and
 spending, debts, informal loans, goal plans with projections, and how your assets
 are committed across plans. Works offline as an installable PWA.
 
@@ -13,7 +13,8 @@ TanStack Table · Recharts · react-hook-form + zod · Serwist · Neon Postgres.
 
 ```bash
 pnpm install
-cp .env.example .env.local   # fill in DATABASE_URL and AUTH_* values
+cp .env.example .env.local   # fill in DATABASE_URL and AUTH_SECRET
+psql "$DATABASE_URL" -f db/schema.sql   # once per database, then add an account (below)
 pnpm dev
 ```
 
@@ -25,11 +26,33 @@ For local UI work without touching your real data, create `.env.development.loca
 (gitignored, overrides `.env.local` in dev only):
 
 ```bash
-DATABASE_URL=        # empty: no database; the app runs from the browser cache
-AUTH_USERNAME=       # empty: login gate disabled
+DATABASE_URL=        # empty: no database, no login gate; the app runs from the browser cache
 ```
 
 Point `DATABASE_URL` at a Neon **dev branch** to exercise real round trips.
+
+## Accounts
+
+Each account has its own data; a new account starts empty. There is no sign-up
+page: accounts are created in SQL (Neon SQL Editor). Copy
+[`db/create-user.sql`](db/create-user.sql), fill in the username, display name
+and password, and run it:
+
+```sql
+INSERT INTO wealthtracker_users (username, display_name, password_hash)
+VALUES (lower('alice'), 'Alice Nguyen', crypt('a-strong-password', gen_salt('bf', 12)));
+```
+
+Passwords are bcrypt hashes (`pgcrypto`). The same file shows how to change a
+password or delete an account with its data. Login needs `DATABASE_URL` and
+`AUTH_SECRET`; the session lasts 30 days.
+
+**Upgrading from the single-login version:** sync every device, run
+[`db/migrations/2026-10-multi-user.sql`](db/migrations/2026-10-multi-user.sql) with
+your username and password filled in (your existing data becomes yours), deploy,
+then remove `AUTH_USERNAME`, `AUTH_PASSWORD`, `USER_DATE_OF_BIRTH` and
+`WEALTH_MILESTONE_TARGET_USD` from the environment. Your birth date and milestone
+target now live in Settings → Milestone goal.
 
 ## Scripts
 
@@ -58,11 +81,13 @@ src/
 
 ### Data
 
-All data lives in one Neon table (`wealthtracker_kv`) as JSON documents per key
+All data lives in one Neon table (`wealthtracker_kv`) as JSON documents per user and key
 (`assets`, `settingsAssets`, `incomeSources`, `debts`, `goals`, `preferences`,
-`personalLoans`), read and written through `GET/PUT /api/tables`. The client store
-(`src/shared/storage/store.ts`) caches everything in `localStorage`, saves edits after
-a short debounce and retries with backoff when offline.
+`personalLoans`), read and written through `GET/PUT /api/tables`, which only ever see
+the signed-in user's rows. The client store (`src/shared/storage/store.ts`) caches
+everything in `localStorage` (one cache per account), saves edits after a short
+debounce and retries with backoff when offline. Signing out removes the account's
+cached data from the device once it has synced.
 
 ### Design system
 

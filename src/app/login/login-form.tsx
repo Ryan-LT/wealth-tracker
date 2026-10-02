@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { BRAND } from "@/shared/config";
+import { clearTablesResponseCache } from "@/shared/lib/service-worker";
 import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
 import { Button } from "@/shared/ui/kit/button";
 import {
@@ -18,7 +19,6 @@ import { Label } from "@/shared/ui/kit/label";
 import { Logo } from "@/shared/ui/logo";
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -39,18 +39,22 @@ export function LoginForm() {
         if (!res.ok) {
           const data = (await res.json().catch(() => null)) as { error?: string } | null;
           setError(data?.error ?? `Sign-in failed (${res.status})`);
+          setBusy(false);
           return;
         }
+        await clearTablesResponseCache();
         const dest = searchParams.get("from");
-        router.replace(
+        // Full load so nothing from a previous account stays in memory.
+        window.location.replace(
           dest && dest.startsWith("/") && !dest.startsWith("//") && dest !== "/login" ? dest : "/",
         );
-        router.refresh();
-      } finally {
-        setBusy(false);
+        return;
+      } catch {
+        setError("Couldn't reach the server. Check your connection and try again.");
       }
+      setBusy(false);
     },
-    [username, password, router, searchParams],
+    [username, password, searchParams],
   );
 
   return (

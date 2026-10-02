@@ -5,12 +5,15 @@ import { useCallback, useEffect, useState } from "react";
 import type { MilestoneConfigResponse } from "@/entities/milestone/model";
 import { onAppForeground } from "@/shared/lib/app-foreground";
 
-const CACHE_KEY = "wealthtracker:milestone-config:v1";
+const CACHE_KEY = "wealthtracker:milestone-config:v2";
+/** v1 also held the single owner's birthday deadline; dropped on first read. */
+const LEGACY_CACHE_KEY = "wealthtracker:milestone-config:v1";
 let memoryCache: MilestoneConfigResponse | null = null;
 
 function readCache(): MilestoneConfigResponse | null {
   if (memoryCache) return memoryCache;
   try {
+    window.localStorage.removeItem(LEGACY_CACHE_KEY);
     const raw = window.localStorage.getItem(CACHE_KEY);
     memoryCache = raw ? (JSON.parse(raw) as MilestoneConfigResponse) : null;
   } catch {

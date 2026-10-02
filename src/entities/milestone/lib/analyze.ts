@@ -1,32 +1,40 @@
 import type { GoalFeasibilityTone } from "@/entities/goal";
-import type { MilestoneConfigResponse } from "@/entities/milestone/model";
+import type {
+  MilestoneConfigResponse,
+  MilestoneSettings,
+  ResolvedMilestoneSettings,
+} from "@/entities/milestone/model";
 import {
+  birthdayAtAge,
+  DEFAULT_MILESTONE_AGE,
+  DEFAULT_MILESTONE_USD,
   evaluateMilestone35Feasibility,
-  MILESTONE_TARGET_AGE,
+  MAX_MILESTONE_AGE,
+  MIN_MILESTONE_AGE,
+  parseIsoDateOnly,
 } from "@/shared/lib/milestone-35-projection";
 
+type Target = { targetUsd: number; targetAge: number };
+
 export type MilestoneAnalysis =
-  | { kind: "incomplete"; targetUsd: number; missing: "USER_DATE_OF_BIRTH" | "FX_RATE" }
-  | {
+  | (Target & { kind: "incomplete"; missing: "BIRTH_DATE" | "FX_RATE" })
+  | (Target & {
       kind: "achieved";
-      targetUsd: number;
       targetVnd: number;
       pct: number;
       deadline: Date;
       pastDeadline: boolean;
       /** Current net worth minus target. */
       surplus: number;
-    }
-  | {
+    })
+  | (Target & {
       kind: "past_deadline";
-      targetUsd: number;
       targetVnd: number;
       pct: number;
       deadline: Date;
-    }
-  | {
+    })
+  | (Target & {
       kind: "projection";
-      targetUsd: number;
       targetVnd: number;
       pct: number;
       deadline: Date;
@@ -35,24 +43,44 @@ export type MilestoneAnalysis =
       monthsRemaining: number;
       tone: GoalFeasibilityTone;
       label: string;
-    };
+    });
 
-/** Pure state machine behind the "$1M by 35" card. */
+/** Apply defaults ($1M, age 35) and drop invalid values from `preferences.milestone`. */
+export function resolveMilestoneSettings(settings: MilestoneSettings | undefined): ResolvedMilestoneSettings {
+  const targetUsd =
+    typeof settings?.targetUsd === "number" && Number.isFinite(settings.targetUsd) && settings.targetUsd > 0
+      ? settings.targetUsd
+      : DEFAULT_MILESTONE_USD;
+  const age = settings?.targetAge;
+  const targetAge =
+    typeof age === "number" && Number.isInteger(age) && age >= MIN_MILESTONE_AGE && age <= MAX_MILESTONE_AGE
+      ? age
+      : DEFAULT_MILESTONE_AGE;
+  const birthDate = settings?.birthDate ? parseIsoDateOnly(settings.birthDate) : null;
+  return { birthDate, targetUsd, targetAge };
+}
+
+/** Pure state machine behind the "$1M by 35" card (target and age are per user). */
 export function analyzeMilestone35(input: {
   config: MilestoneConfigResponse;
+  settings: ResolvedMilestoneSettings;
   currentNetWorth: number;
   monthlyNetContribution: number;
   now?: Date;
 }): MilestoneAnalysis {
-  const { config, currentNetWorth, monthlyNetContribution } = input;
+  const { config, settings, currentNetWorth, monthlyNetContribution } = input;
+  const { targetUsd, targetAge } = settings;
   const now = input.now ?? new Date();
 
-  if (!config.ok) {
-    return { kind: "incomplete", targetUsd: config.targetUsd, missing: config.missing };
+  if (!settings.birthDate) {
+    return { kind: "incomplete", targetUsd, targetAge, missing: "BIRTH_DATE" };
+  }
+  if (config.vndPerUsd === null) {
+    return { kind: "incomplete", targetUsd, targetAge, missing: "FX_RATE" };
   }
 
-  const deadline = new Date(config.deadlineIso);
-  const targetVnd = config.targetVnd;
+  const deadline = birthdayAtAge(settings.birthDate, targetAge);
+  const targetVnd = Math.round(targetUsd * config.vndPerUsd);
   const pastDeadline = deadline.getTime() < now.getTime();
   const pct =
     targetVnd === 0 ? 0 : Math.min(100, Math.round((currentNetWorth / targetVnd) * 100));
@@ -60,7 +88,8 @@ export function analyzeMilestone35(input: {
   if (currentNetWorth >= targetVnd) {
     return {
       kind: "achieved",
-      targetUsd: config.targetUsd,
+      targetUsd,
+      targetAge,
       targetVnd,
       pct,
       deadline,
@@ -70,7 +99,7 @@ export function analyzeMilestone35(input: {
   }
 
   if (pastDeadline) {
-    return { kind: "past_deadline", targetUsd: config.targetUsd, targetVnd, pct, deadline };
+    return { kind: "past_deadline", targetUsd, targetAge, targetVnd, pct, deadline };
   }
 
   const { projectedEndingNetWorth, feasible, monthsRemaining } = evaluateMilestone35Feasibility({
@@ -96,7 +125,8 @@ export function analyzeMilestone35(input: {
 
   return {
     kind: "projection",
-    targetUsd: config.targetUsd,
+    targetUsd,
+    targetAge,
     targetVnd,
     pct,
     deadline,
@@ -131,19 +161,19 @@ export function formatAheadOfTarget(
 export function milestoneHint(a: MilestoneAnalysis, fmt: MilestoneFormatters): string | null {
   switch (a.kind) {
     case "incomplete":
-      return a.missing === "USER_DATE_OF_BIRTH"
-        ? "Add USER_DATE_OF_BIRTH=YYYY-MM-DD to the server environment for your age-35 deadline."
+      return a.missing === "BIRTH_DATE"
+        ? `Add your date of birth in Settings to set your age-${a.targetAge} deadline.`
         : "Add EXCHANGERATE_API_KEY for FX rates. Rates are cached in Postgres for 24h.";
     case "achieved": {
       const ahead = formatAheadOfTarget(a.targetVnd + a.surplus, a.targetVnd, fmt);
       return `Already ${ahead.detail} above the ${fmt.usd(a.targetUsd)} target.`;
     }
     case "past_deadline":
-      return `Age ${MILESTONE_TARGET_AGE} deadline passed.`;
+      return `Age ${a.targetAge} deadline passed.`;
     case "projection": {
       const ahead = formatAheadOfTarget(a.projectedEndingNetWorth, a.targetVnd, fmt);
       if (a.tone === "on_track") {
-        return `Projected ${fmt.money(a.projectedEndingNetWorth)} at age ${MILESTONE_TARGET_AGE} — ${ahead.pctLabel} (${ahead.moneyLabel}) above the ${fmt.usd(a.targetUsd)} goal (≈ ${fmt.money(a.targetVnd)}).`;
+        return `Projected ${fmt.money(a.projectedEndingNetWorth)} at age ${a.targetAge} — ${ahead.pctLabel} (${ahead.moneyLabel}) above the ${fmt.usd(a.targetUsd)} goal (≈ ${fmt.money(a.targetVnd)}).`;
       }
       if (a.tone === "steady") {
         return `Projected ${fmt.money(a.projectedEndingNetWorth)} — ${ahead.pctLabel} (${ahead.moneyLabel}) above target with very little runway left.`;

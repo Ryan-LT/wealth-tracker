@@ -2,10 +2,17 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import { readSessionUser } from "@/shared/lib/session-user";
+
 import { isTableKey, TABLE_KEYS, type TableKey } from "./table-keys";
 
 const tablesUrl = "/api/tables";
-const LOCAL_CACHE_KEY = "wealthtracker:tables:v1";
+/** Device cache, one per account: `wealthtracker:tables:v1:<userId>` (`:local` without login). */
+const LOCAL_CACHE_PREFIX = "wealthtracker:tables:v1";
+/** Before multi-account login the cache had no account suffix; dropped on first load. */
+const LEGACY_LOCAL_CACHE_KEY = LOCAL_CACHE_PREFIX;
+/** PUT header naming the account the pending edits belong to (checked against the session). */
+const USER_HEADER = "X-WT-User";
 
 type Listener = () => void;
 
@@ -31,6 +38,36 @@ let syncsInFlight = 0;
 let localCacheLoaded = false;
 let lastSyncedAt: number | null = null;
 let initialLoadDone = false;
+/**
+ * Account this page's data belongs to, fixed at first load. Signing in or out
+ * reloads the page, so a tab never mixes two accounts' data.
+ */
+let owner: string | null = null;
+/** Set once this account's device cache has been cleared on sign-out. */
+let disposed = false;
+/** Server refused this tab's edits because the session is another account's; stop retrying. */
+let accountBlocked = false;
+
+function ownerId(): string | null {
+  if (owner === null) owner = readSessionUser()?.id ?? "";
+  return owner || null;
+}
+
+function localCacheKey(userId = ownerId()): string {
+  return `${LOCAL_CACHE_PREFIX}:${userId ?? "local"}`;
+}
+
+/**
+ * The session now belongs to another account (signed in elsewhere in this
+ * browser): reload so this tab shows that account. Edits stay in this
+ * account's device cache and sync on its next sign-in.
+ */
+function handleAccountMismatch(): void {
+  const current = readSessionUser()?.id ?? null;
+  if (current && current !== ownerId() && typeof window.location?.reload === "function") {
+    window.location.reload();
+  }
+}
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof window.fetch !== "undefined";
@@ -48,7 +85,8 @@ function loadLocalCache(): void {
   localCacheLoaded = true;
   if (!isBrowser()) return;
   try {
-    const raw = window.localStorage.getItem(LOCAL_CACHE_KEY);
+    window.localStorage.removeItem(LEGACY_LOCAL_CACHE_KEY);
+    const raw = window.localStorage.getItem(localCacheKey());
     if (!raw) return;
     const parsed = JSON.parse(raw) as StoredShape & Partial<Record<TableKey, unknown>>;
     if (!parsed || typeof parsed !== "object") return;
@@ -77,7 +115,7 @@ function loadLocalCache(): void {
 }
 
 function persistLocalCache(): void {
-  if (!isBrowser()) return;
+  if (!isBrowser() || disposed) return;
   try {
     const tables: Record<string, unknown> = {};
     for (const key of TABLE_KEYS) {
@@ -86,7 +124,7 @@ function persistLocalCache(): void {
       }
     }
     const envelope: StoredShape = { tables, lastSyncedAt, dirty: [...dirty] };
-    window.localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(envelope));
+    window.localStorage.setItem(localCacheKey(), JSON.stringify(envelope));
   } catch {
     // Quota or serialization error — non-fatal.
   }
@@ -120,7 +158,11 @@ function syncFromServer(): Promise<void> {
       if (!res.ok) {
         throw new Error(`GET ${tablesUrl} ${res.status}`);
       }
-      const data = (await res.json()) as { tables?: Partial<Record<TableKey, unknown>> };
+      const data = (await res.json()) as { userId?: string; tables?: Partial<Record<TableKey, unknown>> };
+      if (data.userId !== undefined && data.userId !== ownerId()) {
+        handleAccountMismatch();
+        throw new Error("Tables belong to a different account");
+      }
       const remote = data.tables ?? {};
       for (const key of TABLE_KEYS) {
         if (dirty.has(key)) {
@@ -167,7 +209,7 @@ function ensureHydrated(): Promise<void> {
 
 /** `retry`: back off after failures; user writes always use the short debounce. */
 function scheduleFlush(retry = false): void {
-  if (!isBrowser()) {
+  if (!isBrowser() || disposed || accountBlocked) {
     return;
   }
   if (flushTimer) {
@@ -187,6 +229,9 @@ async function flushDirty(): Promise<boolean> {
   if (dirty.size === 0) {
     return true;
   }
+  if (accountBlocked) {
+    return false;
+  }
   if (flushInFlight) {
     return flushInFlight;
   }
@@ -199,12 +244,18 @@ async function flushDirty(): Promise<boolean> {
 
   flushInFlight = (async () => {
     try {
+      const userId = ownerId();
       const res = await fetch(tablesUrl, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(userId ? { [USER_HEADER]: userId } : {}) },
         body: JSON.stringify({ tables }),
         cache: "no-store",
       });
+      if (res.status === 409) {
+        // Keep the edits in this account's device cache; they sync on its next sign-in.
+        accountBlocked = true;
+        handleAccountMismatch();
+      }
       if (!res.ok) {
         const err = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(err?.error ?? `PUT ${tablesUrl} ${res.status}`);
@@ -236,6 +287,24 @@ async function flushDirty(): Promise<boolean> {
  * of retrying forever) when a write fails, e.g. offline; the regular debounced
  * retry keeps going in the background.
  */
+/**
+ * Remove the signed-in account's tables from this device (sign-out). Unsynced
+ * edits are lost, so call it only after {@link flushTablesNow} succeeded.
+ */
+export function clearLocalTables(): void {
+  if (!isBrowser()) return;
+  disposed = true;
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+    flushTimer = null;
+  }
+  try {
+    window.localStorage.removeItem(localCacheKey());
+  } catch {
+    // Storage blocked — nothing to clear.
+  }
+}
+
 export async function flushTablesNow(): Promise<boolean> {
   if (!isBrowser()) return true;
   if (flushTimer) {

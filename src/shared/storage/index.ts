@@ -1,5 +1,6 @@
 export {
   backgroundRefetchTables,
+  clearLocalTables,
   flushTablesNow,
   readTable,
   refetchTables,

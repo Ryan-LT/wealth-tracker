@@ -18,7 +18,6 @@ import { RouteSkeleton } from "./route-skeleton";
 import { TopBar } from "./top-bar";
 
 type AppShellProps = {
-  userName: string;
   authEnabled: boolean;
   children: ReactNode;
 };
@@ -28,13 +27,13 @@ type AppShellProps = {
  * the prerendered HTML. Only the content area waits for data, and it shows the
  * page's skeleton meanwhile, so every area stays reachable.
  */
-export function AppShell({ userName, authEnabled, children }: AppShellProps) {
+export function AppShell({ authEnabled, children }: AppShellProps) {
   const dataState = useAppDataState();
   useAppSync(dataState);
   const sidebarOpen = useSidebarOpenPreference();
 
   return (
-    <ShellProvider userName={userName} authEnabled={authEnabled}>
+    <ShellProvider authEnabled={authEnabled}>
       <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpenPreference} data-app-shell className="h-dvh overflow-hidden">
         <a
           href="#main-content"

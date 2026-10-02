@@ -5,11 +5,12 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
+import { PREFERENCES_SEED } from "@/entities/preferences";
 import { useSignOut } from "@/features/sign-out";
 import { useSyncNow } from "@/features/sync-now";
 import { BRAND } from "@/shared/config";
 import { formatRelative, formatTime } from "@/shared/lib/format";
-import { useLastSyncedAt } from "@/shared/storage";
+import { useLastSyncedAt, useTable } from "@/shared/storage";
 import { Callout } from "@/shared/ui/callout";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
@@ -20,6 +21,7 @@ import { StatusBadge } from "@/shared/ui/status-badge";
 import { PageContainer, useOnline, useShell } from "@/widgets/app-shell";
 
 import { downloadBackup } from "../lib/export-backup";
+import { MilestoneForm } from "./milestone-form";
 
 const THEMES = [
   { value: "light", label: "Light" },
@@ -36,10 +38,26 @@ export function SettingsPage() {
   const lastSyncedAt = useLastSyncedAt();
   const { syncNow, syncing } = useSyncNow();
   const { signOut, pending } = useSignOut();
+  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
 
   return (
     <PageContainer className="max-w-3xl">
-      <PageHeader title="Settings" description="Appearance, data sync and your session." />
+      <PageHeader title="Settings" description="Your milestone goal, appearance, data sync and session." />
+
+      <div id="milestone" className="scroll-mt-20">
+        <Section
+          title="Milestone goal"
+          description="The net worth you want to reach and by what age. Shown on the dashboard; the deadline is your birthday at that age."
+        >
+          <MilestoneForm
+            value={prefs.milestone}
+            onSave={(milestone) => {
+              setPrefs((p) => ({ ...p, milestone }));
+              toast.success("Milestone goal saved");
+            }}
+          />
+        </Section>
+      </div>
 
       <Section title="Appearance" description={`Choose how ${BRAND.name} looks on this device.`}>
         <SegmentedControl<ThemeValue>
@@ -52,7 +70,7 @@ export function SettingsPage() {
 
       <Section
         title="Data & sync"
-        description="Your data lives in your Neon database and is cached on this device so the app works offline."
+        description="Your data is private to your account. It is saved to the server and cached on this device so the app works offline."
         actions={
           <Button variant="outline" size="sm" onClick={() => void syncNow()} disabled={syncing || !online}>
             <RefreshCw className={syncing ? "animate-spin" : undefined} />
@@ -104,7 +122,7 @@ export function SettingsPage() {
             {
               label: "Login",
               value: authEnabled ? <StatusBadge tone="success" dot>Enabled</StatusBadge> : <StatusBadge dot>Disabled</StatusBadge>,
-              hint: authEnabled ? undefined : "Set AUTH_USERNAME, AUTH_PASSWORD and AUTH_SECRET on the server to require a login.",
+              hint: authEnabled ? undefined : "Set DATABASE_URL and AUTH_SECRET on the server and add accounts with db/create-user.sql.",
             },
           ]}
         />

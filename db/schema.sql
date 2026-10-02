@@ -1,14 +1,30 @@
 -- WealthTracker cloud sync (Neon Postgres). Run once per project: Neon SQL Editor or `psql "$DATABASE_URL" -f db/schema.sql`
+-- Upgrading a database created before multi-account login? Run db/migrations/2026-10-multi-user.sql instead.
 
+-- bcrypt password hashing (`crypt` / `gen_salt`) so accounts can be created in plain SQL.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Login accounts. Add one with db/create-user.sql.
+CREATE TABLE IF NOT EXISTS wealthtracker_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username TEXT NOT NULL UNIQUE CHECK (username = lower(username) AND char_length(username) BETWEEN 1 AND 64),
+  display_name TEXT,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- App tables (assets, debts, …) as one JSON document per user and key.
 CREATE TABLE IF NOT EXISTS wealthtracker_kv (
-  key TEXT PRIMARY KEY CHECK (char_length(key) > 0 AND char_length(key) <= 64),
+  user_id UUID NOT NULL REFERENCES wealthtracker_users (id) ON DELETE CASCADE,
+  key TEXT NOT NULL CHECK (char_length(key) > 0 AND char_length(key) <= 64),
   value JSONB NOT NULL,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, key)
 );
 
 CREATE INDEX IF NOT EXISTS wealthtracker_kv_updated_at_idx ON wealthtracker_kv (updated_at DESC);
 
--- USD → VND rate from ExchangeRate-API (see `src/lib/usdVndExchangeRate.ts`). Refresh at most once per day when cached.
+-- USD → VND rate from ExchangeRate-API (see `src/shared/api/usd-vnd-exchange-rate.ts`). Shared by all users; refreshed at most once per day.
 CREATE TABLE IF NOT EXISTS wealthtracker_fx_cache (
   base_code TEXT NOT NULL,
   quote_code TEXT NOT NULL,

@@ -75,3 +75,18 @@ export async function checkForServiceWorkerUpdate(): Promise<void> {
     );
   });
 }
+
+/** Service-worker cache of `GET /api/tables` (cache name in `src/app/sw.ts`). */
+const TABLES_SW_CACHE = "wealthtracker-tables";
+
+/**
+ * Drop the worker's offline copy of `/api/tables`. It holds one account's data,
+ * so it is cleared on sign-in and sign-out.
+ */
+export async function clearTablesResponseCache(): Promise<void> {
+  try {
+    if (typeof caches !== "undefined") await caches.delete(TABLES_SW_CACHE);
+  } catch {
+    // Cache Storage unavailable (private mode, old browser) — nothing cached.
+  }
+}

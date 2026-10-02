@@ -222,6 +222,18 @@
     overflow: unset !important;
   }
 
+  /*
+   * App shell: only the content area scrolls. The document never does, so
+   * mobile browser toolbars don't collapse or expand on page changes and the
+   * bottom nav stays put.
+   */
+  html:has([data-app-shell]),
+  html:has([data-app-shell]) body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
@@ -233,6 +245,27 @@
     select,
     textarea {
       font-size: 16px !important;
+    }
+  }
+}
+
+@theme {
+  --animate-progress-slide: progress-slide 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  /* Delayed so quick page changes and syncs never show a loading state. */
+  --animate-progress-in: reveal 200ms ease-out 150ms forwards;
+  --animate-reveal-late: reveal 300ms ease-out 700ms forwards;
+
+  @keyframes progress-slide {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(250%);
+    }
+  }
+  @keyframes reveal {
+    to {
+      opacity: 1;
     }
   }
 }

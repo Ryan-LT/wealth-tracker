@@ -6,7 +6,6 @@ import {
   ExpirationPlugin,
   NetworkFirst,
   Serwist,
-  StaleWhileRevalidate,
 } from "serwist";
 
 declare global {
@@ -73,8 +72,10 @@ const navigationCaching: RuntimeCaching[] = [
       !pathname.startsWith("/api/") &&
       request.headers.get("RSC") === "1" &&
       request.headers.get("Next-Router-Prefetch") === "1",
-    handler: new StaleWhileRevalidate({
+    // Network first: a cached payload from an older deploy would force a full reload.
+    handler: new NetworkFirst({
       cacheName: "pages-rsc-prefetch",
+      networkTimeoutSeconds: 3,
       plugins: [
         new ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 }),
       ],

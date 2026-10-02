@@ -26,6 +26,8 @@ let flushInFlight: Promise<boolean> | null = null;
 let hydrateState: "pending" | "ok" | "error" = "pending";
 let hydratePromise: Promise<void> | null = null;
 let syncInFlight: Promise<void> | null = null;
+/** Server syncs in flight (drives the top progress bar). */
+let syncsInFlight = 0;
 let localCacheLoaded = false;
 let lastSyncedAt: number | null = null;
 let initialLoadDone = false;
@@ -110,6 +112,8 @@ function syncFromServer(): Promise<void> {
   if (syncInFlight) {
     return syncInFlight;
   }
+  syncsInFlight += 1;
+  queueMicrotask(notify);
   syncInFlight = (async () => {
     try {
       const res = await fetch(tablesUrl, { cache: "no-store" });
@@ -138,6 +142,7 @@ function syncFromServer(): Promise<void> {
         hydrateState = "error";
       }
     } finally {
+      syncsInFlight -= 1;
       notify();
       if (dirty.size > 0) {
         scheduleFlush();
@@ -351,6 +356,30 @@ export function backgroundRefetchTables(): Promise<void> {
   hydratePromise = null;
   syncInFlight = null;
   return syncFromServer();
+}
+
+/** `true` while tables are being fetched from the server (first load or background resync). */
+export function useSyncing(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => syncsInFlight > 0,
+    () => false,
+  );
+}
+
+/**
+ * `true` when this device has a cached copy of the tables, so the app can render
+ * right away and sync in the background. Always `false` during server rendering.
+ */
+export function useHasLocalData(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => {
+      loadLocalCache();
+      return valueCache.size > 0;
+    },
+    () => false,
+  );
 }
 
 /** `true` after the first successful hydrate (network or local cache fallback). */

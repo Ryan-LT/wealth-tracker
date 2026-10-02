@@ -1,62 +1,90 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { cn } from "@/shared/lib/cn";
 import { isNavActive, NAV } from "@/shared/config";
-import { useSidebar } from "@/shared/ui/kit/sidebar";
+
+import { useOptimisticNavigation } from "../model/navigation";
+import { MoreSheet } from "./more-sheet";
 
 const TABS = NAV.filter((i) => i.mobileTab);
+const SLOTS = TABS.length + 1; // + More
 
-/** Docked bottom navigation below `md`; "More" opens the full sidebar sheet. */
+/**
+ * Floating bottom dock below `md`. The highlight slides to the tapped tab
+ * immediately, before the page has rendered; "More" opens a sheet with the
+ * remaining pages and quick-add actions.
+ */
 export function MobileTabBar() {
-  const pathname = usePathname() ?? "/";
-  const { setOpenMobile, openMobile } = useSidebar();
-  const onTab = TABS.some((t) => isNavActive(pathname, t.href));
+  const { activePath, onLinkClick, navigate } = useOptimisticNavigation();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const tabIndex = TABS.findIndex((t) => isNavActive(activePath, t.href));
+  const activeIndex = moreOpen || tabIndex === -1 ? TABS.length : tabIndex;
 
   return (
-    <nav
-      aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md supports-[backdrop-filter]:bg-background/80 md:hidden"
-    >
-      <ul className="mx-auto grid h-16 max-w-lg grid-cols-5">
-        {TABS.map((item) => {
-          const active = isNavActive(pathname, item.href);
-          return (
-            <li key={item.href}>
+    <>
+      <nav
+        aria-label="Primary"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:hidden"
+      >
+        <ul
+          className="pointer-events-auto relative mx-auto grid h-16 max-w-md rounded-2xl border border-border/80 bg-card/80 p-1 shadow-lg shadow-black/5 backdrop-blur-xl supports-[backdrop-filter]:bg-card/70 dark:shadow-black/40"
+          style={{ gridTemplateColumns: `repeat(${SLOTS}, minmax(0, 1fr))` }}
+        >
+          <span
+            aria-hidden
+            className="absolute inset-y-1 left-1 rounded-xl bg-primary-soft transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none"
+            style={{ width: `calc((100% - 0.5rem) / ${SLOTS})`, transform: `translateX(${activeIndex * 100}%)` }}
+          />
+          {TABS.map((item, i) => (
+            <li key={item.href} className="relative">
               <Link
                 href={item.href}
-                aria-current={active ? "page" : undefined}
+                onClick={(e) => onLinkClick(e, item.href)}
+                aria-current={i === tabIndex && !moreOpen ? "page" : undefined}
                 className={cn(
-                  "relative flex h-full flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
-                  active ? "text-foreground" : "text-muted-foreground",
+                  "flex h-full flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium transition-[color,transform] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
+                  i === activeIndex ? "text-primary-soft-foreground" : "text-muted-foreground",
                 )}
               >
-                {active ? <span aria-hidden className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-primary" /> : null}
-                <item.icon className={cn("size-5", active && "text-primary")} aria-hidden />
-                {item.short}
+                <item.icon
+                  aria-hidden
+                  className={cn(
+                    "size-5 transition-transform duration-300 motion-reduce:transition-none",
+                    i === activeIndex && "-translate-y-px scale-110 fill-primary/15",
+                  )}
+                />
+                <span className="leading-none">{item.short}</span>
               </Link>
             </li>
-          );
-        })}
-        <li>
-          <button
-            type="button"
-            onClick={() => setOpenMobile(true)}
-            aria-expanded={openMobile}
-            className={cn(
-              "relative flex h-full w-full flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
-              !onTab ? "text-foreground" : "text-muted-foreground",
-            )}
-          >
-            {!onTab ? <span aria-hidden className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-primary" /> : null}
-            <Menu className={cn("size-5", !onTab && "text-primary")} aria-hidden />
-            More
-          </button>
-        </li>
-      </ul>
-    </nav>
+          ))}
+          <li className="relative">
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              aria-expanded={moreOpen}
+              aria-haspopup="dialog"
+              className={cn(
+                "flex h-full w-full flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium transition-[color,transform] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
+                activeIndex === TABS.length ? "text-primary-soft-foreground" : "text-muted-foreground",
+              )}
+            >
+              <Ellipsis
+                aria-hidden
+                className={cn(
+                  "size-5 transition-transform duration-300 motion-reduce:transition-none",
+                  activeIndex === TABS.length && "-translate-y-px scale-110 fill-primary/15",
+                )}
+              />
+              <span className="leading-none">More</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+      <MoreSheet open={moreOpen} onOpenChange={setMoreOpen} activePath={activePath} navigate={navigate} />
+    </>
   );
 }

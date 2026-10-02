@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { startTransition, useOptimistic, type MouseEvent } from "react";
+import type { MouseEvent } from "react";
 
 import { BRAND, isNavActive, NAV_GROUPS } from "@/shared/config";
 import {
@@ -21,26 +20,17 @@ import {
 } from "@/shared/ui/kit/sidebar";
 import { Logo } from "@/shared/ui/logo";
 
+import { useOptimisticNavigation } from "../model/navigation";
 import { NavUser } from "./nav-user";
 
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
-  const router = useRouter();
-  const pathname = usePathname() ?? "/";
-  // Highlight the destination immediately while the route transition runs.
-  const [activePath, setActivePath] = useOptimistic(pathname);
+  // Highlights the destination immediately while the route renders.
+  const { activePath, onLinkClick } = useOptimisticNavigation();
 
   const navigate = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
-      return;
-    }
-    event.preventDefault();
     if (isMobile) setOpenMobile(false);
-    if (href === pathname) return;
-    startTransition(() => {
-      setActivePath(href);
-      router.push(href);
-    });
+    onLinkClick(event, href);
   };
 
   return (

@@ -1,17 +1,19 @@
-import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 
 import { OfflineShellWarmup } from "@/app/_providers/sw-register";
 import { isAuthEnvConfigured } from "@/shared/api/auth-session";
 import { AppShell } from "@/widgets/app-shell";
 
-export default async function ShellLayout({ children }: { children: ReactNode }) {
-  const cookieStore = await cookies();
-  const defaultSidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
+/**
+ * Deliberately static (no cookies or headers here): pages hold no server data,
+ * so every route is prerendered and fully prefetched, and switching pages is
+ * instant. Access is still enforced per request by `src/proxy.ts`.
+ */
+export default function ShellLayout({ children }: { children: ReactNode }) {
   const userName = process.env.AUTH_USERNAME?.trim() || "Owner";
 
   return (
-    <AppShell defaultSidebarOpen={defaultSidebarOpen} userName={userName} authEnabled={isAuthEnvConfigured()}>
+    <AppShell userName={userName} authEnabled={isAuthEnvConfigured()}>
       <OfflineShellWarmup />
       {children}
     </AppShell>

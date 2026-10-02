@@ -9,6 +9,7 @@ import { Separator } from "@/shared/ui/kit/separator";
 import { SidebarTrigger } from "@/shared/ui/kit/sidebar";
 
 import { useShell } from "../model/shell-context";
+import { NavigationProgress } from "./navigation-progress";
 import { OfflineStrip } from "./offline-strip";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -18,7 +19,7 @@ export function TopBar() {
   const { setCommandOpen } = useShell();
 
   return (
-    <header className="sticky top-0 z-30 shrink-0 border-b bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur-md supports-[backdrop-filter]:bg-background/75 md:rounded-t-xl">
+    <header className="relative z-30 shrink-0 border-b bg-background pt-[env(safe-area-inset-top)] md:rounded-t-xl">
       <OfflineStrip />
       <div className="flex h-14 items-center gap-2 px-3 md:px-4">
         <SidebarTrigger className="size-9" />
@@ -54,6 +55,7 @@ export function TopBar() {
           <ThemeToggle />
         </div>
       </div>
+      <NavigationProgress />
     </header>
   );
 }

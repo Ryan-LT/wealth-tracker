@@ -14,7 +14,6 @@ import {
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, type ReactNode } from "react";
 
@@ -25,7 +24,7 @@ import { GOALS_SEED } from "@/entities/goal";
 import { INCOME_SOURCES_SEED } from "@/entities/income";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
-import { NAV } from "@/shared/config";
+import { NAV, QUICK_ADD } from "@/shared/config";
 import { formatMoneyCompact } from "@/shared/lib/format";
 import { useTable } from "@/shared/storage";
 import {
@@ -40,15 +39,8 @@ import {
 } from "@/shared/ui/kit/command";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/kit/dialog";
 
+import { useOptimisticNavigation } from "../model/navigation";
 import { useShell } from "../model/shell-context";
-
-const QUICK_ACTIONS: { label: string; href: string; icon: LucideIcon; keywords: string }[] = [
-  { label: "Add asset", href: "/assets?new=1", icon: Landmark, keywords: "create new asset" },
-  { label: "Add income source", href: "/income?new=1", icon: TrendingUp, keywords: "create new income salary" },
-  { label: "Add debt", href: "/debts?new=1", icon: CreditCard, keywords: "create new debt loan liability" },
-  { label: "Add personal loan", href: "/loans?new=1", icon: HandCoins, keywords: "create new lend borrow" },
-  { label: "New goal plan", href: "/goals?new=1", icon: Target, keywords: "create new goal plan" },
-];
 
 function Item({
   value,
@@ -75,7 +67,7 @@ function Item({
 /** ⌘K / Ctrl+K palette: navigate, quick-add, jump to records, and app actions. */
 export function CommandMenu() {
   const { commandOpen: open, setCommandOpen: setOpen, authEnabled } = useShell();
-  const router = useRouter();
+  const { navigate } = useOptimisticNavigation();
   const { setTheme } = useTheme();
   const { syncNow } = useSyncNow();
   const { signOut } = useSignOut();
@@ -101,7 +93,7 @@ export function CommandMenu() {
     setOpen(false);
     fn();
   };
-  const go = (href: string) => run(() => router.push(href));
+  const go = (href: string) => run(() => navigate(href));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -122,7 +114,7 @@ export function CommandMenu() {
             </CommandGroup>
 
             <CommandGroup heading="Quick actions">
-              {QUICK_ACTIONS.map((a) => (
+              {QUICK_ADD.map((a) => (
                 <Item key={a.href} value={`${a.label} ${a.keywords}`} icon={Plus} onSelect={() => go(a.href)}>
                   {a.label}
                 </Item>
@@ -140,7 +132,7 @@ export function CommandMenu() {
                     onSelect={() =>
                       run(() => {
                         setGoals((g) => ({ ...g, activeProfileId: p.id }));
-                        router.push("/goals");
+                        navigate("/goals");
                       })
                     }
                   >

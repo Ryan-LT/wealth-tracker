@@ -5,13 +5,41 @@ import { useCallback, useEffect, useState } from "react";
 import type { MilestoneConfigResponse } from "@/entities/milestone/model";
 import { onAppForeground } from "@/shared/lib/app-foreground";
 
-/** Loads `/api/finance/milestone-35-config` and refreshes it when the app returns to the foreground. */
+const CACHE_KEY = "wealthtracker:milestone-config:v1";
+let memoryCache: MilestoneConfigResponse | null = null;
+
+function readCache(): MilestoneConfigResponse | null {
+  if (memoryCache) return memoryCache;
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    memoryCache = raw ? (JSON.parse(raw) as MilestoneConfigResponse) : null;
+  } catch {
+    memoryCache = null;
+  }
+  return memoryCache;
+}
+
+function writeCache(data: MilestoneConfigResponse): void {
+  memoryCache = data;
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  } catch {
+    // Storage full or blocked: the in-memory copy still serves this session.
+  }
+}
+
+/**
+ * Loads `/api/finance/milestone-35-config`, showing the last known copy right
+ * away and refreshing it in the background (also when the app returns to the
+ * foreground). An error is only reported when there is nothing to show.
+ */
 export function useMilestone35Config(): {
   config: MilestoneConfigResponse | null;
   error: string | null;
   reload: () => void;
 } {
-  const [config, setConfig] = useState<MilestoneConfigResponse | null>(null);
+  // Pages render on the client only (behind the app's data gate), so reading storage here is safe.
+  const [config, setConfig] = useState<MilestoneConfigResponse | null>(readCache);
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
 
@@ -22,12 +50,13 @@ export function useMilestone35Config(): {
         const res = await fetch("/api/finance/milestone-35-config", { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as MilestoneConfigResponse;
+        writeCache(data);
         if (!cancelled) {
           setConfig(data);
           setError(null);
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Could not load milestone settings");
+        if (!cancelled && !memoryCache) setError(e instanceof Error ? e.message : "Could not load milestone settings");
       }
     };
     void load();

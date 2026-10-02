@@ -42,7 +42,7 @@ export function GoalsPage() {
         <PlanSwitcher {...listProps} />
       </div>
       <div className="grid items-start gap-6 xl:grid-cols-[17rem_minmax(0,1fr)]">
-        <aside className="sticky top-20 hidden xl:block" aria-label="Goal plans">
+        <aside className="sticky top-6 hidden xl:block" aria-label="Goal plans">
           <PlanList {...listProps} />
         </aside>
         <PlanWorkspace key={goals.activeProfileId || savedProfile.id || "new"} editor={editor} />

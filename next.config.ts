@@ -12,6 +12,11 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Pages are static shells (data lives in the client store), so a
+    // prefetched page stays valid for the whole session.
+    staleTimes: { static: 3600 },
+  },
   turbopack: {
     rules: {
       ...codeInspectorPlugin({

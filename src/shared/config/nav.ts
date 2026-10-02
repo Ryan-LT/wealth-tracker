@@ -109,6 +109,24 @@ export const NAV_GROUPS: NavGroup[] = [
 
 export const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
+export type QuickAction = {
+  label: string;
+  /** Label on the mobile "More" sheet. */
+  short: string;
+  href: string;
+  icon: LucideIcon;
+  keywords: string;
+};
+
+/** Create shortcuts: each page opens its create dialog for `?new=1`. */
+export const QUICK_ADD: QuickAction[] = [
+  { label: "Add asset", short: "Asset", href: "/assets?new=1", icon: Landmark, keywords: "create new asset" },
+  { label: "Add income source", short: "Income", href: "/income?new=1", icon: TrendingUp, keywords: "create new income salary" },
+  { label: "Add debt", short: "Debt", href: "/debts?new=1", icon: CreditCard, keywords: "create new debt loan liability" },
+  { label: "Add personal loan", short: "Loan", href: "/loans?new=1", icon: HandCoins, keywords: "create new lend borrow" },
+  { label: "New goal plan", short: "Plan", href: "/goals?new=1", icon: Target, keywords: "create new goal plan" },
+];
+
 export function isNavActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);

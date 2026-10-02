@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 
-import { WealthTrackerLogo } from "@/shared/ui/wealth-tracker-logo";
+import { Logo } from "@/shared/ui/logo";
 
 type AppLoadingScreenProps = {
   message?: string;
@@ -16,7 +16,7 @@ export function AppLoadingScreen({
       aria-live="polite"
       aria-busy="true"
     >
-      <WealthTrackerLogo size={48} />
+      <Logo size={48} />
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="size-4 animate-spin" aria-hidden />
         <span>{message}</span>

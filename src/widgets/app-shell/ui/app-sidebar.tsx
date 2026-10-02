@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { startTransition, useOptimistic, type MouseEvent } from "react";
 
-import { isNavActive, NAV_GROUPS } from "@/shared/config";
+import { BRAND, isNavActive, NAV_GROUPS } from "@/shared/config";
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +19,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/shared/ui/kit/sidebar";
-import { WealthTrackerLogo } from "@/shared/ui/wealth-tracker-logo";
+import { Logo } from "@/shared/ui/logo";
 
 import { NavUser } from "./nav-user";
 
@@ -48,12 +48,12 @@ export function AppSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild tooltip="Wealth Tracker">
+            <SidebarMenuButton size="lg" asChild tooltip={BRAND.name}>
               <Link href="/" onClick={(e) => navigate(e, "/")}>
-                <WealthTrackerLogo size={32} decorative className="rounded-md" />
+                <Logo size={32} decorative className="size-8!" />
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate text-sm font-semibold">Wealth Tracker</span>
-                  <span className="truncate text-xs text-muted-foreground">Personal finance</span>
+                  <span className="truncate text-base font-semibold tracking-tight">{BRAND.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">{BRAND.descriptor}</span>
                 </div>
               </Link>
             </SidebarMenuButton>

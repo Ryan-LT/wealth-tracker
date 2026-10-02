@@ -33,7 +33,7 @@ export function downloadBackup(): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `wealthtracker-backup-${todayIso()}.json`;
+  a.download = `cairn-backup-${todayIso()}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();

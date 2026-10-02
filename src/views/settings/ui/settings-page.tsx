@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { useSignOut } from "@/features/sign-out";
 import { useSyncNow } from "@/features/sync-now";
+import { BRAND } from "@/shared/config";
 import { formatRelative, formatTime } from "@/shared/lib/format";
 import { useLastSyncedAt } from "@/shared/storage";
 import { Callout } from "@/shared/ui/callout";
@@ -40,7 +41,7 @@ export function SettingsPage() {
     <PageContainer className="max-w-3xl">
       <PageHeader title="Settings" description="Appearance, data sync and your session." />
 
-      <Section title="Appearance" description="Choose how Wealth Tracker looks on this device.">
+      <Section title="Appearance" description={`Choose how ${BRAND.name} looks on this device.`}>
         <SegmentedControl<ThemeValue>
           aria-label="Theme"
           value={(theme as ThemeValue) ?? "system"}

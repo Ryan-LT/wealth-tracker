@@ -1,6 +1,8 @@
-# Wealth Tracker
+<img src="brand/logo/cairn-logo.svg" alt="Cairn" height="44">
 
-A private, single-user personal finance console: net worth, assets, income and
+# Cairn
+
+*Build wealth, stone by stone.* Cairn (formerly Wealth Tracker) is a private, single-user personal finance console: net worth, assets, income and
 spending, debts, informal loans, goal plans with projections, and how your assets
 are committed across plans. Works offline as an installable PWA.
 
@@ -16,6 +18,8 @@ pnpm dev
 ```
 
 Open http://localhost:3000.
+
+Brand guide, logo files and colours: [`brand/BRAND.md`](brand/BRAND.md).
 
 For local UI work without touching your real data, create `.env.development.local`
 (gitignored, overrides `.env.local` in dev only):

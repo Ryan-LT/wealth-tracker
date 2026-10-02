@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { BRAND } from "@/shared/config";
 import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
 import { Button } from "@/shared/ui/kit/button";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
-import { WealthTrackerLogo } from "@/shared/ui/wealth-tracker-logo";
+import { Logo } from "@/shared/ui/logo";
 
 export function LoginForm() {
   const router = useRouter();
@@ -55,9 +56,9 @@ export function LoginForm() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-12">
       <div className="flex flex-col items-center gap-2 text-center">
-        <WealthTrackerLogo size={48} decorative />
-        <h1 className="text-xl font-semibold tracking-tight">Wealth Tracker</h1>
-        <p className="text-sm text-muted-foreground">Personal finance</p>
+        <Logo size={48} decorative />
+        <h1 className="text-xl font-semibold tracking-tight">{BRAND.name}</h1>
+        <p className="text-sm text-muted-foreground">{BRAND.tagline}</p>
       </div>
 
       <Card className="w-full max-w-sm">

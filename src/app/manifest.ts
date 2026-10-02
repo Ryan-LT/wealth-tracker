@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
 
+import { BRAND } from "@/shared/config";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Wealth Tracker",
-    short_name: "Wealth Tracker",
-    description: "Track net worth, assets, debts, income and goal plans.",
+    name: `${BRAND.name} · ${BRAND.descriptor}`,
+    short_name: BRAND.name,
+    description: BRAND.description,
     start_url: "/",
     scope: "/",
     display: "standalone",

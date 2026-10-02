@@ -1,7 +1,7 @@
 import { CloudOff, RotateCw } from "lucide-react";
 
 import { Button } from "@/shared/ui/kit/button";
-import { WealthTrackerLogo } from "@/shared/ui/wealth-tracker-logo";
+import { Logo } from "@/shared/ui/logo";
 
 type AppErrorScreenProps = {
   onRetry: () => void;
@@ -17,7 +17,7 @@ export function AppErrorScreen({ onRetry }: AppErrorScreenProps) {
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-background px-6 text-center"
       role="alert"
     >
-      <WealthTrackerLogo size={48} />
+      <Logo size={48} />
       <div className="flex max-w-sm flex-col items-center gap-2">
         <CloudOff className="size-5 text-muted-foreground" aria-hidden />
         <p className="text-base font-semibold">Couldn&apos;t load your data</p>

@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { ServiceWorkerRegistrar } from "@/app/_providers/sw-register";
 import { ThemeProvider } from "@/app/_providers/theme-provider";
+import { BRAND } from "@/shared/config";
 import { Toaster } from "@/shared/ui/kit/sonner";
 import { TooltipProvider } from "@/shared/ui/kit/tooltip";
 
@@ -15,13 +16,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Wealth Tracker", template: "%s · Wealth Tracker" },
-  description: "Track net worth, assets, debts, income and goal plans.",
-  applicationName: "Wealth Tracker",
+  title: { default: BRAND.name, template: `%s · ${BRAND.name}` },
+  description: BRAND.description,
+  applicationName: BRAND.name,
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Wealth Tracker",
+    title: BRAND.name,
   },
   formatDetection: { telephone: false },
 };

@@ -166,5 +166,11 @@ describe("buildNetWorthTrend", () => {
     const once = syncNetWorthTracking(PREFERENCES_SEED, 500);
     expect(netWorthTrackingUnchanged(once, syncNetWorthTracking(once, 500))).toBe(true);
     expect(netWorthTrackingUnchanged(once, syncNetWorthTracking(once, 501))).toBe(false);
+    // Same data with jsonb-style key order (as returned by Postgres) is still unchanged.
+    const fromDb = {
+      ...once,
+      netWorthMonthlyHistory: once.netWorthMonthlyHistory!.map((h) => ({ value: h.value, monthKey: h.monthKey })),
+    };
+    expect(netWorthTrackingUnchanged(fromDb, syncNetWorthTracking(fromDb, 500))).toBe(true);
   });
 });

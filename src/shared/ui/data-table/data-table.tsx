@@ -59,6 +59,8 @@ export type DataTableProps<T> = {
   columns: ColumnDef<T, any>[];
   data: T[];
   getRowId: (row: T) => string;
+  /** Human-readable row name for assistive labels (e.g. the drag handle). Defaults to the id. */
+  getRowLabel?: (row: T) => string;
   /** Controlled sorting; omit to let the table manage it. */
   sorting?: SortingState;
   onSortingChange?: OnChangeFn<SortingState>;
@@ -149,6 +151,7 @@ export function DataTable<T>({
   columns,
   data,
   getRowId,
+  getRowLabel,
   sorting: sortingProp,
   onSortingChange,
   manualSorting,
@@ -169,13 +172,13 @@ export function DataTable<T>({
       {
         id: "__drag",
         header: () => <span className="sr-only">Reorder</span>,
-        cell: ({ row }) => <DragHandle label={getRowId(row.original)} />,
+        cell: ({ row }) => <DragHandle label={(getRowLabel ?? getRowId)(row.original)} />,
         enableSorting: false,
         meta: { className: "w-8 !pr-0" },
       },
       ...columns,
     ];
-  }, [columns, reorder, getRowId]);
+  }, [columns, reorder, getRowId, getRowLabel]);
 
   // TanStack Table v8 returns unstable functions; fine because the React Compiler is not enabled here.
   // eslint-disable-next-line react-hooks/incompatible-library

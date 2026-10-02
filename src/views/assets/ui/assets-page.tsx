@@ -198,6 +198,7 @@ export function AssetsPage() {
           columns={columns}
           data={visible}
           getRowId={(a) => a.id}
+          getRowLabel={(a) => a.name}
           manualSorting
           sorting={sorting}
           onSortingChange={(updater) => {

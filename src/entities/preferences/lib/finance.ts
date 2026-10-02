@@ -198,6 +198,11 @@ export function netWorthTrackingUnchanged(prev: Preferences, next: Preferences):
     prev.netWorthMonthKey === next.netWorthMonthKey &&
     prev.netWorthMonthBaseline === next.netWorthMonthBaseline &&
     prev.lastKnownNetWorth === next.lastKnownNetWorth &&
-    JSON.stringify(prev.netWorthMonthlyHistory ?? []) === JSON.stringify(next.netWorthMonthlyHistory ?? [])
+    sameHistory(prev.netWorthMonthlyHistory ?? [], next.netWorthMonthlyHistory ?? [])
   );
+}
+
+// Field-wise: Postgres jsonb reorders object keys, so string comparison is unreliable.
+function sameHistory(a: NetWorthMonthSnapshot[], b: NetWorthMonthSnapshot[]): boolean {
+  return a.length === b.length && a.every((h, i) => h.monthKey === b[i].monthKey && h.value === b[i].value);
 }

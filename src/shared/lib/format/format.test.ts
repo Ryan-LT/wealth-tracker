@@ -71,3 +71,25 @@ describe("dates", () => {
     expect(formatDate("bad")).toBe("bad");
   });
 });
+
+describe("Vietnamese formatting", () => {
+  it("dates, months, compact money", async () => {
+    const { setFormatLocale, formatDate, formatMonths, formatMoneyCompact, formatMoney } = await import("@/shared/lib/format");
+    setFormatLocale("vi");
+    try {
+      expect(formatDate("2026-10-02")).toBe("2 thg 10, 2026");
+      expect(formatDate("2026-10-02", "monthYear")).toBe("thg 10, 2026");
+      expect(formatDate("2026-10-02", "dayMonth")).toBe("2 thg 10");
+      expect(formatMonths(4.25)).toBe("4,3 tháng");
+      expect(formatMoneyCompact(4_820_000_000)).toBe("4,82 tỷ ₫");
+      expect(formatMoneyCompact(32_500_000)).toBe("32,5 tr ₫");
+      expect(formatMoneyCompact(850_000)).toBe("850K ₫");
+      expect(formatMoneyCompact(999_950_000)).toBe("1 tỷ ₫");
+      expect(formatMoney(1_245_670_000)).toBe("1.245.670.000 ₫");
+    } finally {
+      setFormatLocale("en");
+    }
+    expect(formatDate("2026-10-02")).toBe("2 Oct 2026");
+    expect(formatMoneyCompact(4_820_000_000)).toBe("4,82B ₫");
+  });
+});

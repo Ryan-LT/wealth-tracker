@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import { goalProfileForDashboard, type GoalsState } from "@/entities/goal/model";
 import { resolveMonthlyShares } from "@/entities/goal/lib/monthly-share";
 import { totalGoalStartingBalance } from "@/entities/goal/lib/seed-lines";
@@ -33,7 +34,7 @@ export function buildGoalPlanSummaries(
     return goals.profiles.map((plan) => ({
       key: plan.id,
       planId: plan.id,
-      name: plan.name.trim() || "Untitled plan",
+      name: plan.name.trim() || activeMessages().domain.fallbacks.untitledPlan,
       targetAmount: plan.targetAmount,
       saved: totalGoalStartingBalance(plan.seedLines, seedOptions, goals.profiles, plan),
       savedCaption: "Allocated starting",
@@ -47,7 +48,7 @@ export function buildGoalPlanSummaries(
   const primaryProfile = goalProfileForDashboard(goals);
   const target = primaryProfile?.targetAmount ?? goals.primary.targetAmount;
   const name =
-    primaryProfile?.name?.trim() || goals.primary.name?.trim() || "Primary Goal";
+    primaryProfile?.name?.trim() || goals.primary.name?.trim() || activeMessages().domain.fallbacks.primaryGoal;
   const saved =
     goals.primary.saved > 0
       ? Math.min(goals.primary.saved, target)

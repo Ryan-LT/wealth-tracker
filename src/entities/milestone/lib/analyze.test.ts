@@ -77,8 +77,8 @@ describe("analyzeMilestone", () => {
   it("achieved", () => {
     const a = analyzeMilestone({ config, settings, currentNetWorth: 12_500, monthlyNetContribution: 0, now });
     expect(a).toMatchObject({ kind: "achieved", pct: 100, surplus: 2_500, pastDeadline: false, targetVnd: 10_000 });
-    expect(milestoneChipDetail(a, 12_500, fmt)).toBe("+25.0% · +2500₫");
-    expect(milestoneHint(a, fmt)).toBe("Already +25.0% · +2500₫ above the $1000 target.");
+    expect(milestoneChipDetail(a, 12_500, fmt)).toBe("+25,0% · +2500₫");
+    expect(milestoneHint(a, fmt)).toBe("Already +25,0% · +2500₫ above the $1000 target.");
   });
 
   it("past deadline", () => {
@@ -109,9 +109,9 @@ describe("analyzeMilestone", () => {
 
   it("projection tones", () => {
     const onTrack = analyzeMilestone({ config, settings, currentNetWorth: 1_000, monthlyNetContribution: 1_000, now });
-    expect(onTrack).toMatchObject({ kind: "projection", tone: "on_track", label: "On track", feasible: true, pct: 10 });
+    expect(onTrack).toMatchObject({ kind: "projection", tone: "on_track", verdict: "on_track", feasible: true, pct: 10 });
     expect(milestoneHint(onTrack, fmt)).toMatch(/^Projected \d+(\.\d+)?₫ at age 35 — \+\d/);
-    expect(milestoneChipDetail(onTrack, 1_000, fmt)).toMatch(/^\+\d+\.\d% · \+/);
+    expect(milestoneChipDetail(onTrack, 1_000, fmt)).toMatch(/^\+\d+,\d% · \+/);
 
     const tight = analyzeMilestone({
       config,
@@ -120,15 +120,15 @@ describe("analyzeMilestone", () => {
       monthlyNetContribution: 100,
       now,
     });
-    expect(tight).toMatchObject({ kind: "projection", tone: "steady", label: "Tight but possible" });
+    expect(tight).toMatchObject({ kind: "projection", tone: "steady", verdict: "tight" });
 
     const behind = analyzeMilestone({ config, settings, currentNetWorth: 0, monthlyNetContribution: 10, now });
-    expect(behind).toMatchObject({ kind: "projection", tone: "at_risk", label: "Below projection", feasible: false });
+    expect(behind).toMatchObject({ kind: "projection", tone: "at_risk", verdict: "below", feasible: false });
     expect(milestoneHint(behind, fmt)).toMatch(/^Trajectory lands near .* below target\.$/);
     expect(milestoneChipDetail(behind, 0, fmt)).toBeUndefined();
   });
 
   it("formats ahead-of-target labels", () => {
-    expect(formatAheadOfTarget(90, 100, fmt)).toEqual({ surplus: -10, pctLabel: "-10.0%", moneyLabel: "10₫", detail: "-10.0% · 10₫" });
+    expect(formatAheadOfTarget(90, 100, fmt)).toEqual({ surplus: -10, pctLabel: "−10,0%", moneyLabel: "10₫", detail: "−10,0% · 10₫" });
   });
 });

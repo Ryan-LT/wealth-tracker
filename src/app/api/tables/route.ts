@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 /** Client header naming the account its pending edits belong to; must match the session. */
 const USER_HEADER = "x-wt-user";
 
-function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status });
+function jsonError(message: string, status: number, code?: string) {
+  return Response.json({ error: message, ...(code ? { code } : {}) }, { status });
 }
 
 type Row = { key: string; value: unknown };
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   try {
     const user = await requireActiveUser(req);
     if (!user) {
-      return jsonError("Unauthorized", 401);
+      return jsonError("Unauthorized", 401, "unauthorized");
     }
     const sql = getSql();
     const rows = (await sql`
@@ -50,11 +50,11 @@ export async function PUT(req: Request) {
     return jsonError(message, 500);
   }
   if (!user) {
-    return jsonError("Unauthorized", 401);
+    return jsonError("Unauthorized", 401, "unauthorized");
   }
   // Edits cached on this device for another account must never land in this one.
   if (req.headers.get(USER_HEADER) !== user.sub) {
-    return jsonError("These changes belong to a different account", 409);
+    return jsonError("These changes belong to a different account", 409, "account_mismatch");
   }
 
   let body: unknown;

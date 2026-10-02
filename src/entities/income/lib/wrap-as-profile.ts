@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import {
   EMPTY_GOAL_PROFILE,
   totalGoalStartingBalance,
@@ -19,7 +20,7 @@ export function wrapIncomeSourceAsProfile(source: IncomeSource): GoalProfile {
   return {
     ...EMPTY_GOAL_PROFILE,
     id: `income:${source.id}`,
-    name: source.name?.trim() || "Income source",
+    name: source.name?.trim() || activeMessages().domain.fallbacks.incomeSource,
     seedLines: source.capitalLines ?? [],
   };
 }

@@ -24,6 +24,7 @@ export {
 export {
   DEFAULT_ASSET_CATEGORIES,
   assetCategoryBadgeClassNames,
+  assetCategoryLabel,
   isDefaultAssetCategory,
   mergeAssetCategoryOptions,
   resolveAssetCategoryEmoji,

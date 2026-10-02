@@ -10,98 +10,85 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import type { Messages } from "@/shared/i18n";
+
+export type NavId = keyof Messages["nav"]["items"];
+export type NavGroupId = keyof Messages["nav"]["groups"];
+export type QuickActionId = keyof Messages["nav"]["quickAdd"];
+
+/** Labels, short tab labels and descriptions live in `t.nav.items[id]`. */
 export type NavItem = {
+  id: NavId;
   href: string;
-  label: string;
-  /** Label for the mobile tab bar. */
-  short: string;
   icon: LucideIcon;
-  /** One-line description (command palette, page subtitles). */
-  description: string;
   /** Shown in the mobile bottom tab bar. */
   mobileTab?: boolean;
 };
 
-export type NavGroup = { label: string; items: NavItem[] };
+export type NavGroup = { id: NavGroupId; items: NavItem[] };
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Overview",
+    id: "overview",
     items: [
       {
+        id: "dashboard",
         href: "/",
-        label: "Dashboard",
-        short: "Home",
         icon: LayoutDashboard,
-        description: "Net worth, cash flow and goal health at a glance",
         mobileTab: true,
       },
     ],
   },
   {
-    label: "Planning",
+    id: "planning",
     items: [
       {
+        id: "goals",
         href: "/goals",
-        label: "Goals",
-        short: "Goals",
         icon: Target,
-        description: "Goal plans, projections and checkpoints",
         mobileTab: true,
       },
       {
+        id: "allocations",
         href: "/allocations",
-        label: "Liquidity",
-        short: "Liquidity",
         icon: PieChart,
-        description: "How assets are committed across plans",
       },
     ],
   },
   {
-    label: "Records",
+    id: "records",
     items: [
       {
+        id: "assets",
         href: "/assets",
-        label: "Assets",
-        short: "Assets",
         icon: Landmark,
-        description: "Everything you own and how fast you can access it",
         mobileTab: true,
       },
       {
+        id: "income",
         href: "/income",
-        label: "Income & spending",
-        short: "Income",
         icon: TrendingUp,
-        description: "Income sources and average monthly spending",
       },
       {
+        id: "debts",
         href: "/debts",
-        label: "Debts",
-        short: "Debts",
         icon: CreditCard,
-        description: "Loans, cards and other liabilities",
       },
       {
+        id: "loans",
         href: "/loans",
-        label: "Personal loans",
-        short: "Loans",
         icon: HandCoins,
-        description: "Informal money lent or borrowed",
         mobileTab: true,
       },
     ],
   },
   {
-    label: "System",
+    id: "system",
     items: [
       {
+        id: "settings",
         href: "/settings",
-        label: "Settings",
-        short: "Settings",
         icon: Settings,
-        description: "Appearance, sync and session",
       },
     ],
   },
@@ -109,22 +96,20 @@ export const NAV_GROUPS: NavGroup[] = [
 
 export const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
+/** Labels and search keywords live in `t.nav.quickAdd[id]`. */
 export type QuickAction = {
-  label: string;
-  /** Label on the mobile "More" sheet. */
-  short: string;
+  id: QuickActionId;
   href: string;
   icon: LucideIcon;
-  keywords: string;
 };
 
 /** Create shortcuts: each page opens its create dialog for `?new=1`. */
 export const QUICK_ADD: QuickAction[] = [
-  { label: "Add asset", short: "Asset", href: "/assets?new=1", icon: Landmark, keywords: "create new asset" },
-  { label: "Add income source", short: "Income", href: "/income?new=1", icon: TrendingUp, keywords: "create new income salary" },
-  { label: "Add debt", short: "Debt", href: "/debts?new=1", icon: CreditCard, keywords: "create new debt loan liability" },
-  { label: "Add personal loan", short: "Loan", href: "/loans?new=1", icon: HandCoins, keywords: "create new lend borrow" },
-  { label: "New goal plan", short: "Plan", href: "/goals?new=1", icon: Target, keywords: "create new goal plan" },
+  { id: "asset", href: "/assets?new=1", icon: Landmark },
+  { id: "income", href: "/income?new=1", icon: TrendingUp },
+  { id: "debt", href: "/debts?new=1", icon: CreditCard },
+  { id: "loan", href: "/loans?new=1", icon: HandCoins },
+  { id: "plan", href: "/goals?new=1", icon: Target },
 ];
 
 export function isNavActive(pathname: string, href: string): boolean {

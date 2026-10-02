@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 
+import { useFollowAccountLanguage } from "@/features/switch-language";
 import { cn } from "@/shared/lib/cn";
 import { SidebarInset, SidebarProvider } from "@/shared/ui/kit/sidebar";
 
@@ -30,6 +31,7 @@ type AppShellProps = {
 export function AppShell({ authEnabled, children }: AppShellProps) {
   const dataState = useAppDataState();
   useAppSync(dataState);
+  useFollowAccountLanguage();
   const sidebarOpen = useSidebarOpenPreference();
 
   return (

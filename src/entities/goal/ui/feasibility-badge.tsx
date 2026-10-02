@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import type { GoalFeasibility, GoalFeasibilityTone } from "@/entities/goal/lib/feasibility";
+import { useI18n } from "@/shared/i18n";
 import type { StatusTone } from "@/shared/lib/tone";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/kit/tooltip";
@@ -36,17 +37,21 @@ export function feasibilityToneMeta(tone: GoalFeasibilityTone): { status: Status
 /** Feasibility label with icon; the longer hint shows on hover / focus. */
 export function FeasibilityBadge({
   tone,
-  label,
-  hint,
+  code,
+  showHint = true,
   interactive = true,
   className,
-}: Pick<GoalFeasibility, "tone" | "label"> & {
-  hint?: string;
+}: Pick<GoalFeasibility, "tone" | "code"> & {
+  /** Show the longer explanation on hover / focus. */
+  showHint?: boolean;
   /** `false` inside clickable rows: the hint becomes a plain title (no nested focus target). */
   interactive?: boolean;
   className?: string;
 }) {
   const meta = feasibilityToneMeta(tone);
+  const { t } = useI18n();
+  const { label, hint: fullHint } = t.domain.feasibility[code];
+  const hint = showHint ? fullHint : undefined;
   const badge = (
     <StatusBadge tone={meta.status} icon={meta.icon} className={className} title={interactive ? undefined : hint}>
       {label}

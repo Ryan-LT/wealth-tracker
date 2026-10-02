@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { MouseEvent } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { BRAND, isNavActive, NAV_GROUPS } from "@/shared/config";
 import {
   Sidebar,
@@ -25,6 +26,7 @@ import { NavUser } from "./nav-user";
 
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
+  const { t } = useI18n();
   // Highlights the destination immediately while the route renders.
   const { activePath, onLinkClick } = useOptimisticNavigation();
 
@@ -52,8 +54,8 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         {NAV_GROUPS.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarGroup key={group.id}>
+            <SidebarGroupLabel>{t.nav.groups[group.id]}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => (
@@ -61,12 +63,12 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={isNavActive(activePath, item.href)}
-                      tooltip={item.label}
+                      tooltip={t.nav.items[item.id].label}
                       className="data-[active=true]:bg-primary-soft data-[active=true]:text-primary-soft-foreground data-[active=true]:[&>svg]:text-primary-soft-foreground"
                     >
                       <Link href={item.href} onClick={(e) => navigate(e, item.href)}>
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span>{t.nav.items[item.id].label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

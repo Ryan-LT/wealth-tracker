@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import type { GoalProfile, GoalSeedLine } from "@/entities/goal/model";
 import type { GoalStartingOption } from "@/entities/goal/lib/starting-options";
 
@@ -111,7 +112,7 @@ export function goalUsageForSourceKey(
     if (sum > 0) {
       out.push({
         planId: plan.id,
-        planName: plan.name?.trim() || "Untitled plan",
+        planName: plan.name?.trim() || activeMessages().domain.fallbacks.untitledPlan,
         amount: sum,
         isDraft: false,
       });
@@ -127,7 +128,7 @@ export function goalUsageForSourceKey(
     if (sum > 0) {
       out.push({
         planId: draft.id,
-        planName: draft.name?.trim() || "This plan",
+        planName: draft.name?.trim() || activeMessages().domain.fallbacks.thisPlan,
         amount: sum,
         isDraft: true,
       });

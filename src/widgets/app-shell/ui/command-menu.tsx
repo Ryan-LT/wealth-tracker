@@ -17,6 +17,7 @@ import {
 import { useTheme } from "next-themes";
 import { useEffect, type ReactNode } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { useSignOut } from "@/features/sign-out";
 import { useSyncNow } from "@/features/sync-now";
 import { DEBTS_SEED } from "@/entities/debt";
@@ -67,6 +68,7 @@ function Item({
 /** ⌘K / Ctrl+K palette: navigate, quick-add, jump to records, and app actions. */
 export function CommandMenu() {
   const { commandOpen: open, setCommandOpen: setOpen, authEnabled } = useShell();
+  const { t } = useI18n();
   const { navigate } = useOptimisticNavigation();
   const { setTheme } = useTheme();
   const { syncNow } = useSyncNow();
@@ -107,16 +109,16 @@ export function CommandMenu() {
 
             <CommandGroup heading="Go to">
               {NAV.map((item) => (
-                <Item key={item.href} value={`go ${item.label} ${item.description}`} icon={item.icon} onSelect={() => go(item.href)}>
-                  {item.label}
+                <Item key={item.href} value={`go ${item.id} ${t.nav.items[item.id].label} ${t.nav.items[item.id].description}`} icon={item.icon} onSelect={() => go(item.href)}>
+                  {t.nav.items[item.id].label}
                 </Item>
               ))}
             </CommandGroup>
 
             <CommandGroup heading="Quick actions">
               {QUICK_ADD.map((a) => (
-                <Item key={a.href} value={`${a.label} ${a.keywords}`} icon={Plus} onSelect={() => go(a.href)}>
-                  {a.label}
+                <Item key={a.href} value={`${t.nav.quickAdd[a.id].label} ${t.nav.quickAdd[a.id].keywords}`} icon={Plus} onSelect={() => go(a.href)}>
+                  {t.nav.quickAdd[a.id].label}
                 </Item>
               ))}
             </CommandGroup>

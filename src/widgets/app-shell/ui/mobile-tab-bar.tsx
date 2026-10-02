@@ -4,6 +4,7 @@ import { Ellipsis } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { isNavActive, NAV } from "@/shared/config";
 
@@ -20,6 +21,7 @@ const SLOTS = TABS.length + 1; // + More
  */
 export function MobileTabBar() {
   const { activePath, onLinkClick, navigate } = useOptimisticNavigation();
+  const { t } = useI18n();
   const [moreOpen, setMoreOpen] = useState(false);
   const tabIndex = TABS.findIndex((t) => isNavActive(activePath, t.href));
   const activeIndex = moreOpen || tabIndex === -1 ? TABS.length : tabIndex;
@@ -57,7 +59,7 @@ export function MobileTabBar() {
                     i === activeIndex && "-translate-y-px scale-110 fill-primary/15",
                   )}
                 />
-                <span className="leading-none">{item.short}</span>
+                <span className="leading-none">{t.nav.items[item.id].short}</span>
               </Link>
             </li>
           ))}

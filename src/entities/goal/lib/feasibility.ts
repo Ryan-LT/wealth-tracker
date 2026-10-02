@@ -7,12 +7,13 @@ export type GoalFeasibilityTone =
   | "at_risk"
   | "unknown";
 
+/** Verdict codes; the badge label and the longer hint are `t.domain.feasibility[code]`. */
+export const FEASIBILITY_CODES = ["set_target", "target_met", "closing_in", "building", "early_stretch", "just_started", "past_deadline", "growth_on_track", "budget_squeeze", "on_track", "feasible", "watch_pace", "tight_runway", "off_pace", "final_sprint", "calendar_heat", "check_timing", "in_range", "steady"] as const;
+export type GoalFeasibilityCode = (typeof FEASIBILITY_CODES)[number];
+
 export type GoalFeasibility = {
   tone: GoalFeasibilityTone;
-  /** Short badge label. */
-  label: string;
-  /** Longer context for `title` / tooltips. */
-  hint: string;
+  code: GoalFeasibilityCode;
 };
 
 import { isTargetDatePast, monthsUntilTarget } from "@/entities/goal/lib/projection";
@@ -55,8 +56,7 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
   if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
     return {
       tone: "unknown",
-      label: "Set a target",
-      hint: "Add a target amount to gauge feasibility.",
+      code: "set_target",
     };
   }
 
@@ -64,8 +64,7 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
   if (remaining <= 0) {
     return {
       tone: "achieved",
-      label: "Target met",
-      hint: "Allocated or saved amount meets or exceeds this goal.",
+      code: "target_met",
     };
   }
 
@@ -75,28 +74,24 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
     if (pct >= 85) {
       return {
         tone: "on_track",
-        label: "Closing in",
-        hint: "Strong progress. Add a target date for a runway check.",
+        code: "closing_in",
       };
     }
     if (pct >= 45) {
       return {
         tone: "steady",
-        label: "Building",
-        hint: "Momentum looks fine. A deadline unlocks a sharper signal.",
+        code: "building",
       };
     }
     if (pct >= 18) {
       return {
         tone: "watch",
-        label: "Early stretch",
-        hint: "Still early — set a target date to see if pace matches the calendar.",
+        code: "early_stretch",
       };
     }
     return {
       tone: "steady",
-      label: "Just started",
-      hint: "Low progress is normal at the start. Add a target date when you can.",
+      code: "just_started",
     };
   }
 
@@ -105,8 +100,7 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
   if (isTargetDatePast(targetDateIso, now)) {
     return {
       tone: "at_risk",
-      label: "Past deadline",
-      hint: "This target date has passed and the goal is not fully funded yet.",
+      code: "past_deadline",
     };
   }
 
@@ -119,15 +113,13 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
     if (requiredPerMonth <= 0) {
       return {
         tone: "on_track",
-        label: "On track",
-        hint: "Expected growth on the allocated balance reaches the target by the date.",
+        code: "growth_on_track",
       };
     }
     if (estimatedMonthlyNet <= 0) {
       return {
         tone: "at_risk",
-        label: "Budget squeeze",
-        hint: "This plan gets no positive monthly savings while it still has a gap.",
+        code: "budget_squeeze",
       };
     }
 
@@ -135,35 +127,30 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
     if (ratio >= 1.12) {
       return {
         tone: "on_track",
-        label: "On track",
-        hint: "This plan's share of monthly savings comfortably covers the pace needed to hit the date.",
+        code: "on_track",
       };
     }
     if (ratio >= 0.92) {
       return {
         tone: "steady",
-        label: "Feasible",
-        hint: "This plan's share of monthly savings is roughly aligned with the pace your target date needs.",
+        code: "feasible",
       };
     }
     if (ratio >= 0.72) {
       return {
         tone: "watch",
-        label: "Watch pace",
-        hint: "You are close — small drags on cash flow could push the finish past the date.",
+        code: "watch_pace",
       };
     }
     if (ratio >= 0.45) {
       return {
         tone: "tight",
-        label: "Tight runway",
-        hint: "Implied monthly pace is meaningfully above what net cash flow suggests today.",
+        code: "tight_runway",
       };
     }
     return {
       tone: "at_risk",
-      label: "Off pace",
-      hint: "At current net cash flow, this date and gap look hard to reconcile without changes.",
+      code: "off_pace",
     };
   }
 
@@ -171,34 +158,29 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
   if (monthsLeft < 0.35 && (saved / targetAmount) * 100 < 92) {
     return {
       tone: "at_risk",
-      label: "Final sprint",
-      hint: "Very little calendar runway left versus what is still left to fund.",
+      code: "final_sprint",
     };
   }
   if (urgency > 28) {
     return {
       tone: "tight",
-      label: "Calendar heat",
-      hint: "Without counting monthly income toward this plan, the deadline still feels aggressive.",
+      code: "calendar_heat",
     };
   }
   if (urgency > 14) {
     return {
       tone: "watch",
-      label: "Check timing",
-      hint: "Progress is okay, but the date is getting closer — revisit allocations.",
+      code: "check_timing",
     };
   }
   if ((saved / targetAmount) * 100 >= 78) {
     return {
       tone: "on_track",
-      label: "In range",
-      hint: "Progress and time left look compatible for an allocations-only path.",
+      code: "in_range",
     };
   }
   return {
     tone: "steady",
-    label: "Steady",
-    hint: "No income glidepath is applied for this plan; signal is from progress vs time.",
+    code: "steady",
   };
 }

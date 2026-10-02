@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import type { MouseEvent } from "react";
 
+import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { isNavActive, NAV, QUICK_ADD } from "@/shared/config";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/shared/ui/kit/sheet";
@@ -23,6 +24,7 @@ type MoreSheetProps = {
 /** Mobile "More": the pages that don't fit in the dock, plus quick-add and search. */
 export function MoreSheet({ open, onOpenChange, activePath, navigate }: MoreSheetProps) {
   const { setCommandOpen } = useShell();
+  const { t } = useI18n();
 
   const go = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
     if (!isPlainClick(event)) return;
@@ -63,8 +65,8 @@ export function MoreSheet({ open, onOpenChange, activePath, navigate }: MoreShee
                       <item.icon className="size-4.5" aria-hidden />
                     </span>
                     <span className="grid min-w-0 gap-0.5">
-                      <span className="text-sm leading-tight font-medium">{item.label}</span>
-                      <span className="line-clamp-2 text-xs text-muted-foreground">{item.description}</span>
+                      <span className="text-sm leading-tight font-medium">{t.nav.items[item.id].label}</span>
+                      <span className="line-clamp-2 text-xs text-muted-foreground">{t.nav.items[item.id].description}</span>
                     </span>
                   </Link>
                 </li>
@@ -82,11 +84,11 @@ export function MoreSheet({ open, onOpenChange, activePath, navigate }: MoreShee
                   <Link
                     href={action.href}
                     onClick={(e) => go(e, action.href)}
-                    aria-label={action.label}
+                    aria-label={t.nav.quickAdd[action.id].label}
                     className="flex flex-col items-center gap-1.5 rounded-xl border bg-card px-1 py-2.5 text-xs font-medium transition-[background-color,transform] hover:bg-accent active:scale-95"
                   >
                     <action.icon className="size-5 text-primary" aria-hidden />
-                    {action.short}
+                    {t.nav.quickAdd[action.id].short}
                   </Link>
                 </li>
               ))}

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { computeGoalFeasibility } from "@/entities/goal/lib/feasibility";
+import { computeGoalFeasibility, FEASIBILITY_CODES } from "@/entities/goal/lib/feasibility";
+import { en } from "@/shared/i18n/messages/en";
+import { vi } from "@/shared/i18n/messages/vi";
 
 const now = new Date("2026-01-01T12:00:00+07:00");
 
@@ -12,7 +14,7 @@ function tone(input: Partial<Parameters<typeof computeGoalFeasibility>[0]>) {
     now,
     ...input,
   });
-  return `${r.tone}:${r.label}`;
+  return `${r.tone}:${en.domain.feasibility[r.code].label}`;
 }
 
 describe("computeGoalFeasibility", () => {
@@ -47,15 +49,13 @@ describe("computeGoalFeasibility", () => {
     expect(tone({ ...off, targetDateIso: "2030-01-01", saved: 100 })).toBe("steady:Steady");
   });
 
-  it("returns hints", () => {
-    expect(
-      computeGoalFeasibility({ saved: 0, targetAmount: 1, estimatedMonthlyNet: 0, now, targetDateIso: "2027-01-01" }),
-    ).toMatchInlineSnapshot(`
-      {
-        "hint": "This plan gets no positive monthly savings while it still has a gap.",
-        "label": "Budget squeeze",
-        "tone": "at_risk",
-      }
-    `);
+  it("returns a code with English and Vietnamese text", () => {
+    const r = computeGoalFeasibility({ saved: 0, targetAmount: 1, estimatedMonthlyNet: 0, now, targetDateIso: "2027-01-01" });
+    expect(r).toEqual({ tone: "at_risk", code: "budget_squeeze" });
+    for (const code of FEASIBILITY_CODES) {
+      expect(en.domain.feasibility[code].label).toBeTruthy();
+      expect(vi.domain.feasibility[code].label).toBeTruthy();
+      expect(vi.domain.feasibility[code].hint).not.toBe(en.domain.feasibility[code].hint);
+    }
   });
 });

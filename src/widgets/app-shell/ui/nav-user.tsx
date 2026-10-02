@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 
 import { useSignOut } from "@/features/sign-out";
+import { LanguageMenu } from "@/features/switch-language";
+import { useI18n } from "@/shared/i18n";
 import { getDisplayNameInitials } from "@/shared/lib/cn";
 import { Avatar, AvatarFallback } from "@/shared/ui/kit/avatar";
 import {
@@ -27,6 +29,7 @@ import { THEME_OPTIONS } from "./theme-toggle";
 
 export function NavUser() {
   const { userName, authEnabled } = useShell();
+  const { t } = useI18n();
   const { isMobile, setOpenMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
   const { signOut, pending } = useSignOut();
@@ -76,6 +79,7 @@ export function NavUser() {
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+            <LanguageMenu label={t.common.language} />
             <DropdownMenuItem asChild>
               <Link href="/settings" onClick={() => setOpenMobile(false)}>
                 <Settings />

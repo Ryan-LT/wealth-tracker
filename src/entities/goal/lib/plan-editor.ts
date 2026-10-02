@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import {
   EMPTY_GOAL_PROFILE,
   GOAL_PLAN_NEW_SENTINEL,
@@ -78,7 +79,7 @@ export function upsertGoalPlan(
   const savedBase: GoalProfile = {
     ...(existingById ?? {}),
     id,
-    name: source.name.trim() || "Untitled plan",
+    name: source.name.trim() || activeMessages().domain.fallbacks.untitledPlan,
     targetAmount: source.targetAmount,
     targetDate: source.targetDate,
     monthlyContribution: ctx.incomeMonthly,

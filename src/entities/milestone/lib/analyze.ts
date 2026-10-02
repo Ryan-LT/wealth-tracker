@@ -1,4 +1,7 @@
 import type { GoalFeasibilityTone } from "@/entities/goal";
+import { activeMessages } from "@/shared/i18n/active";
+import type { Messages } from "@/shared/i18n/messages/en";
+import { formatNumber } from "@/shared/lib/format";
 import type {
   MilestoneConfigResponse,
   MilestoneSettings,
@@ -44,8 +47,11 @@ export type MilestoneAnalysis =
       /** Yearly real return assumed in the projection (fraction). */
       annualRealRate: number;
       tone: GoalFeasibilityTone;
-      label: string;
+      /** Badge text is `t.domain.milestone.verdict[verdict]`. */
+      verdict: MilestoneVerdict;
     });
+
+export type MilestoneVerdict = "on_track" | "tight" | "below";
 
 /** Apply defaults ($1M, age 35) and drop invalid values from `preferences.milestone`. */
 export function resolveMilestoneSettings(settings: MilestoneSettings | undefined): ResolvedMilestoneSettings {
@@ -114,16 +120,16 @@ export function analyzeMilestone(input: {
   });
 
   let tone: GoalFeasibilityTone;
-  let label: string;
+  let verdict: MilestoneVerdict;
   if (feasible && monthsRemaining > 1) {
     tone = "on_track";
-    label = "On track";
+    verdict = "on_track";
   } else if (feasible) {
     tone = "steady";
-    label = "Tight but possible";
+    verdict = "tight";
   } else {
     tone = "at_risk";
-    label = "Below projection";
+    verdict = "below";
   }
 
   return {
@@ -138,7 +144,7 @@ export function analyzeMilestone(input: {
     monthsRemaining,
     annualRealRate: config.annualRealRate,
     tone,
-    label,
+    verdict,
   };
 }
 
@@ -156,35 +162,43 @@ export function formatAheadOfTarget(
 ): { surplus: number; pctLabel: string; moneyLabel: string; detail: string } {
   const surplus = projected - target;
   const pct = target > 0 ? (surplus / target) * 100 : 0;
-  const pctLabel = `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+  const pctLabel = `${pct >= 0 ? "+" : ""}${formatNumber(pct, { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`;
   const moneyLabel = fmt.money(Math.abs(surplus), { signed: surplus >= 0 });
   return { surplus, pctLabel, moneyLabel, detail: `${pctLabel} · ${moneyLabel}` };
 }
 
-/** Longer explanation for the status badge tooltip. */
-export function milestoneHint(a: MilestoneAnalysis, fmt: MilestoneFormatters): string | null {
+/** Longer explanation for the status badge tooltip, in the page's language. */
+export function milestoneHint(
+  a: MilestoneAnalysis,
+  fmt: MilestoneFormatters,
+  m: Messages["domain"]["milestone"] = activeMessages().domain.milestone,
+): string | null {
   switch (a.kind) {
     case "incomplete":
-      return a.missing === "BIRTH_DATE"
-        ? `Add your date of birth in Settings to set your age-${a.targetAge} deadline.`
-        : "Add EXCHANGERATE_API_KEY for FX rates. Rates are cached in Postgres for 24h.";
+      return a.missing === "BIRTH_DATE" ? m.hintBirthDate({ age: a.targetAge }) : m.hintFxRate;
     case "achieved": {
       const ahead = formatAheadOfTarget(a.targetVnd + a.surplus, a.targetVnd, fmt);
-      return `Already ${ahead.detail} above the ${fmt.usd(a.targetUsd)} target.`;
+      return m.hintAchieved({ detail: ahead.detail, target: fmt.usd(a.targetUsd) });
     }
     case "past_deadline":
-      return `Age ${a.targetAge} deadline passed.`;
+      return m.hintPastDeadline({ age: a.targetAge });
     case "projection": {
       const ahead = formatAheadOfTarget(a.projectedEndingNetWorth, a.targetVnd, fmt);
+      const projected = fmt.money(a.projectedEndingNetWorth);
       if (a.tone === "on_track") {
-        return `Projected ${fmt.money(a.projectedEndingNetWorth)} at age ${a.targetAge} — ${ahead.pctLabel} (${ahead.moneyLabel}) above the ${fmt.usd(a.targetUsd)} goal (≈ ${fmt.money(a.targetVnd)}).`;
+        return m.hintOnTrack({
+          projected,
+          age: a.targetAge,
+          pct: ahead.pctLabel,
+          money: ahead.moneyLabel,
+          target: fmt.usd(a.targetUsd),
+          targetVnd: fmt.money(a.targetVnd),
+        });
       }
-      if (a.tone === "steady") {
-        return `Projected ${fmt.money(a.projectedEndingNetWorth)} — ${ahead.pctLabel} (${ahead.moneyLabel}) above target with very little runway left.`;
-      }
+      if (a.tone === "steady") return m.hintTight({ projected, pct: ahead.pctLabel, money: ahead.moneyLabel });
       const gap = a.targetVnd - a.projectedEndingNetWorth;
-      const shortPct = a.targetVnd > 0 ? ((gap / a.targetVnd) * 100).toFixed(1) : "0";
-      return `Trajectory lands near ${fmt.money(a.projectedEndingNetWorth)} — about ${fmt.money(gap)} (${shortPct}%) below target.`;
+      const shortPct = a.targetVnd > 0 ? formatNumber((gap / a.targetVnd) * 100, { maximumFractionDigits: 1, minimumFractionDigits: 1 }) : "0";
+      return m.hintBelow({ projected, gap: fmt.money(gap), pct: `${shortPct}%` });
     }
   }
 }

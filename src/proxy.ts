@@ -2,6 +2,29 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthEnvConfigured, verifySessionToken, WT_SESSION_COOKIE } from "@/shared/api/auth-session";
+import { isLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, LOCALES, negotiateLocale } from "@/shared/i18n/locale";
+
+/**
+ * Serve a page in the visitor's language without changing the URL: `/goals`
+ * is rewritten to the prerendered `/vi/goals` or `/en/goals`. The language is
+ * the `wt_lang` cookie, else negotiated from `Accept-Language` (and then
+ * remembered in the cookie so the service worker cache stays consistent).
+ */
+function servePage(request: NextRequest): NextResponse {
+  const { pathname } = request.nextUrl;
+  if (pathname.startsWith("/api/") || pathname.startsWith("/_")) return NextResponse.next();
+  if (LOCALES.some((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`))) return NextResponse.next();
+
+  const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
+  const lang = isLocale(cookie) ? cookie : negotiateLocale(request.headers.get("accept-language"));
+  const url = request.nextUrl.clone();
+  url.pathname = `/${lang}${pathname === "/" ? "" : pathname}`;
+  const res = NextResponse.rewrite(url);
+  if (!isLocale(cookie)) {
+    res.cookies.set(LOCALE_COOKIE, lang, { path: "/", maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: "lax" });
+  }
+  return res;
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -16,7 +39,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!isAuthEnvConfigured()) {
-    return NextResponse.next();
+    return servePage(request);
   }
 
   const token = request.cookies.get(WT_SESSION_COOKIE)?.value ?? "";
@@ -28,7 +51,7 @@ export async function proxy(request: NextRequest) {
     if (ok) {
       return NextResponse.redirect(new URL("/", request.url));
     }
-    return NextResponse.next();
+    return servePage(request);
   }
 
   if (
@@ -41,14 +64,14 @@ export async function proxy(request: NextRequest) {
 
   if (!ok) {
     if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized", code: "unauthorized" }, { status: 401 });
     }
     const login = new URL("/login", request.url);
     login.searchParams.set("from", pathname);
     return NextResponse.redirect(login);
   }
 
-  return NextResponse.next();
+  return servePage(request);
 }
 
 export const config = {

@@ -3,6 +3,7 @@
 import { ChevronRight, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+import { useI18n } from "@/shared/i18n";
 import { findNavItem } from "@/shared/config";
 import { Button } from "@/shared/ui/kit/button";
 import { Separator } from "@/shared/ui/kit/separator";
@@ -15,6 +16,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 export function TopBar() {
   const pathname = usePathname() ?? "/";
+  const { t } = useI18n();
   const match = findNavItem(pathname);
   const { setCommandOpen } = useShell();
 
@@ -28,12 +30,12 @@ export function TopBar() {
           <ol className="flex min-w-0 items-center gap-1.5 text-sm">
             {match ? (
               <>
-                <li className="hidden text-muted-foreground md:block">{match.group.label}</li>
+                <li className="hidden text-muted-foreground md:block">{t.nav.groups[match.group.id]}</li>
                 <li aria-hidden className="hidden text-muted-foreground md:block">
                   <ChevronRight className="size-3.5" />
                 </li>
                 <li className="truncate font-semibold md:font-medium" aria-current="page">
-                  {match.item.label}
+                  {t.nav.items[match.item.id].label}
                 </li>
               </>
             ) : null}

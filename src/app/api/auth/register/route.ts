@@ -12,6 +12,8 @@ import {
   validateUsername,
 } from "@/shared/lib/account-fields";
 import { validateNewPassword } from "@/shared/lib/password-policy";
+import { messagesFor } from "@/shared/i18n/active";
+import { errorText, type ErrorCode } from "@/shared/i18n/error-text";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +22,9 @@ const MAX_ATTEMPTS_PER_IP_HOUR = 20;
 const MAX_ACCOUNTS_PER_IP_HOUR = 3;
 const MAX_ACCOUNTS_PER_DAY = 50;
 
-function jsonError(message: string, status: number, field?: string) {
-  return NextResponse.json({ error: message, ...(field ? { field } : {}) }, { status });
+/** Errors carry a `code` for the client to translate, plus an English message. */
+function jsonError(code: ErrorCode, status: number, field?: string) {
+  return NextResponse.json({ error: errorText(messagesFor("en"), code), code, ...(field ? { field } : {}) }, { status });
 }
 
 /** First hop of `x-forwarded-for` (set by Vercel), HMAC'd so raw IPs are never stored. */
@@ -35,7 +38,7 @@ type Limits = { ip_attempts: number; ip_created: number; day_created: number };
 /** Create an account (empty data) and sign it in. */
 export async function POST(req: Request) {
   if (!isAuthEnvConfigured()) {
-    return jsonError("Sign-up is not available", 503);
+    return jsonError("auth_not_configured", 503);
   }
 
   let body: Record<string, unknown>;
@@ -44,13 +47,13 @@ export async function POST(req: Request) {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
     body = parsed as Record<string, unknown>;
   } catch {
-    return jsonError("Invalid body", 400);
+    return jsonError("invalid_body", 400);
   }
 
   const str = (k: string) => (typeof body[k] === "string" ? (body[k] as string) : "");
   // Hidden field a person never fills in; bots usually do.
   if (str("website")) {
-    return jsonError("Couldn't create the account", 400);
+    return jsonError("signup_rejected", 400);
   }
 
   const username = normalizeSignInName(str("username"));
@@ -73,10 +76,10 @@ export async function POST(req: Request) {
       FROM wealthtracker_signup_attempts
     `) as Limits[];
     if (limits.ip_attempts >= MAX_ATTEMPTS_PER_IP_HOUR || limits.ip_created >= MAX_ACCOUNTS_PER_IP_HOUR) {
-      return jsonError("Too many sign-ups from this network. Try again in an hour.", 429);
+      return jsonError("signup_rate_limited", 429);
     }
     if (limits.day_created >= MAX_ACCOUNTS_PER_DAY) {
-      return jsonError("Sign-ups are paused for today. Try again tomorrow.", 429);
+      return jsonError("signup_paused", 429);
     }
 
     const invalid =
@@ -101,11 +104,11 @@ export async function POST(req: Request) {
     `) as { username_taken: boolean | null; email_taken: boolean | null }[];
     if (taken[0]?.username_taken) {
       await recordAttempt(false);
-      return jsonError("That username is taken.", 409, "username");
+      return jsonError("username_taken", 409, "username");
     }
     if (taken[0]?.email_taken) {
       await recordAttempt(false);
-      return jsonError("That email is already used by another account.", 409, "email");
+      return jsonError("email_taken", 409, "email");
     }
 
     let created: { id: string }[];
@@ -119,7 +122,7 @@ export async function POST(req: Request) {
       // Lost a race with a sign-up for the same name.
       if ((e as { code?: string }).code === "23505") {
         await recordAttempt(false);
-        return jsonError("That username or email is already used.", 409);
+        return jsonError("name_taken", 409);
       }
       throw e;
     }
@@ -130,6 +133,6 @@ export async function POST(req: Request) {
     return res;
   } catch (e) {
     console.error("[wealthtracker] sign-up failed", e);
-    return jsonError("Sign-up is unavailable right now", 500);
+    return jsonError("unavailable", 500);
   }
 }

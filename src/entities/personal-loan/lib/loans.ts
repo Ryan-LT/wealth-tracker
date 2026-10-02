@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import type {
   PersonalLoan,
   PersonalLoanDirection,
@@ -45,7 +46,7 @@ export function totalOpenAmount(
 export function sanitizePersonalLoan(draft: PersonalLoan): PersonalLoan {
   return {
     ...draft,
-    person: draft.person.trim() || "Someone",
+    person: draft.person.trim() || activeMessages().domain.fallbacks.someone,
     amount: Math.max(0, Number.isFinite(draft.amount) ? draft.amount : 0),
     note: draft.note?.trim() ? draft.note.trim() : undefined,
     date: draft.date && draft.date.trim() ? draft.date : undefined,

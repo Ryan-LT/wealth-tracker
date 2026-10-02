@@ -13,6 +13,7 @@ import {
   type MilestoneSettings,
 } from "@/entities/milestone";
 import type { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
+import { useI18n } from "@/shared/i18n";
 import { formatDate, formatMoney, formatMonths, formatOrdinal, formatPercent, formatUsd, formatUsdCompact } from "@/shared/lib/format";
 import { Callout } from "@/shared/ui/callout";
 import { DescriptionList } from "@/shared/ui/description-list";
@@ -59,6 +60,7 @@ export function MilestoneCard({
   configState: ReturnType<typeof useMilestoneConfig>;
 }) {
   const { config, error, reload } = configState;
+  const { t } = useI18n();
   const settings = resolveMilestoneSettings(rawSettings);
   const heading = title(settings.targetUsd, settings.targetAge);
 
@@ -89,7 +91,7 @@ export function MilestoneCard({
   }
 
   const a = analyzeMilestone({ config, settings, currentNetWorth: netWorth, monthlyNetContribution: monthlyNet });
-  const hint = milestoneHint(a, FMT);
+  const hint = milestoneHint(a, FMT, t.domain.milestone);
 
   if (a.kind === "incomplete") {
     return (
@@ -115,10 +117,10 @@ export function MilestoneCard({
 
   const badge =
     a.kind === "achieved"
-      ? { tone: "success" as const, icon: CircleCheck, label: "Target met" }
+      ? { tone: "success" as const, icon: CircleCheck, label: t.domain.milestone.targetMet }
       : a.kind === "past_deadline"
-        ? { tone: "danger" as const, icon: TriangleAlert, label: "Past milestone" }
-        : { tone: feasibilityToneMeta(a.tone).status, icon: feasibilityToneMeta(a.tone).icon, label: a.label };
+        ? { tone: "danger" as const, icon: TriangleAlert, label: t.domain.milestone.pastMilestone }
+        : { tone: feasibilityToneMeta(a.tone).status, icon: feasibilityToneMeta(a.tone).icon, label: t.domain.milestone.verdict[a.verdict] };
   const detail = milestoneChipDetail(a, netWorth, FMT);
 
   return (

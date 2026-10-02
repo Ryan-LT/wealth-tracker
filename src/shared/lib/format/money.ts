@@ -1,3 +1,4 @@
+import { formatLocale } from "./locale";
 import { formatNumber, MINUS, signPrefix, type SignDisplay } from "./number";
 
 const SYMBOL = "₫";
@@ -17,15 +18,16 @@ export function formatMoney(amount: number, opts: MoneyFormatOptions = {}): stri
 }
 
 const UNITS = [
-  { value: 1e12, suffix: "T" },
-  { value: 1e9, suffix: "B" },
-  { value: 1e6, suffix: "M" },
-  { value: 1e3, suffix: "K" },
+  { value: 1e12, suffix: { en: "T", vi: " nghìn tỷ" } },
+  { value: 1e9, suffix: { en: "B", vi: " tỷ" } },
+  { value: 1e6, suffix: { en: "M", vi: " tr" } },
+  { value: 1e3, suffix: { en: "K", vi: "K" } },
 ] as const;
 
 /**
  * Compact VND for KPI tiles and chart axes, 3 significant digits:
- * `4,82B ₫`, `32,5M ₫`, `850K ₫`. Always pair with the full value (tooltip/label).
+ * `4,82B ₫`, `32,5M ₫`, `850K ₫` (Vietnamese: `4,82 tỷ ₫`, `32,5 tr ₫`, `850K ₫`).
+ * Always pair with the full value (tooltip/label).
  */
 export function formatMoneyCompact(amount: number, opts: MoneyFormatOptions = {}): string {
   const { signDisplay = "auto", symbol = true } = opts;
@@ -48,7 +50,7 @@ export function formatMoneyCompact(amount: number, opts: MoneyFormatOptions = {}
       rounded = roundSignificant(scaled, 3);
     }
     const intDigits = Math.floor(rounded).toString().length;
-    body = `${formatNumber(rounded, { maximumFractionDigits: Math.max(0, 3 - intDigits) })}${UNITS[unitIndex].suffix}`;
+    body = `${formatNumber(rounded, { maximumFractionDigits: Math.max(0, 3 - intDigits) })}${UNITS[unitIndex].suffix[formatLocale()]}`;
   }
   return symbol ? `${sign}${body} ${SYMBOL}` : `${sign}${body}`;
 }

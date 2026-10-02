@@ -73,7 +73,7 @@ export function GoalPlansCard({ plans, monthlyNet, onOpenPlan }: GoalPlansCardPr
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="min-w-0 truncate font-medium">{plan.name}</span>
-                    <FeasibilityBadge tone={health.tone} label={health.label} hint={health.hint} interactive={false} />
+                    <FeasibilityBadge tone={health.tone} code={health.code} interactive={false} />
                   </div>
                   <div className="flex items-center gap-3">
                     <Progress value={pct} className="flex-1" />

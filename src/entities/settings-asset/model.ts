@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 /** How quickly catalog asset value can be accessed (withdraw / spend). */
 export type SettingsAssetLiquidity = "instant" | "not_instant";
 
@@ -23,10 +24,9 @@ export function resolveSettingsAssetLiquidity(
 
 export function settingsAssetLiquidityLabel(
   value: SettingsAsset["liquidity"],
-): "Instant" | "Not instant" {
-  return resolveSettingsAssetLiquidity(value) === "instant"
-    ? "Instant"
-    : "Not instant";
+): string {
+  const m = activeMessages().domain.liquidity;
+  return resolveSettingsAssetLiquidity(value) === "instant" ? m.instant : m.notInstant;
 }
 
 export const SETTINGS_ASSET_LIQUIDITY_DEFAULT: SettingsAssetLiquidity = "instant";

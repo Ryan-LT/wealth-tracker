@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import type { AssetsState } from "@/entities/asset";
 import {
   resolveSettingsAssetLiquidity,
@@ -32,23 +33,24 @@ export function buildGoalStartingOptions(
   assets: AssetsState,
   catalog: SettingsAsset[],
 ): GoalStartingOption[] {
+  const m = activeMessages().domain.startingOptions;
   const rows: GoalStartingOption[] = [
-    { key: "none", label: "No starting balance (0 ₫)", amount: 0 },
+    { key: "none", label: m.none, amount: 0 },
   ];
 
   for (const p of assets.realEstate) {
     rows.push({
       key: `re:${p.id}`,
-      label: `Real estate — ${p.name}`,
+      label: m.realEstate({ name: p.name }),
       amount: p.estValue,
       liquidity: "not_instant",
     });
   }
   for (const c of assets.cashAccounts) {
-    const title = c.details?.trim() || c.category || "Cash account";
+    const title = c.details?.trim() || c.category || m.cashFallback;
     rows.push({
       key: `cash:${c.id}`,
-      label: `Cash — ${title}`,
+      label: m.cash({ name: title }),
       amount: c.balance,
       liquidity: "instant",
     });
@@ -56,7 +58,7 @@ export function buildGoalStartingOptions(
   for (const i of assets.investments) {
     rows.push({
       key: `inv:${i.id}`,
-      label: `Investment — ${i.name}`,
+      label: m.investment({ name: i.name }),
       amount: i.value,
       liquidity: "not_instant",
     });
@@ -71,7 +73,7 @@ export function buildGoalStartingOptions(
     });
   }
 
-  rows.push({ key: "custom", label: "Custom starting balance…", amount: 0, isCustom: true });
+  rows.push({ key: "custom", label: m.custom, amount: 0, isCustom: true });
 
   return rows;
 }

@@ -1,0 +1,28 @@
+import type { Messages } from "../en";
+
+export const errors: Messages["errors"] = {
+  unauthorized: "Phiên đăng nhập đã kết thúc. Vui lòng đăng nhập lại.",
+  invalid_credentials: "Sai tên đăng nhập hoặc mật khẩu",
+  locked: (p) => `Thử quá nhiều lần. Vui lòng thử lại sau ${p.minutes} phút.`,
+  unavailable: "Hiện chưa dùng được chức năng này. Vui lòng thử lại sau.",
+  auth_not_configured: "Máy chủ này chưa thiết lập đăng nhập.",
+  invalid_body: "Yêu cầu gửi lên bị lỗi.",
+  current_incorrect: "Mật khẩu hiện tại không đúng",
+  username_taken: "Tên đăng nhập này đã có người dùng.",
+  email_taken: "Email này đã được một tài khoản khác sử dụng.",
+  name_taken: "Tên đăng nhập hoặc email này đã được sử dụng.",
+  signup_rate_limited: "Mạng này đã đăng ký quá nhiều lần. Vui lòng thử lại sau một giờ.",
+  signup_paused: "Hôm nay tạm ngừng đăng ký. Vui lòng thử lại vào ngày mai.",
+  signup_rejected: "Không tạo được tài khoản",
+  account_mismatch: "Những thay đổi này thuộc về một tài khoản khác",
+  generic: (p) => `Đã có lỗi xảy ra (${p.status})`,
+  username_length: "Dùng 3–32 ký tự.",
+  username_chars: "Dùng chữ cái không dấu, chữ số, dấu chấm, gạch ngang hoặc gạch dưới, bắt đầu bằng chữ hoặc số.",
+  email_invalid: "Nhập email hợp lệ, hoặc để trống.",
+  display_name_long: (p) => `Dùng tối đa ${p.max} ký tự.`,
+  password_short: (p) => `Dùng ít nhất ${p.min} ký tự.`,
+  password_long: (p) => `Dùng tối đa ${p.max} ký tự.`,
+  password_same: "Hãy chọn mật khẩu khác mật khẩu hiện tại.",
+  password_is_name: "Đừng dùng tên đăng nhập hoặc email làm mật khẩu.",
+  password_mismatch: "Mật khẩu xác nhận không khớp.",
+};

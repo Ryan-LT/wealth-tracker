@@ -1,4 +1,5 @@
 import type { Preferences } from "@/entities/preferences";
+import { activeMessages } from "@/shared/i18n/active";
 import type { SettingsAsset } from "@/entities/settings-asset/model";
 
 /**
@@ -44,6 +45,16 @@ const DEFAULT_CATEGORY_EMOJI: Record<DefaultAssetCategory, string> = {
   "Precious Metals": "💎",
   Business: "💼",
 };
+
+/**
+ * Display name for a category. Built-in categories are stored in English and
+ * shown in the page's language; user-made categories are shown as typed.
+ */
+export function assetCategoryLabel(category: string): string {
+  const key = category.trim();
+  if (!key) return activeMessages().domain.fallbacks.uncategorized;
+  return activeMessages().domain.categories[key] ?? key;
+}
 
 export function isDefaultAssetCategory(label: string): boolean {
   return defaultSet.has(label.trim());

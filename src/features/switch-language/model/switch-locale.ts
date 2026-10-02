@@ -1,0 +1,24 @@
+"use client";
+
+import { LOCALE_COOKIE, type Locale } from "@/shared/i18n/locale";
+
+/** Service-worker caches holding rendered pages (one language each). */
+const PAGE_CACHES = ["wealthtracker-pages", "pages-rsc", "pages-rsc-prefetch"];
+
+export function writeLocaleCookie(locale: Locale): void {
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+}
+
+/**
+ * Load the app in `locale`: remember it on this device, drop cached pages of the
+ * other language, and reload (each language is its own prerendered page).
+ */
+export async function reloadInLocale(locale: Locale): Promise<void> {
+  writeLocaleCookie(locale);
+  try {
+    if (typeof caches !== "undefined") await Promise.all(PAGE_CACHES.map((name) => caches.delete(name)));
+  } catch {
+    // Cache Storage unavailable — the network copy is fetched anyway.
+  }
+  window.location.reload();
+}

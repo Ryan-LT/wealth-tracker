@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import type { AssetsState } from "@/entities/asset";
 import {
   buildGoalStartingOptions,
@@ -125,7 +126,7 @@ export function buildAllocationReport(
 
   const plans: AllocationPlanColumn[] = saved.map((p) => ({
     id: p.id,
-    name: p.name.trim() || "Untitled plan",
+    name: p.name.trim() || activeMessages().domain.fallbacks.untitledPlan,
     usesMonthlyIncome: p.includeMonthlyIncome !== false,
     effectiveStartingTotal: totalGoalStartingBalance(
       p.seedLines,

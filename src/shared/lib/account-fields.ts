@@ -9,21 +9,22 @@ export function normalizeSignInName(value: string): string {
   return value.trim().toLowerCase();
 }
 
-export function validateUsername(raw: string): string | null {
+/** Error codes are translated with `t.errors[code]` (see `fieldErrorText`). */
+export function validateUsername(raw: string): "username_length" | "username_chars" | null {
   const username = normalizeSignInName(raw);
-  if (username.length < 3 || username.length > 32) return "Use 3–32 characters.";
-  if (!USERNAME_PATTERN.test(username)) return "Use letters, numbers, dots, dashes or underscores, starting with a letter or number.";
+  if (username.length < 3 || username.length > 32) return "username_length";
+  if (!USERNAME_PATTERN.test(username)) return "username_chars";
   return null;
 }
 
 /** Email is optional: an empty value is valid. */
-export function validateEmail(raw: string): string | null {
+export function validateEmail(raw: string): "email_invalid" | null {
   const email = normalizeSignInName(raw);
   if (!email) return null;
-  if (email.length > 254 || !EMAIL_PATTERN.test(email)) return "Enter a valid email address, or leave it empty.";
+  if (email.length > 254 || !EMAIL_PATTERN.test(email)) return "email_invalid";
   return null;
 }
 
-export function validateDisplayName(raw: string): string | null {
-  return raw.trim().length > DISPLAY_NAME_MAX ? `Use at most ${DISPLAY_NAME_MAX} characters.` : null;
+export function validateDisplayName(raw: string): "display_name_long" | null {
+  return raw.trim().length > DISPLAY_NAME_MAX ? "display_name_long" : null;
 }

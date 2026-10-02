@@ -4,16 +4,18 @@ import {
   checkPassword,
   displayNameOf,
   issueSessionCookies,
-  LOCK_MINUTES,
   requireActiveUser,
 } from "@/shared/api/account";
 import { getSql } from "@/shared/api/db";
 import { validateNewPassword } from "@/shared/lib/password-policy";
+import { messagesFor } from "@/shared/i18n/active";
+import { errorText, type ErrorCode } from "@/shared/i18n/error-text";
 
 export const dynamic = "force-dynamic";
 
-function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+/** Errors carry a `code` for the client to translate, plus an English message. */
+function jsonError(code: ErrorCode, status: number, field?: string) {
+  return NextResponse.json({ error: errorText(messagesFor("en"), code), code, ...(field ? { field } : {}) }, { status });
 }
 
 /**
@@ -25,29 +27,29 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return jsonError("Invalid JSON", 400);
+    return jsonError("invalid_body", 400);
   }
   if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return jsonError("Invalid body", 400);
+    return jsonError("invalid_body", 400);
   }
   const currentPassword = (body as { currentPassword?: unknown }).currentPassword;
   const newPassword = (body as { newPassword?: unknown }).newPassword;
   if (typeof currentPassword !== "string" || typeof newPassword !== "string") {
-    return jsonError("currentPassword and newPassword are required", 400);
+    return jsonError("invalid_body", 400);
   }
 
   try {
     const session = await requireActiveUser(req);
     if (!session) {
-      return jsonError("Unauthorized", 401);
+      return jsonError("unauthorized", 401);
     }
 
     const check = await checkPassword({ userId: session.sub }, currentPassword);
     if (check.result === "locked") {
-      return jsonError(`Too many attempts. Try again in ${LOCK_MINUTES} minutes.`, 429);
+      return jsonError("locked", 429);
     }
     if (check.result !== "ok") {
-      return jsonError("Current password is incorrect", 400);
+      return jsonError("current_incorrect", 400);
     }
 
     const problem = validateNewPassword(newPassword, {
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
       email: check.user.email,
     });
     if (problem) {
-      return jsonError(problem, 400);
+      return jsonError(problem, 400, "newPassword");
     }
 
     await getSql()`
@@ -73,6 +75,6 @@ export async function POST(req: Request) {
     return res;
   } catch (e) {
     console.error("[wealthtracker] password change failed", e);
-    return jsonError("Couldn't change the password right now", 500);
+    return jsonError("unavailable", 500);
   }
 }

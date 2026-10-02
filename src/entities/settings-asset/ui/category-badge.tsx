@@ -1,11 +1,11 @@
-import { resolveAssetCategoryEmoji } from "@/entities/settings-asset/config/categories";
+import { assetCategoryLabel, resolveAssetCategoryEmoji } from "@/entities/settings-asset/config/categories";
 import { cn } from "@/shared/lib/cn";
 
 type CategoryBadgeProps = { category: string; className?: string };
 
 /** Neutral chip with the category emoji. */
 export function CategoryBadge({ category, className }: CategoryBadgeProps) {
-  const label = category.trim() || "Uncategorized";
+  const label = assetCategoryLabel(category);
   return (
     <span
       title={label}

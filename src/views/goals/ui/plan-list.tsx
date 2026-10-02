@@ -87,7 +87,7 @@ export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposing
                   <span className="truncate">
                     <Money value={r.targetAmount} compact interactive={false} /> {r.targetDate ? `· ${formatDate(r.targetDate, "monthYear")}` : ""}
                   </span>
-                  <FeasibilityBadge tone={r.health.tone} label={r.health.label} />
+                  <FeasibilityBadge tone={r.health.tone} code={r.health.code} showHint={false} />
                 </div>
               </button>
             </li>

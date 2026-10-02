@@ -1,3 +1,5 @@
+import { activeMessages } from "@/shared/i18n/active";
+import type { Messages } from "@/shared/i18n/messages/en";
 import { fractionalMonthsBetween, parseIsoDay } from "@/shared/lib/date";
 import { futureValue } from "@/shared/lib/growth";
 
@@ -117,29 +119,31 @@ export function computeGoalProjection(input: GoalProjectionInput): GoalProjectio
   };
 }
 
+/** The projection note in the page's language (`t.domain.projectionNote`). */
 export function describeGoalProjectionNote(
   note: GoalProjectionNote,
   fmt: (amount: number) => string,
+  m: Messages["domain"]["projectionNote"] = activeMessages().domain.projectionNote,
 ): string {
   switch (note.kind) {
     case "incomplete":
-      return "Add target, date, and starting sources.";
+      return m.incomplete;
     case "past_due":
-      return `The target date has passed — still short ~${fmt(note.gap)}. Move the date or the target.`;
+      return m.pastDue({ gap: fmt(note.gap) });
     case "no_share":
-      return "This plan gets 0 % of your monthly savings — give it a share or lower the other plans' shares.";
+      return m.noShare;
     case "no_income":
-      return "No monthly income recorded — only starting allocations count.";
+      return m.noIncome;
     case "non_positive_net":
-      return "Monthly net is zero or negative after spending — increase income or lower average spending.";
+      return m.nonPositiveNet;
     case "income_off_short":
-      return `Income off for this plan — reaches ${fmt(note.flatAt)}; short ~${fmt(note.gap)}.`;
+      return m.incomeOffShort({ flatAt: fmt(note.flatAt), gap: fmt(note.gap) });
     case "ahead":
-      return `Ahead by ~${fmt(note.surplus)}.`;
+      return m.ahead({ surplus: fmt(note.surplus) });
     case "on_target":
-      return "On target.";
+      return m.onTarget;
     case "short":
-      return `Short ~${fmt(note.gap)} vs target.`;
+      return m.short({ gap: fmt(note.gap) });
   }
 }
 

@@ -1,0 +1,28 @@
+/** Server error codes and validation codes → messages. */
+export const errors = {
+  unauthorized: "Your session ended. Please sign in again.",
+  invalid_credentials: "Invalid username or password",
+  locked: (p: { minutes: number }) => `Too many attempts. Try again in ${p.minutes} minutes.`,
+  unavailable: "This is unavailable right now. Please try again later.",
+  auth_not_configured: "Sign-in is not set up on this server.",
+  invalid_body: "Something went wrong with the request.",
+  current_incorrect: "Current password is incorrect",
+  username_taken: "That username is taken.",
+  email_taken: "That email is already used by another account.",
+  name_taken: "That username or email is already used.",
+  signup_rate_limited: "Too many sign-ups from this network. Try again in an hour.",
+  signup_paused: "Sign-ups are paused for today. Try again tomorrow.",
+  signup_rejected: "Couldn't create the account",
+  account_mismatch: "These changes belong to a different account",
+  generic: (p: { status: number }) => `Something went wrong (${p.status})`,
+  // Field validation (shared by forms and the API).
+  username_length: "Use 3–32 characters.",
+  username_chars: "Use letters, numbers, dots, dashes or underscores, starting with a letter or number.",
+  email_invalid: "Enter a valid email address, or leave it empty.",
+  display_name_long: (p: { max: number }) => `Use at most ${p.max} characters.`,
+  password_short: (p: { min: number }) => `Use at least ${p.min} characters.`,
+  password_long: (p: { max: number }) => `Use at most ${p.max} characters.`,
+  password_same: "Choose a password different from the current one.",
+  password_is_name: "Don't use your username or email as the password.",
+  password_mismatch: "Passwords don't match.",
+};

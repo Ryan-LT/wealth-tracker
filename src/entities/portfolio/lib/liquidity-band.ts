@@ -1,15 +1,17 @@
+import { activeMessages } from "@/shared/i18n/active";
 import type { StatusTone } from "@/shared/lib/tone";
 
 import type { LiquidityBand } from "./allocation-report";
 
 export function liquidityBandLabel(band: LiquidityBand): string {
+  const m = activeMessages().domain.liquidity;
   switch (band) {
     case "instant":
-      return "Instant access";
+      return m.bandInstant;
     case "not_instant":
-      return "Not instant";
+      return m.bandNotInstant;
     case "custom":
-      return "Custom model";
+      return m.bandCustom;
     default:
       return "—";
   }

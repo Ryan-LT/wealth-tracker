@@ -1,3 +1,4 @@
+import { activeMessages } from "@/shared/i18n/active";
 import type { Debt } from "@/entities/debt/model";
 
 export function createDebtDraft(now: number = Date.now()): Debt {
@@ -20,7 +21,7 @@ export function sanitizeDebt(draft: Debt): Debt {
   const day = draft.paymentDayOfMonth;
   return {
     ...draft,
-    name: draft.name.trim() || "Debt",
+    name: draft.name.trim() || activeMessages().domain.fallbacks.debt,
     balance: Math.max(0, draft.balance),
     ratePct: Math.min(100, Math.max(0, draft.ratePct)),
     rateKind: draft.rateKind,

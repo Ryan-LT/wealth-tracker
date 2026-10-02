@@ -21,6 +21,21 @@ import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 import { Logo } from "@/shared/ui/logo";
 
+/**
+ * The in-app page to return to after sign-in, else `/`. Resolved as a URL so
+ * tricks like `/\evil.com` (browsers read `\` as `/`) can't leave the site.
+ */
+function safeReturnPath(from: string | null): string {
+  if (!from) return "/";
+  try {
+    const url = new URL(from, window.location.origin);
+    if (url.origin !== window.location.origin || url.pathname === "/login") return "/";
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return "/";
+  }
+}
+
 export function LoginForm() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
@@ -46,11 +61,8 @@ export function LoginForm() {
           return;
         }
         await clearTablesResponseCache();
-        const dest = searchParams.get("from");
         // Full load so nothing from a previous account stays in memory.
-        window.location.replace(
-          dest && dest.startsWith("/") && !dest.startsWith("//") && dest !== "/login" ? dest : "/",
-        );
+        window.location.replace(safeReturnPath(searchParams.get("from")));
         return;
       } catch {
         setError(t.common.networkError);

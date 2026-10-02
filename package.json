@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "TZ=Asia/Ho_Chi_Minh vitest run",
     "test:watch": "TZ=Asia/Ho_Chi_Minh vitest"
   },

@@ -1,10 +1,10 @@
-import { createHmac } from "node:crypto";
-
 import { NextResponse } from "next/server";
 
 import { issueSessionCookies } from "@/shared/api/account";
 import { isAuthEnvConfigured } from "@/shared/api/auth-session";
+import { clientIpHash } from "@/shared/api/client-ip";
 import { getSql } from "@/shared/api/db";
+import { isCrossSiteRequest } from "@/shared/api/request-guard";
 import {
   normalizeSignInName,
   validateDisplayName,
@@ -27,18 +27,15 @@ function jsonError(code: ErrorCode, status: number, field?: string) {
   return NextResponse.json({ error: errorText(messagesFor("en"), code), code, ...(field ? { field } : {}) }, { status });
 }
 
-/** First hop of `x-forwarded-for` (set by Vercel), HMAC'd so raw IPs are never stored. */
-function clientIpHash(req: Request): string {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-  return createHmac("sha256", process.env.AUTH_SECRET!.trim()).update(ip).digest("base64url");
-}
-
 type Limits = { ip_attempts: number; ip_created: number; day_created: number };
 
 /** Create an account (empty data) and sign it in. */
 export async function POST(req: Request) {
   if (!isAuthEnvConfigured()) {
     return jsonError("auth_not_configured", 503);
+  }
+  if (isCrossSiteRequest(req, { json: true })) {
+    return jsonError("cross_site", 403);
   }
 
   let body: Record<string, unknown>;

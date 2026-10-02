@@ -1,3 +1,7 @@
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+
+overrides:
+  # 4.28.6 (pulled in as a peer by @serwist/next) has GHSA advisories; build-time only.
+  browserslist: ">=4.28.7"

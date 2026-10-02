@@ -1,5 +1,6 @@
 import { requireActiveUser } from "@/shared/api/account";
 import { getSql } from "@/shared/api/db";
+import { isCrossSiteRequest } from "@/shared/api/request-guard";
 import { isTableKey } from "@/shared/storage/table-keys";
 
 export const dynamic = "force-dynamic";
@@ -7,11 +8,20 @@ export const dynamic = "force-dynamic";
 /** Client header naming the account its pending edits belong to; must match the session. */
 const USER_HEADER = "x-wt-user";
 
+/** Longest JSON text one table may hold, in characters (real data is a few KB). */
+const MAX_TABLE_JSON_LENGTH = 1_000_000;
+
 function jsonError(message: string, status: number, code?: string) {
   return Response.json({ error: message, ...(code ? { code } : {}) }, { status });
 }
 
 type Row = { key: string; value: unknown };
+
+/** Log the real failure; the client only learns that the database failed. */
+function databaseError(e: unknown) {
+  console.error("[wealthtracker] tables query failed", e);
+  return jsonError("Database error", 500, "unavailable");
+}
 
 /** The signed-in user's tables (missing keys → client uses empty seeds). */
 export async function GET(req: Request) {
@@ -35,19 +45,20 @@ export async function GET(req: Request) {
     }
     return Response.json({ userId: user.sub, tables });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Database error";
-    return jsonError(message, 500);
+    return databaseError(e);
   }
 }
 
 /** Upsert one or more of the signed-in user's tables (partial updates allowed). */
 export async function PUT(req: Request) {
+  if (isCrossSiteRequest(req, { json: true })) {
+    return jsonError("This request didn't come from the app", 403, "cross_site");
+  }
   let user: Awaited<ReturnType<typeof requireActiveUser>>;
   try {
     user = await requireActiveUser(req);
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Database error";
-    return jsonError(message, 500);
+    return databaseError(e);
   }
   if (!user) {
     return jsonError("Unauthorized", 401, "unauthorized");
@@ -77,10 +88,14 @@ export async function PUT(req: Request) {
     ([k, v]) => isTableKey(k) && v !== undefined,
   );
 
+  const payloads = entries.map(([key, value]) => [key, JSON.stringify(value)] as const);
+  if (payloads.some(([, payload]) => payload.length > MAX_TABLE_JSON_LENGTH)) {
+    return jsonError("Table too large", 413, "too_large");
+  }
+
   try {
     const sql = getSql();
-    for (const [key, value] of entries) {
-      const payload = JSON.stringify(value);
+    for (const [key, payload] of payloads) {
       await sql`
         INSERT INTO wealthtracker_kv (user_id, key, value, updated_at)
         VALUES (${user.sub}, ${key}, ${payload}::jsonb, now())
@@ -92,7 +107,6 @@ export async function PUT(req: Request) {
     }
     return Response.json({ ok: true, written: entries.map(([k]) => k) });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Database error";
-    return jsonError(message, 500);
+    return databaseError(e);
   }
 }

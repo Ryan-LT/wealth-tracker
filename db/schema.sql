@@ -62,3 +62,13 @@ CREATE TABLE IF NOT EXISTS wealthtracker_signup_attempts (
 
 CREATE INDEX IF NOT EXISTS wealthtracker_signup_attempts_ip_idx ON wealthtracker_signup_attempts (ip_hash, created_at DESC);
 CREATE INDEX IF NOT EXISTS wealthtracker_signup_attempts_created_idx ON wealthtracker_signup_attempts (created_at DESC);
+
+-- Wrong sign-ins per network, for the login throttle (rows older than a day are pruned by the app).
+CREATE TABLE IF NOT EXISTS wealthtracker_login_failures (
+  /** HMAC of the client IP (never the raw address). */
+  ip_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS wealthtracker_login_failures_ip_idx ON wealthtracker_login_failures (ip_hash, created_at DESC);
+CREATE INDEX IF NOT EXISTS wealthtracker_login_failures_created_idx ON wealthtracker_login_failures (created_at DESC);

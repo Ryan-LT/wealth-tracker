@@ -7,6 +7,7 @@ import {
   requireActiveUser,
 } from "@/shared/api/account";
 import { getSql } from "@/shared/api/db";
+import { isCrossSiteRequest } from "@/shared/api/request-guard";
 import { validateNewPassword } from "@/shared/lib/password-policy";
 import { messagesFor } from "@/shared/i18n/active";
 import { errorText, type ErrorCode } from "@/shared/i18n/error-text";
@@ -23,6 +24,9 @@ function jsonError(code: ErrorCode, status: number, field?: string) {
  * (their sessions predate `password_changed_at`); this one gets a fresh session.
  */
 export async function POST(req: Request) {
+  if (isCrossSiteRequest(req, { json: true })) {
+    return jsonError("cross_site", 403);
+  }
   let body: unknown;
   try {
     body = await req.json();

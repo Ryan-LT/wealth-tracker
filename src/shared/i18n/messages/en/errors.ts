@@ -14,6 +14,9 @@ export const errors = {
   signup_paused: "Sign-ups are paused for today. Try again tomorrow.",
   signup_rejected: "Couldn't create the account",
   account_mismatch: "These changes belong to a different account",
+  cross_site: "This request didn't come from the app. Reload the page and try again.",
+  login_rate_limited: "Too many sign-in attempts from this network. Try again in 15 minutes.",
+  too_large: "This is too much data to save at once.",
   generic: (p: { status: number }) => `Something went wrong (${p.status})`,
   // Field validation (shared by forms and the API).
   username_length: "Use 3–32 characters.",

@@ -8,7 +8,15 @@ import { Button } from "@/shared/ui/kit/button";
 import { Label } from "@/shared/ui/kit/label";
 
 /** Explicit save (no write per keystroke). */
-export function SpendingForm({ value, onSave }: { value: number; onSave: (amount: number) => void }) {
+export function SpendingForm({
+  value,
+  onSave,
+  label = "Average monthly spending",
+}: {
+  value: number;
+  onSave: (amount: number) => void;
+  label?: string;
+}) {
   const [draft, setDraft] = useState(value);
   const [synced, setSynced] = useState(value);
   if (synced !== value) {
@@ -26,8 +34,8 @@ export function SpendingForm({ value, onSave }: { value: number; onSave: (amount
         if (dirty) onSave(draft);
       }}
     >
-      <div className="grid flex-1 gap-1.5 sm:max-w-xs">
-        <Label htmlFor="avg-spending">Average monthly spending</Label>
+      <div className="grid flex-1 gap-1.5">
+        <Label htmlFor="avg-spending">{label}</Label>
         <MoneyInput id="avg-spending" value={draft} onChange={setDraft} min={0} />
       </div>
       <div className="flex gap-2">

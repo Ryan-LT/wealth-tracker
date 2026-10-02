@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Briefcase, PiggyBank, Plus, Receipt, ShoppingCart, Trash2, Pencil, TrendingUp, Wallet } from "lucide-react";
+import { Briefcase, PiggyBank, Plus, Receipt, Trash2, Pencil } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,7 +18,7 @@ import {
 import { summarizeCashflow } from "@/entities/portfolio";
 import { applyAverageMonthlySpending, PREFERENCES_SEED } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
-import { formatOrdinal, formatPercent } from "@/shared/lib/format";
+import { formatOrdinal } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
@@ -29,12 +29,11 @@ import { Button } from "@/shared/ui/kit/button";
 import { Money } from "@/shared/ui/money";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
-import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { PageContainer } from "@/widgets/app-shell";
 
 import { IncomeSourceFormDialog } from "./income-source-form-dialog";
-import { SpendingForm } from "./spending-form";
+import { CashFlowPanel } from "./cash-flow-panel";
 
 type DialogState = { mode: "create" | "edit"; source: IncomeSource };
 
@@ -156,13 +155,11 @@ export function IncomePage() {
     [actionsFor, cash.totalIncome],
   );
 
-  const savingsRate = cash.totalIncome > 0 ? (cash.monthlyNet / cash.totalIncome) * 100 : 0;
-
   return (
     <PageContainer>
       <PageHeader
         title="Income & spending"
-        description="Monthly income sources and average spending drive every projection in the app."
+        description="What comes in each month, what goes out, and what is left to save."
         actions={
           <Button onClick={openCreate}>
             <Plus />
@@ -171,39 +168,15 @@ export function IncomePage() {
         }
       />
 
-      <StatGrid>
-        <StatCard
-          label="Monthly income"
-          icon={TrendingUp}
-          value={<Money value={cash.totalIncome} compact />}
-          hint={
-            <>
-              Active <Money value={cash.activeIncome} compact /> · Passive <Money value={cash.passiveIncome} compact />
-            </>
-          }
-        />
-        <StatCard label="Average spending" icon={ShoppingCart} value={<Money value={cash.averageSpending} compact />} hint="Per month" />
-        <StatCard label="Net monthly savings" icon={Wallet} value={<Money value={cash.monthlyNet} compact signed tone="auto" />} hint="Used by goal projections" />
-        <StatCard
-          label="Savings rate"
-          icon={PiggyBank}
-          value={cash.totalIncome > 0 ? formatPercent(savingsRate, { maximumFractionDigits: 0 }) : "—"}
-          hint="Net savings ÷ income"
-        />
-      </StatGrid>
-
-      <Section
-        title="Average monthly spending"
-        description="Your typical living costs. Income minus this is the monthly net used on the dashboard, in goal plans and in the year-end estimate."
-      >
-        <SpendingForm
-          value={cash.averageSpending}
-          onSave={(amount) => {
-            setPrefs((p) => applyAverageMonthlySpending(p, amount));
-            toast.success("Average spending saved");
-          }}
-        />
-      </Section>
+      <CashFlowPanel
+        cash={cash}
+        sourceCount={sources.length}
+        onAddSource={openCreate}
+        onSaveSpending={(amount) => {
+          setPrefs((p) => applyAverageMonthlySpending(p, amount));
+          toast.success("Average spending saved");
+        }}
+      />
 
       <Section title="Income sources" description={`${sources.length} ${sources.length === 1 ? "source" : "sources"}`} flush>
         <DataTable

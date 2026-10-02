@@ -46,16 +46,25 @@ export function useSwitchLanguageSignedOut() {
 const SYNC_GUARD = "wealthtracker:locale-sync";
 
 /**
- * After sign-in on a new device: if the account's language differs from this
- * page's, switch once (guarded so a stuck cookie can't cause a reload loop).
+ * Keep the account and this device on the same language:
+ * - an account without a saved language gets the one in use now (Vietnamese
+ *   unless the person picked another), so it follows them to other devices;
+ * - when the account's language differs from this page's (e.g. chosen on
+ *   another device), switch once — guarded so a stuck cookie can't loop.
  */
 export function useFollowAccountLanguage() {
   const { locale } = useI18n();
-  const [prefs] = useTable("preferences", PREFERENCES_SEED);
+  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const loaded = useInitialLoadDone();
 
   useEffect(() => {
-    if (!loaded || !prefs.locale || prefs.locale === locale) return;
+    if (!loaded || !readSessionUser()) return;
+    if (!prefs.locale) {
+      // Only from fresh server data: an offline copy might predate a choice made elsewhere.
+      if (navigator.onLine) setPrefs((p) => (p.locale ? p : { ...p, locale }));
+      return;
+    }
+    if (prefs.locale === locale) return;
     try {
       if (sessionStorage.getItem(SYNC_GUARD) === prefs.locale) return;
       sessionStorage.setItem(SYNC_GUARD, prefs.locale);
@@ -63,5 +72,5 @@ export function useFollowAccountLanguage() {
       // Storage blocked: still switch once per page load.
     }
     void reloadInLocale(prefs.locale);
-  }, [loaded, prefs.locale, locale]);
+  }, [loaded, prefs.locale, locale, setPrefs]);
 }

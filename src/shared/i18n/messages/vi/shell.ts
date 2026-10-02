@@ -17,7 +17,7 @@ export const shell: Messages["shell"] = {
   user: {
     signedIn: "Đã đăng nhập",
     localMode: "Chế độ cục bộ (không đăng nhập)",
-    workspace: "Không gian cá nhân",
+    workspace: "Tài khoản cá nhân",
     signOut: "Đăng xuất",
   },
   offline: {

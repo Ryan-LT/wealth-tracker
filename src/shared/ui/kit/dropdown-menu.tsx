@@ -237,8 +237,35 @@ function DropdownMenuSubContent({
   )
 }
 
+/**
+ * Compact segmented choice inside a menu row (e.g. theme, language). Each
+ * option is a real radio menu item, so arrow keys and Enter work, and picking
+ * one keeps the menu open.
+ */
+function DropdownMenuSegmentItem({
+  className,
+  onSelect,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+  return (
+    <DropdownMenuPrimitive.RadioItem
+      data-slot='dropdown-menu-segment-item'
+      className={cn(
+        "inline-flex h-7 min-w-7 cursor-default items-center justify-center gap-1 rounded-sm px-1.5 text-xs font-medium text-muted-foreground outline-hidden transition-colors select-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-highlighted:text-foreground data-[state=checked]:bg-background data-[state=checked]:text-foreground data-[state=checked]:shadow-xs [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0",
+        className
+      )}
+      onSelect={(event) => {
+        event.preventDefault()
+        onSelect?.(event)
+      }}
+      {...props}
+    />
+  )
+}
+
 export {
   DropdownMenu,
+  DropdownMenuSegmentItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
   DropdownMenuContent,

@@ -2,27 +2,25 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isAuthEnvConfigured, verifySessionToken, WT_SESSION_COOKIE } from "@/shared/api/auth-session";
-import { isLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, LOCALES, negotiateLocale } from "@/shared/i18n/locale";
+import { LEGACY_LOCALE_COOKIE, LOCALE_COOKIE, LOCALES, resolveLocale } from "@/shared/i18n/locale";
 
 /**
  * Serve a page in the visitor's language without changing the URL: `/goals`
  * is rewritten to the prerendered `/vi/goals` or `/en/goals`. The language is
- * the `wt_lang` cookie, else negotiated from `Accept-Language` (and then
- * remembered in the cookie so the service worker cache stays consistent).
+ * the `wt_locale` cookie (a choice the person or their account made), else
+ * Vietnamese — the browser language is deliberately not used.
  */
 function servePage(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/api/") || pathname.startsWith("/_")) return NextResponse.next();
   if (LOCALES.some((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`))) return NextResponse.next();
 
-  const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
-  const lang = isLocale(cookie) ? cookie : negotiateLocale(request.headers.get("accept-language"));
+  const lang = resolveLocale(request.cookies.get(LOCALE_COOKIE)?.value);
   const url = request.nextUrl.clone();
   url.pathname = `/${lang}${pathname === "/" ? "" : pathname}`;
   const res = NextResponse.rewrite(url);
-  if (!isLocale(cookie)) {
-    res.cookies.set(LOCALE_COOKIE, lang, { path: "/", maxAge: LOCALE_COOKIE_MAX_AGE, sameSite: "lax" });
-  }
+  // The old cookie was set from the browser language, not chosen; drop it.
+  if (request.cookies.has(LEGACY_LOCALE_COOKIE)) res.cookies.delete(LEGACY_LOCALE_COOKIE);
   return res;
 }
 

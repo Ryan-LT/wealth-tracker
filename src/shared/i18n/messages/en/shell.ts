@@ -17,7 +17,7 @@ export const shell = {
   user: {
     signedIn: "Signed in",
     localMode: "Local mode (no login)",
-    workspace: "Personal workspace",
+    workspace: "Personal account",
     signOut: "Sign out",
   },
   offline: {

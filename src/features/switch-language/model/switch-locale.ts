@@ -1,12 +1,12 @@
 "use client";
 
-import { LOCALE_COOKIE, type Locale } from "@/shared/i18n/locale";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, type Locale } from "@/shared/i18n/locale";
 
 /** Service-worker caches holding rendered pages (one language each). */
 const PAGE_CACHES = ["wealthtracker-pages", "pages-rsc", "pages-rsc-prefetch"];
 
 export function writeLocaleCookie(locale: Locale): void {
-  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
 }
 
 /**

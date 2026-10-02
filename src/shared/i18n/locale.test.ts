@@ -1,25 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { isLocale, negotiateLocale } from "@/shared/i18n/locale";
+import { DEFAULT_LOCALE, isLocale, resolveLocale } from "@/shared/i18n/locale";
 
-describe("negotiateLocale", () => {
-  it("follows the browser", () => {
-    expect(negotiateLocale("vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7")).toBe("vi");
-    expect(negotiateLocale("en-US,en;q=0.9")).toBe("en");
-    expect(negotiateLocale("fr-FR,fr;q=0.9,vi;q=0.5")).toBe("vi");
-    expect(negotiateLocale("fr-FR,de;q=0.9")).toBe("en");
+describe("resolveLocale", () => {
+  it("defaults to Vietnamese", () => {
+    expect(DEFAULT_LOCALE).toBe("vi");
+    expect(resolveLocale(undefined)).toBe("vi");
+    expect(resolveLocale(null)).toBe("vi");
+    expect(resolveLocale("fr")).toBe("vi");
   });
 
-  it("respects weights, order and q=0", () => {
-    expect(negotiateLocale("en;q=0.5,vi;q=0.8")).toBe("vi");
-    expect(negotiateLocale("vi;q=0,en")).toBe("en");
-    expect(negotiateLocale("VI")).toBe("vi");
-  });
-
-  it("defaults to English without a header", () => {
-    expect(negotiateLocale(null)).toBe("en");
-    expect(negotiateLocale("")).toBe("en");
-    expect(negotiateLocale("*")).toBe("en");
+  it("uses a chosen language", () => {
+    expect(resolveLocale("en")).toBe("en");
+    expect(resolveLocale("vi")).toBe("vi");
   });
 
   it("isLocale", () => {

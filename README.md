@@ -74,13 +74,14 @@ target now live in Settings → Milestone goal.
 
 ## Languages
 
-The app is in **English and Vietnamese**. New visitors get the language of their
-browser; the switcher (Settings → Appearance, the user menu, or the sign-in page)
-saves the choice on the device (`wt_lang` cookie) and in the account, so it follows
-the person to other devices.
+The app is in **English and Vietnamese**. Everyone starts in **Vietnamese**
+(whatever the browser language); each account saves its language to its profile
+automatically. The switcher (Settings → Appearance, the user menu, or the sign-in
+page) changes it on the device (`wt_locale` cookie) and in the account, so it
+follows the person to other devices.
 
 - URLs don't change: every page is prerendered once per language under `src/app/[lang]/`
-  and `src/proxy.ts` rewrites `/goals` to `/vi/goals` or `/en/goals`.
+  and `src/proxy.ts` rewrites `/goals` to `/vi/goals` or `/en/goals` (cookie, else Vietnamese).
 - Text lives in `src/shared/i18n/messages/en/*.ts` (source of truth) and
   `messages/vi/*.ts`. Vietnamese is typed against English, so a missing key fails
   `pnpm typecheck`; `pnpm test` checks both dictionaries match and that nothing was

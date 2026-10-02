@@ -52,7 +52,7 @@ describe("computeGoalFeasibility", () => {
       computeGoalFeasibility({ saved: 0, targetAmount: 1, estimatedMonthlyNet: 0, now, targetDateIso: "2027-01-01" }),
     ).toMatchInlineSnapshot(`
       {
-        "hint": "Household monthly net is not positive while this goal still has a gap.",
+        "hint": "This plan gets no positive monthly savings while it still has a gap.",
         "label": "Budget squeeze",
         "tone": "at_risk",
       }

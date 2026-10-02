@@ -42,7 +42,9 @@ function usePlanRows(goals: GoalsState, seedOptions: GoalStartingOption[], month
               targetAmount: s.targetAmount,
               targetDateIso: s.targetDate,
               includeMonthlyIncome: s.includeMonthlyIncome,
-              estimatedMonthlyNet: monthlyNet,
+              // Only this plan's share of the monthly savings (never the whole amount per plan).
+              estimatedMonthlyNet: monthlyNet * s.monthlyShare,
+              expectedReturnPct: s.expectedReturnPct,
             }),
           })),
     [goals, seedOptions, monthlyNet],

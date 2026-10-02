@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { buildNetWorthTrend, type NetWorthMonthSnapshot } from "@/entities/preferences";
-import { formatDate, formatMoney, formatMoneyCompact } from "@/shared/lib/format";
+import { formatDate, formatMoney, formatMoneyCompact, formatPercent } from "@/shared/lib/format";
 import { chartAxisProps, ChartTooltipCard, ChartViewToggle, type ChartView } from "@/shared/ui/chart";
 import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
@@ -16,19 +16,32 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
   const data = points.map((p) => ({ x: p.date.getTime(), value: p.value, live: p.live }));
   const first = points[0]?.value ?? 0;
   const change = netWorth - first;
+  const lastMonth = points.length > 1 ? points.at(-1)!.change : null;
+  // At most ~6 labels on the time axis.
+  const step = Math.max(1, Math.ceil(data.length / 6));
+  const ticks = data.filter((_, i) => i % step === 0 || i === data.length - 1).map((d) => d.x);
 
   return (
     <Section
       title="Net worth trend"
       description={
-        <>
-          Last 6 months · <Money value={change} signed tone="auto" compact /> since {formatDate(points[0]?.date, "monthYear")}
-        </>
+        points.length > 1 ? (
+          <>
+            Last {points.length} months · <Money value={change} signed tone="auto" compact /> since {formatDate(points[0]?.date, "monthYear")}
+            {lastMonth !== null ? (
+              <>
+                {" "}· this month <Money value={lastMonth} signed tone="auto" compact />
+              </>
+            ) : null}
+          </>
+        ) : (
+          "Tracking started this month — the trend fills in as months pass."
+        )
       }
       actions={<ChartViewToggle value={view} onChange={setView} />}
     >
       {view === "chart" ? (
-        <div className="h-56 w-full" role="img" aria-label={`Net worth over the last six months, now ${formatMoney(netWorth)}`}>
+        <div className="h-56 w-full" role="img" aria-label={`Net worth over the last ${points.length} months, now ${formatMoney(netWorth)}`}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <defs>
@@ -43,7 +56,7 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
                 type="number"
                 scale="time"
                 domain={["dataMin", "dataMax"]}
-                ticks={data.map((d) => d.x)}
+                ticks={ticks}
                 tickFormatter={(x: number) => formatDate(x, "monthYear")}
                 {...chartAxisProps}
                 tickMargin={8}
@@ -84,6 +97,7 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
             <TableRow className="hover:bg-transparent">
               <TableHead>Month</TableHead>
               <TableHead className="text-right">Net worth</TableHead>
+              <TableHead className="text-right">Change</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,6 +109,20 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
                 </TableCell>
                 <TableCell className="text-right">
                   <Money value={p.value} />
+                </TableCell>
+                <TableCell className="text-right">
+                  {p.change === null ? (
+                    <span className="text-muted-foreground">—</span>
+                  ) : (
+                    <span>
+                      <Money value={p.change} signed tone="auto" />
+                      {p.changePct !== null ? (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          ({formatPercent(p.changePct, { signDisplay: "exceptZero" })})
+                        </span>
+                      ) : null}
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

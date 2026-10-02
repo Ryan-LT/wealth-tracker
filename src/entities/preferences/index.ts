@@ -7,7 +7,6 @@ export {
 } from "@/entities/preferences/model";
 export {
   applyAverageMonthlySpending,
-  buildNetWorthChartSeries,
   buildNetWorthTrend,
   estimatedMonthlyNetCashflow,
   netWorthTrackingUnchanged,

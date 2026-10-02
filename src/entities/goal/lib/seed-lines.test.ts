@@ -85,13 +85,27 @@ describe("allocation pool math", () => {
     // a1 live 300M; House holds 250M, Car holds 200M.
     expect(maxAllocationForSourceKey("catalog:a1", options, saved, planCar, "s4")).toBe(50_000_000);
     expect(maxAllocationForSourceKey("catalog:a1", options, saved, planHouse, "s1")).toBe(100_000_000);
-    expect(effectiveGoalSeedLineAmount(planCar.seedLines![0], options, saved, planCar)).toBe(50_000_000);
     expect(effectiveGoalSeedLineAmount(planHouse.seedLines![2], options, saved, planHouse)).toBe(10_000_000);
+  });
+
+  it("over-reserved source: plans share the live balance proportionally (sum = live)", () => {
+    // 450M reserved against 300M live → each plan counts 300/450 of its reservation.
+    const car = effectiveGoalSeedLineAmount(planCar.seedLines![0], options, saved, planCar);
+    const house = effectiveGoalSeedLineAmount(planHouse.seedLines![0], options, saved, planHouse);
+    expect(car).toBe(133_333_333);
+    expect(house).toBe(166_666_666);
+    expect(car + house).toBeLessThanOrEqual(300_000_000);
+    expect(300_000_000 - (car + house)).toBeLessThan(2);
+  });
+
+  it("within-balance reservations count in full", () => {
+    const solo = [planHouse];
+    expect(effectiveGoalSeedLineAmount(planHouse.seedLines![0], options, solo, planHouse)).toBe(250_000_000);
   });
 
   it("totals starting balance with caps", () => {
     expect(totalGoalStartingBalance(planHouse.seedLines, options, saved, planHouse)).toBe(
-      100_000_000 + 500_000_000 + 10_000_000,
+      166_666_666 + 500_000_000 + 10_000_000,
     );
     expect(totalGoalStartingBalance(undefined, options, saved, planHouse)).toBe(0);
   });

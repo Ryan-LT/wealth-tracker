@@ -56,13 +56,13 @@ describe("buildAllocationReport", () => {
       {
         "plans": [
           {
-            "effectiveStartingTotal": 610000000,
+            "effectiveStartingTotal": 676666666,
             "id": "goal-1",
             "name": "House",
             "usesMonthlyIncome": true,
           },
           {
-            "effectiveStartingTotal": 50000000,
+            "effectiveStartingTotal": 133333333,
             "id": "goal-2",
             "name": "Untitled plan",
             "usesMonthlyIncome": false,

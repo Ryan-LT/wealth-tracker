@@ -1,3 +1,5 @@
+import { futureValue } from "@/shared/lib/growth";
+
 const MS_PER_MONTH = (1000 * 60 * 60 * 24 * 365.25) / 12;
 
 /** Default age target for the wealth milestone (years) until the user sets their own. */
@@ -8,9 +10,11 @@ export const MAX_MILESTONE_AGE = 100;
 /** Default goal in USD until the user sets their own. */
 export const DEFAULT_MILESTONE_USD = 1_000_000;
 
-/** End of the day the person turns `age`. */
+/** End of the day the person turns `age` (29 Feb birthdays fall on 28 Feb in non-leap years). */
 export function birthdayAtAge(dob: Date, age: number): Date {
-  return new Date(dob.getFullYear() + age, dob.getMonth(), dob.getDate(), 23, 59, 59, 999);
+  const year = dob.getFullYear() + age;
+  const lastDayOfMonth = new Date(year, dob.getMonth() + 1, 0).getDate();
+  return new Date(year, dob.getMonth(), Math.min(dob.getDate(), lastDayOfMonth), 23, 59, 59, 999);
 }
 
 /** Parse `YYYY-MM-DD` birth dates for stable local-ish noon handling. */
@@ -37,12 +41,17 @@ export function evaluateMilestoneFeasibility(input: {
   monthlyNetContribution: number;
   targetNetWorthVnd: number;
   deadline: Date;
+  /** Yearly real (after-inflation) return, as a fraction; default 0 (no growth). */
+  annualRealRate?: number;
   now?: Date;
 }): MilestoneFeasibility {
   const now = input.now ?? new Date();
   const monthsRemaining = monthsBetween(now, input.deadline);
+  // Positive net worth and new savings grow at the real return; a negative net
+  // worth (debt) is carried as-is rather than compounded.
   const projectedEndingNetWorth =
-    input.currentNetWorth + input.monthlyNetContribution * monthsRemaining;
+    futureValue(Math.max(0, input.currentNetWorth), input.monthlyNetContribution, monthsRemaining, input.annualRealRate ?? 0) +
+    Math.min(0, input.currentNetWorth);
   const feasible = projectedEndingNetWorth >= input.targetNetWorthVnd;
   return { projectedEndingNetWorth, feasible, monthsRemaining };
 }

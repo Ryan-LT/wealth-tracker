@@ -8,12 +8,14 @@ import {
   computeGoalProjection,
   describeGoalProjectionNote,
   goalProjectionNoteTone,
+  profilesWithDraft,
+  resolveMonthlyShares,
   revertPlanSection,
   setCheckpointPaid,
   totalGoalStartingBalance,
   type GoalProfile,
 } from "@/entities/goal";
-import { formatDate, formatMoney } from "@/shared/lib/format";
+import { formatDate, formatMoney, formatMonths, formatPercent } from "@/shared/lib/format";
 import { Callout } from "@/shared/ui/callout";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { Button } from "@/shared/ui/kit/button";
@@ -42,6 +44,20 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
     () => totalGoalStartingBalance(draft.seedLines, seedOptions, goals.profiles, draft),
     [draft, seedOptions, goals.profiles],
   );
+  // This plan's slice of the monthly net, with the draft's share in place of the saved one.
+  const shares = useMemo(() => {
+    const all = profilesWithDraft(goals.profiles, draft);
+    const resolved = resolveMonthlyShares(all);
+    const key = draft.id || "__draft__";
+    const others = all.filter((p) => p.id !== key && p.includeMonthlyIncome !== false);
+    return {
+      share: resolved.byPlan.get(key) ?? 0,
+      overAllocated: resolved.overAllocated,
+      otherPlans: others.length,
+      // What an automatic share would be right now (if this plan had no explicit %).
+      automatic: resolveMonthlyShares(profilesWithDraft(goals.profiles, { ...draft, monthlySharePct: undefined })).byPlan.get(key) ?? 0,
+    };
+  }, [goals.profiles, draft]);
   const projection = useMemo(
     () =>
       computeGoalProjection({
@@ -51,8 +67,10 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
         includeMonthlyIncome: draft.includeMonthlyIncome,
         incomeMonthly,
         householdMonthlyNet,
+        monthlyShare: shares.share,
+        expectedReturnPct: draft.expectedReturnPct,
       }),
-    [startingBalance, draft.targetAmount, draft.targetDate, draft.includeMonthlyIncome, incomeMonthly, householdMonthlyNet],
+    [startingBalance, draft.targetAmount, draft.targetDate, draft.includeMonthlyIncome, draft.expectedReturnPct, incomeMonthly, householdMonthlyNet, shares.share],
   );
 
   const save = useCallback(
@@ -66,7 +84,14 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
   );
 
   const preview = useCallback(
-    (v: { name: string; targetAmount: number; targetDate: string; includeMonthlyIncome: boolean }) =>
+    (v: {
+      name: string;
+      targetAmount: number;
+      targetDate: string;
+      includeMonthlyIncome: boolean;
+      monthlySharePct?: number;
+      expectedReturnPct?: number;
+    }) =>
       setDraft((d) => ({ ...d, ...v })),
     [],
   );
@@ -80,6 +105,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
       startEditing={isComposingNew}
       incomeMonthly={incomeMonthly}
       householdMonthlyNet={householdMonthlyNet}
+      shares={shares}
       onPreview={preview}
       onCancel={() => setDraft((d) => revertPlanSection(revertPlanSection(d, savedProfile, "basics"), savedProfile, "income"))}
       onSave={(v) => save({ ...draft, ...v }, isComposingNew ? "Plan created" : "Plan saved")}
@@ -148,7 +174,13 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
           label="Monthly net in projection"
           icon={Wallet}
           value={projection.applyMonthlyIncome ? <Money value={projection.effectiveMonthlyContribution} compact signed tone="auto" /> : "Excluded"}
-          hint={`${projection.monthsToTarget} ${projection.monthsToTarget === 1 ? "month" : "months"} to target`}
+          hint={
+            projection.applyMonthlyIncome
+              ? `${formatPercent(projection.monthlyShare * 100, { maximumFractionDigits: 0 })} of monthly savings · ${projection.pastDue ? "date passed" : `${formatMonths(projection.monthsToTarget)} left`}`
+              : projection.pastDue
+                ? "Date passed"
+                : `${formatMonths(projection.monthsToTarget)} left`
+          }
         />
       </StatGrid>
 
@@ -162,6 +194,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
           monthsToTarget={projection.monthsToTarget}
           targetDateIso={draft.targetDate}
           checkpoints={draft.checkpoints ?? []}
+          annualReturn={projection.annualReturn}
         />
       ) : (
         <StartingOnlyCard startingBalance={startingBalance} targetAmount={draft.targetAmount} />

@@ -48,6 +48,11 @@ export function normalizeGoalProfile(
   };
 }
 
+/** `undefined` (automatic / none) or a percent clamped to 0–max. */
+function normalizePct(v: number | undefined, max: number): number | undefined {
+  return typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(0, v)) : undefined;
+}
+
 export type UpsertGoalPlanContext = {
   seedKeys: Set<string>;
   seedOptions: GoalStartingOption[];
@@ -78,6 +83,8 @@ export function upsertGoalPlan(
     targetDate: source.targetDate,
     monthlyContribution: ctx.incomeMonthly,
     includeMonthlyIncome: source.includeMonthlyIncome !== false,
+    monthlySharePct: normalizePct(source.monthlySharePct, 100),
+    expectedReturnPct: normalizePct(source.expectedReturnPct, 30),
     seedLines: cleanLines,
     checkpoints: normalizeStoredCheckpoints(source.checkpoints),
   };
@@ -130,5 +137,10 @@ export function revertPlanSection(
       targetDate: saved.targetDate,
     };
   }
-  return { ...draft, includeMonthlyIncome: saved.includeMonthlyIncome };
+  return {
+    ...draft,
+    includeMonthlyIncome: saved.includeMonthlyIncome,
+    monthlySharePct: saved.monthlySharePct,
+    expectedReturnPct: saved.expectedReturnPct,
+  };
 }

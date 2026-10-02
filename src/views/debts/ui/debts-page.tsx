@@ -1,20 +1,22 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { CreditCard, Pencil, Percent, Plus, Trash2, TrendingUp } from "lucide-react";
+import { CreditCard, Flame, Pencil, Percent, Plus, Trash2, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
   createDebtDraft,
   DEBTS_SEED,
+  debtPayoff,
   describeDebtPayment,
   sanitizeDebt,
   totalDebtBalance,
+  totalMonthlyInterest,
   weightedAverageRate,
   type Debt,
 } from "@/entities/debt";
-import { formatPercent } from "@/shared/lib/format";
+import { formatDate, formatMonths, formatPercent } from "@/shared/lib/format";
 import { useTable } from "@/shared/storage";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { DataTable, DataTableColumnHeader, RowActions } from "@/shared/ui/data-table";
@@ -32,6 +34,37 @@ import { useCreateParam } from "@/shared/lib/use-create-param";
 import { DebtFormDialog } from "./debt-form-dialog";
 
 type DialogState = { mode: "create" | "edit"; debt: Debt };
+
+/** Payoff column: date + total interest from the monthly payment, or why it can't be shown. */
+function PayoffCell({ debt }: { debt: Debt }) {
+  const p = debtPayoff(debt);
+  switch (p.kind) {
+    case "paid_off":
+      return <span className="text-muted-foreground">Paid off</span>;
+    case "unknown":
+      return <span className="text-muted-foreground">Add a monthly payment</span>;
+    case "never":
+      return (
+        <div>
+          <p className="text-danger">Never at this payment</p>
+          <p className="text-xs text-muted-foreground">
+            Interest alone is <Money value={p.monthlyInterest} /> / month
+          </p>
+        </div>
+      );
+    case "date":
+      return (
+        <div>
+          <p>
+            {formatDate(p.date, "monthYear")} <span className="text-xs text-muted-foreground">({formatMonths(p.months)})</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <Money value={p.totalInterest} /> interest left
+          </p>
+        </div>
+      );
+  }
+}
 
 export function DebtsPage() {
   const [debts, setDebts] = useTable("debts", DEBTS_SEED);
@@ -79,6 +112,13 @@ export function DebtsPage() {
           </span>
         ),
         meta: { align: "right" },
+      },
+      {
+        id: "payoff",
+        header: "Payoff",
+        enableSorting: false,
+        cell: ({ row }) => <PayoffCell debt={row.original} />,
+        meta: { className: "hidden lg:table-cell" },
       },
       {
         id: "payment",
@@ -142,9 +182,10 @@ export function DebtsPage() {
           hint={total > 0 ? `${formatPercent((variableTotal / total) * 100, { maximumFractionDigits: 0 })} of all debt` : "No debt"}
         />
         <StatCard
-          label="Largest debt"
-          value={<Money value={debts.reduce((m, d) => Math.max(m, d.balance), 0)} compact />}
-          hint={debts.length ? [...debts].sort((a, b) => b.balance - a.balance)[0].name : "—"}
+          label="Interest per month"
+          icon={Flame}
+          value={<Money value={totalMonthlyInterest(debts)} compact />}
+          hint="Balance × rate ÷ 12"
         />
       </StatGrid>
 

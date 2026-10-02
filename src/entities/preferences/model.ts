@@ -46,6 +46,12 @@ export type Preferences = {
   /** Column sort on the allocations matrix; `null`/unset = default order. */
   allocationsMatrixColumnSort?: AllocationsMatrixColumnSort;
 
+  /**
+   * Count open personal loans in net worth: money you lent out as an asset,
+   * money you borrowed as a debt. Off by default (the loan log is informal).
+   */
+  includeLoansInNetWorth?: boolean;
+
   /** Net-worth milestone (dashboard card, Settings → Milestone goal): birth date, USD target and age. */
   milestone?: {
     /** `YYYY-MM-DD`. */

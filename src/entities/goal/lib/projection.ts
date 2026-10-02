@@ -1,25 +1,30 @@
-import { AVG_MONTH_MS } from "@/shared/lib/date";
+import { fractionalMonthsBetween, parseIsoDay } from "@/shared/lib/date";
+import { futureValue } from "@/shared/lib/growth";
 
 /**
- * Whole months from `now` until the goal date (rounded, minimum 1).
- * Parses with `new Date(iso)` (UTC midnight for date-only strings) to match
- * the original Goal Plan behaviour.
+ * Months from `now` until the goal date (fractional, same average month as the
+ * chart). The date is read at local noon so it never shifts a day. 0 when the
+ * date has passed or is missing.
  */
-export function monthsToTargetRounded(
-  targetDateIso: string | undefined,
-  now: Date = new Date(),
-): number {
-  if (!targetDateIso) return 1;
-  const target = new Date(targetDateIso);
-  if (Number.isNaN(target.getTime())) return 1;
-  const ms = Math.max(0, target.getTime() - now.getTime());
-  return Math.max(1, Math.round(ms / AVG_MONTH_MS));
+export function monthsUntilTarget(targetDateIso: string | undefined, now: Date = new Date()): number {
+  const target = parseIsoDay(targetDateIso);
+  return target ? fractionalMonthsBetween(now, target) : 0;
+}
+
+/** True when the goal date is before today. */
+export function isTargetDatePast(targetDateIso: string | undefined, now: Date = new Date()): boolean {
+  const target = parseIsoDay(targetDateIso);
+  if (!target) return false;
+  const endOfTargetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate(), 23, 59, 59, 999);
+  return endOfTargetDay.getTime() < now.getTime();
 }
 
 export type GoalProjectionNote =
   | { kind: "incomplete" }
+  | { kind: "past_due"; gap: number }
   | { kind: "no_income" }
   | { kind: "non_positive_net" }
+  | { kind: "no_share" }
   | { kind: "income_off_short"; flatAt: number; gap: number }
   | { kind: "ahead"; surplus: number }
   | { kind: "on_target" }
@@ -28,10 +33,16 @@ export type GoalProjectionNote =
 export type GoalProjectionStatus = "unset" | "feasible" | "shortfall";
 
 export type GoalProjectionSummary = {
+  /** Fractional months until the target date (0 if passed / unset). */
   monthsToTarget: number;
+  pastDue: boolean;
   applyMonthlyIncome: boolean;
-  /** Household monthly net when the plan includes income, otherwise 0. */
+  /** Fraction (0–1) of the household monthly net this plan receives. */
+  monthlyShare: number;
+  /** This plan's monthly contribution: household net × share, or 0 when income is excluded. */
   effectiveMonthlyContribution: number;
+  /** Yearly return (fraction) applied to the balance. */
+  annualReturn: number;
   projectedAtTarget: number;
   status: GoalProjectionStatus;
   /** Income exists but average spending cancels it out exactly. */
@@ -48,61 +59,60 @@ export type GoalProjectionInput = {
   incomeMonthly: number;
   /** From `estimatedMonthlyNetCashflow`. */
   householdMonthlyNet: number;
+  /** Fraction of the monthly net for this plan (see `resolveMonthlyShares`); default 1. */
+  monthlyShare?: number;
+  /** Expected yearly return in percent (e.g. 5); default 0. */
+  expectedReturnPct?: number;
   now?: Date;
 };
 
-/** Linear projection used by the Goal Plan page (starting balance + net × months). */
+/** Goal Plan projection: starting balance + this plan's share of monthly net, with optional growth. */
 export function computeGoalProjection(input: GoalProjectionInput): GoalProjectionSummary {
-  const {
-    startingBalance,
-    targetAmount,
-    targetDateIso,
-    incomeMonthly,
-    householdMonthlyNet,
-    now,
-  } = input;
-  const monthsToTarget = monthsToTargetRounded(targetDateIso, now);
+  const { startingBalance, targetAmount, targetDateIso, incomeMonthly, householdMonthlyNet, now } = input;
+  const monthsToTarget = monthsUntilTarget(targetDateIso, now);
+  const pastDue = isTargetDatePast(targetDateIso, now);
   const applyMonthlyIncome = input.includeMonthlyIncome !== false;
-  const effectiveMonthlyContribution = applyMonthlyIncome ? householdMonthlyNet : 0;
-  const projectedAtTarget = startingBalance + effectiveMonthlyContribution * monthsToTarget;
+  const monthlyShare = applyMonthlyIncome ? Math.min(1, Math.max(0, input.monthlyShare ?? 1)) : 0;
+  const effectiveMonthlyContribution = applyMonthlyIncome ? householdMonthlyNet * monthlyShare : 0;
+  const annualReturn = Math.max(0, input.expectedReturnPct ?? 0) / 100;
+  // A passed date gets no more contributions or growth: what's there now is the result.
+  const projectedAtTarget = pastDue
+    ? startingBalance
+    : futureValue(startingBalance, effectiveMonthlyContribution, monthsToTarget, annualReturn);
 
-  const onTrack =
-    targetAmount > 0 && projectedAtTarget >= targetAmount && monthsToTarget >= 1;
-  const status: GoalProjectionStatus =
-    targetAmount <= 0 ? "unset" : onTrack ? "feasible" : "shortfall";
+  const met = targetAmount > 0 && projectedAtTarget >= targetAmount;
+  const status: GoalProjectionStatus = targetAmount <= 0 ? "unset" : met ? "feasible" : "shortfall";
 
   let note: GoalProjectionNote;
   if (targetAmount <= 0 || !targetDateIso) {
     note = { kind: "incomplete" };
-  } else if (applyMonthlyIncome && incomeMonthly <= 0 && projectedAtTarget < targetAmount) {
-    note = { kind: "no_income" };
-  } else if (
-    applyMonthlyIncome &&
-    incomeMonthly > 0 &&
-    effectiveMonthlyContribution <= 0 &&
-    projectedAtTarget < targetAmount
-  ) {
-    note = { kind: "non_positive_net" };
-  } else if (!applyMonthlyIncome && projectedAtTarget < targetAmount) {
-    note = {
-      kind: "income_off_short",
-      flatAt: startingBalance,
-      gap: targetAmount - projectedAtTarget,
-    };
-  } else if (projectedAtTarget >= targetAmount) {
+  } else if (pastDue && !met) {
+    note = { kind: "past_due", gap: targetAmount - projectedAtTarget };
+  } else if (met) {
     const surplus = projectedAtTarget - targetAmount;
     note = surplus > 0 ? { kind: "ahead", surplus } : { kind: "on_target" };
+  } else if (!applyMonthlyIncome) {
+    note = { kind: "income_off_short", flatAt: projectedAtTarget, gap: targetAmount - projectedAtTarget };
+  } else if (incomeMonthly <= 0) {
+    note = { kind: "no_income" };
+  } else if (householdMonthlyNet <= 0) {
+    note = { kind: "non_positive_net" };
+  } else if (monthlyShare <= 0) {
+    note = { kind: "no_share" };
   } else {
     note = { kind: "short", gap: targetAmount - projectedAtTarget };
   }
 
   return {
     monthsToTarget,
+    pastDue,
     applyMonthlyIncome,
+    monthlyShare,
     effectiveMonthlyContribution,
+    annualReturn,
     projectedAtTarget,
     status,
-    incomeOffsetBySpending: incomeMonthly > 0 && effectiveMonthlyContribution === 0,
+    incomeOffsetBySpending: incomeMonthly > 0 && householdMonthlyNet === 0,
     note,
   };
 }
@@ -114,12 +124,16 @@ export function describeGoalProjectionNote(
   switch (note.kind) {
     case "incomplete":
       return "Add target, date, and starting sources.";
+    case "past_due":
+      return `The target date has passed — still short ~${fmt(note.gap)}. Move the date or the target.`;
+    case "no_share":
+      return "This plan gets 0 % of your monthly savings — give it a share or lower the other plans' shares.";
     case "no_income":
       return "No monthly income recorded — only starting allocations count.";
     case "non_positive_net":
       return "Monthly net is zero or negative after spending — increase income or lower average spending.";
     case "income_off_short":
-      return `Income off for this plan — flat at ${fmt(note.flatAt)}; short ~${fmt(note.gap)}.`;
+      return `Income off for this plan — reaches ${fmt(note.flatAt)}; short ~${fmt(note.gap)}.`;
     case "ahead":
       return `Ahead by ~${fmt(note.surplus)}.`;
     case "on_target":
@@ -141,6 +155,7 @@ export function goalProjectionNoteTone(
       return "success";
     case "no_income":
     case "non_positive_net":
+    case "no_share":
       return "warning";
     default:
       return "danger";

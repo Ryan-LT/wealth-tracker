@@ -8,6 +8,8 @@ export {
   totalMonthlyIncomeFromSources,
 } from "@/entities/income/lib/totals";
 export {
+  capitalYieldPct,
+  effectiveIncomeCapital,
   totalCapitalAmount,
   wrapIncomeSourceAsProfile,
 } from "@/entities/income/lib/wrap-as-profile";

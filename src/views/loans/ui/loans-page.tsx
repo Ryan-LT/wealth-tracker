@@ -15,6 +15,7 @@ import {
   type PersonalLoan,
   type PersonalLoanDirection,
 } from "@/entities/personal-loan";
+import { PREFERENCES_SEED } from "@/entities/preferences";
 import { formatDate, formatMoney } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
@@ -22,11 +23,13 @@ import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { DataTable, DataTableColumnHeader, DataTableToolbar, matchesSearch, RowActions, type RowAction } from "@/shared/ui/data-table";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
+import { Label } from "@/shared/ui/kit/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Money } from "@/shared/ui/money";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
+import { Switch } from "@/shared/ui/kit/switch";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { PageContainer } from "@/widgets/app-shell";
@@ -51,6 +54,8 @@ function DirectionBadge({ direction }: { direction: PersonalLoanDirection }) {
 
 export function LoansPage() {
   const [loans, setLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
+  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const countsInNetWorth = prefs.includeLoansInNetWorth === true;
   const [direction, setDirection] = useState<DirectionFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
@@ -166,7 +171,11 @@ export function LoansPage() {
     <PageContainer>
       <PageHeader
         title="Personal loans"
-        description="Informal money lent or borrowed. A private log — not counted in net worth."
+        description={
+          countsInNetWorth
+            ? "Informal money lent or borrowed. Open entries count in your net worth."
+            : "Informal money lent or borrowed. A private log — not counted in net worth."
+        }
         actions={
           <Button onClick={openCreate}>
             <Plus />
@@ -181,6 +190,23 @@ export function LoansPage() {
         <StatCard label="Net position" icon={Scale} value={<Money value={owedToYou - youOwe} compact signed tone="auto" />} hint="Owed to you − you owe" />
         <StatCard label="Open entries" icon={HandCoins} value={openCount} hint={`${loans.length - openCount} settled`} />
       </StatGrid>
+
+      <div className="flex items-start justify-between gap-4 rounded-lg border bg-card px-5 py-4">
+        <div className="grid gap-1">
+          <Label htmlFor="loans-in-net-worth">Count in net worth</Label>
+          <p className="text-sm text-muted-foreground">
+            Add money you lent out to your assets and money you borrowed to your debts (open entries only).
+          </p>
+        </div>
+        <Switch
+          id="loans-in-net-worth"
+          checked={countsInNetWorth}
+          onCheckedChange={(on) => {
+            setPrefs((p) => ({ ...p, includeLoansInNetWorth: on }));
+            toast.success(on ? "Personal loans now count in net worth" : "Personal loans no longer count in net worth");
+          }}
+        />
+      </div>
 
       <Section title="Loan log" description="Totals include open entries only." flush>
         <div className="border-b px-5 py-3">

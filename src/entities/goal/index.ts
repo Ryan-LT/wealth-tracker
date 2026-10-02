@@ -59,13 +59,20 @@ export {
   describeGoalProjectionNote,
   evaluateStartingOnlyStatus,
   goalProjectionNoteTone,
-  monthsToTargetRounded,
+  isTargetDatePast,
+  monthsUntilTarget,
   type GoalProjectionInput,
   type GoalProjectionNote,
   type GoalProjectionStatus,
   type GoalProjectionSummary,
   type StartingOnlyStatus,
 } from "@/entities/goal/lib/projection";
+export {
+  monthlyShareForDraft,
+  profilesWithDraft,
+  resolveMonthlyShares,
+  type MonthlyShares,
+} from "@/entities/goal/lib/monthly-share";
 export {
   buildAxisColumnDates,
   buildProjectionChartModel,

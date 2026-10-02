@@ -11,9 +11,10 @@ import {
   resolveAverageMonthlySpending,
   type Preferences,
 } from "@/entities/preferences";
+import type { PersonalLoan } from "@/entities/personal-loan";
 import { totalSettingsAssetsValue, type SettingsAsset } from "@/entities/settings-asset";
 
-import { totalCombinedAssetValue } from "./net-worth";
+import { personalLoanBalances, totalCombinedAssetValue } from "./net-worth";
 
 export type CashflowSummary = {
   totalIncome: number;
@@ -47,6 +48,9 @@ export type DashboardSummary = CashflowSummary & {
   portfolioDetailTotal: number;
   /** Asset catalog (`settingsAssets` table). */
   assetConfigurationTotal: number;
+  /** Open personal loans counted in net worth (0 unless the preference is on). */
+  loansLent: number;
+  loansBorrowed: number;
 };
 
 export function computeDashboardSummary(t: {
@@ -55,9 +59,11 @@ export function computeDashboardSummary(t: {
   settingsAssets: SettingsAsset[];
   incomeSources: IncomeSource[];
   prefs: Preferences;
+  personalLoans?: PersonalLoan[];
 }): DashboardSummary {
-  const grossAssets = totalCombinedAssetValue(t.assets, t.settingsAssets);
-  const liabilities = totalDebtBalance(t.debts);
+  const loans = t.prefs.includeLoansInNetWorth ? personalLoanBalances(t.personalLoans) : { lent: 0, borrowed: 0 };
+  const grossAssets = totalCombinedAssetValue(t.assets, t.settingsAssets) + loans.lent;
+  const liabilities = totalDebtBalance(t.debts) + loans.borrowed;
   const netWorth = grossAssets - liabilities;
   const cashflow = summarizeCashflow(t.prefs, t.incomeSources);
   return {
@@ -68,5 +74,7 @@ export function computeDashboardSummary(t: {
     eoyProjection: projectNetWorthEndOfYear(netWorth, t.prefs, cashflow.totalIncome),
     portfolioDetailTotal: totalAssetValue(t.assets),
     assetConfigurationTotal: totalSettingsAssetsValue(t.settingsAssets),
+    loansLent: loans.lent,
+    loansBorrowed: loans.borrowed,
   };
 }

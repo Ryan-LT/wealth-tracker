@@ -19,6 +19,8 @@ type ProjectionCardProps = {
   monthsToTarget: number;
   targetDateIso: string;
   checkpoints: GoalCheckpoint[];
+  /** Yearly return (fraction). */
+  annualReturn: number;
 };
 
 const MAX_TICKS = 7;
@@ -34,8 +36,9 @@ export function ProjectionCard(props: ProjectionCardProps) {
         monthsToTarget: props.monthsToTarget,
         targetDateIso: props.targetDateIso || undefined,
         checkpoints: props.checkpoints,
+        annualReturn: props.annualReturn,
       }),
-    [props.targetAmount, props.startingAmount, props.monthlyNetContribution, props.monthsToTarget, props.targetDateIso, props.checkpoints],
+    [props.targetAmount, props.startingAmount, props.monthlyNetContribution, props.monthsToTarget, props.targetDateIso, props.checkpoints, props.annualReturn],
   );
 
   const ticks = useMemo(() => {
@@ -56,7 +59,7 @@ export function ProjectionCard(props: ProjectionCardProps) {
     ) : meetTarget.kind === "already" ? (
       <span className="text-success">Starting balance already meets the target.</span>
     ) : meetTarget.kind === "unreachable" ? (
-      <span className="text-danger">Won&apos;t reach the target at the current monthly net.</span>
+      <span className="text-danger">Won&apos;t reach the target at this plan&apos;s monthly savings.</span>
     ) : (
       <span>Add a target amount to see the projection.</span>
     );

@@ -31,31 +31,16 @@ export function fractionalMonthsUntilYearEnd(now: Date = new Date()): number {
 }
 
 /**
- * Estimated monthly net cash flow for projections.
- * Default: income sources − average monthly spending.
- * Legacy override only when both explicit month inflow and outflow are set (and not
- * using the settings spending field as the outflow source).
+ * Monthly net cash flow used by every projection: income sources − average
+ * monthly spending. (Older saves may still hold `netMonthIncome` /
+ * `monthInflow` from an early version; nothing edits them any more, so they
+ * are ignored rather than silently overriding the real numbers.)
  */
 export function estimatedMonthlyNetCashflow(
   prefs: CashflowPrefs,
   totalMonthlyIncomeFromSources: number,
 ): number {
-  const spending = resolveAverageMonthlySpending(prefs);
-  const usesSettingsSpending =
-    prefs.averageMonthlySpending !== undefined &&
-    prefs.averageMonthlySpending !== null;
-
-  if (
-    !usesSettingsSpending &&
-    prefs.monthInflow !== 0 &&
-    prefs.monthOutflow !== 0
-  ) {
-    return prefs.monthInflow - prefs.monthOutflow;
-  }
-  if (prefs.netMonthIncome !== 0) {
-    return prefs.netMonthIncome;
-  }
-  return totalMonthlyIncomeFromSources - spending;
+  return totalMonthlyIncomeFromSources - resolveAverageMonthlySpending(prefs);
 }
 
 export function projectNetWorthEndOfYear(
@@ -78,6 +63,9 @@ export function monthToDateNetWorthChangePercent(
   return ((netWorth - b) / Math.abs(b)) * 100;
 }
 
+/** Monthly net-worth snapshots kept for the trend chart. */
+export const NET_WORTH_HISTORY_MONTHS = 12;
+
 function upsertMonthHistory(
   prev: NetWorthMonthSnapshot[],
   monthKey: string,
@@ -86,7 +74,7 @@ function upsertMonthHistory(
   const rest = prev.filter((h) => h.monthKey !== monthKey);
   const next = [...rest, { monthKey, value }];
   next.sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-  return next.slice(-6);
+  return next.slice(-NET_WORTH_HISTORY_MONTHS);
 }
 
 /**
@@ -119,31 +107,6 @@ export function syncNetWorthTracking(prefs: Preferences, netWorth: number): Pref
   };
 }
 
-/** Six-month sparkline: chronological points; current month uses live `netWorth`. */
-export function buildNetWorthChartSeries(
-  history: NetWorthMonthSnapshot[],
-  netWorth: number,
-): { labels: string[]; values: number[] } {
-  const now = new Date();
-  const labels: string[] = [];
-  const values: number[] = [];
-  const map = new Map(history.map((h) => [h.monthKey, h.value]));
-
-  const sorted = [...history].sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-  let carry = sorted.length > 0 ? sorted[0].value : netWorth;
-
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const mk = monthCalendarKey(d);
-    labels.push(d.toLocaleString(undefined, { month: "short" }));
-    if (map.has(mk)) carry = map.get(mk)!;
-    values.push(i === 0 ? netWorth : carry);
-  }
-
-  return { labels, values };
-}
-
-
 /** Set average monthly spending and clear the legacy outflow so income − spending math wins. */
 export function applyAverageMonthlySpending(prefs: Preferences, amount: number): Preferences {
   const value = Math.max(0, Number.isFinite(amount) ? amount : 0);
@@ -168,11 +131,17 @@ export type NetWorthTrendPoint = {
   value: number;
   /** True for the current month (live net worth, not a stored snapshot). */
   live: boolean;
+  /** Change from the previous point (₫); `null` for the first point. */
+  change: number | null;
+  /** Change from the previous point in % of its absolute value; `null` if not meaningful. */
+  changePct: number | null;
 };
 
 /**
- * Last six calendar months for the net-worth chart. Same carry-forward rule as
- * {@link buildNetWorthChartSeries}: months without a snapshot repeat the previous value.
+ * Up to the last 12 calendar months for the net-worth chart, starting at the
+ * first month that was actually tracked (no made-up history before it). A
+ * month without a snapshot (no visit) repeats the previous month's value; the
+ * current month uses the live net worth.
  */
 export function buildNetWorthTrend(
   history: NetWorthMonthSnapshot[],
@@ -180,14 +149,20 @@ export function buildNetWorthTrend(
   now: Date = new Date(),
 ): NetWorthTrendPoint[] {
   const map = new Map(history.map((h) => [h.monthKey, h.value]));
-  const sorted = [...history].sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-  let carry = sorted.length > 0 ? sorted[0].value : netWorth;
+  const firstTracked = [...history].map((h) => h.monthKey).sort()[0];
   const out: NetWorthTrendPoint[] = [];
-  for (let i = 5; i >= 0; i--) {
+  let carry: number | null = null;
+  for (let i = NET_WORTH_HISTORY_MONTHS - 1; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthKey = monthCalendarKey(date);
+    const live = i === 0;
+    if (!live && (firstTracked === undefined || monthKey < firstTracked)) continue;
     if (map.has(monthKey)) carry = map.get(monthKey)!;
-    out.push({ monthKey, date, value: i === 0 ? netWorth : carry, live: i === 0 });
+    const value = live ? netWorth : (carry ?? netWorth);
+    const prev = out.at(-1);
+    const change = prev ? value - prev.value : null;
+    const changePct = prev && Math.abs(prev.value) >= 1 ? ((value - prev.value) / Math.abs(prev.value)) * 100 : null;
+    out.push({ monthKey, date, value, live, change, changePct });
   }
   return out;
 }

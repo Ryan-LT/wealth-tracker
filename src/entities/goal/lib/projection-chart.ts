@@ -8,6 +8,7 @@ import {
   startOfMonth,
   toIsoDay,
 } from "@/shared/lib/date";
+import { futureValue, monthsToReach } from "@/shared/lib/growth";
 
 export type ProjectedMeetTarget =
   | { kind: "none" }
@@ -15,20 +16,22 @@ export type ProjectedMeetTarget =
   | { kind: "unreachable" }
   | { kind: "date"; date: Date; months: number };
 
-/** When the linear projection first reaches the target. */
+/** When the projection (contributions plus optional growth) first reaches the target. */
 export function computeProjectedMeetTarget(
   today: Date,
   startingAmount: number,
   monthlyNetContribution: number,
   targetAmount: number,
+  annualReturn = 0,
 ): ProjectedMeetTarget {
   if (targetAmount <= 0) return { kind: "none" };
   if (startingAmount >= targetAmount) {
     return { kind: "already", date: localDay(today) };
   }
-  if (monthlyNetContribution <= 0) return { kind: "unreachable" };
+  const monthsNeeded = monthsToReach(startingAmount, monthlyNetContribution, targetAmount, annualReturn);
+  // Cap at 100 years: beyond that the chart and date are meaningless.
+  if (!Number.isFinite(monthsNeeded) || monthsNeeded > 1200) return { kind: "unreachable" };
 
-  const monthsNeeded = (targetAmount - startingAmount) / monthlyNetContribution;
   const meet = new Date(today.getTime() + monthsNeeded * AVG_MONTH_MS);
   return { kind: "date", date: localDay(meet), months: monthsNeeded };
 }
@@ -163,6 +166,8 @@ export type ProjectionChartInput = {
   monthsToTarget: number;
   targetDateIso?: string;
   checkpoints: GoalCheckpoint[];
+  /** Yearly return (fraction) on the balance; default 0. */
+  annualReturn?: number;
 };
 
 /** Everything the Goal Plan projection chart renders, as plain data. */
@@ -175,6 +180,7 @@ export function buildProjectionChartModel(input: ProjectionChartInput): Projecti
     monthsToTarget,
     targetDateIso,
     checkpoints,
+    annualReturn = 0,
   } = input;
 
   const schedule = cumulativeDueScheduleFromCheckpoints(checkpoints);
@@ -185,9 +191,10 @@ export function buildProjectionChartModel(input: ProjectionChartInput): Projecti
     startingAmount,
     monthlyNetContribution,
     targetAmount,
+    annualReturn,
   );
 
-  let axisDates = buildAxisColumnDates(today, targetDateIso, checkpoints, monthsToTarget);
+  let axisDates = buildAxisColumnDates(today, targetDateIso, checkpoints, Math.max(1, Math.ceil(monthsToTarget)));
 
   if (meetTarget.kind === "date") {
     const extra: Date[] = [meetTarget.date];
@@ -220,7 +227,7 @@ export function buildProjectionChartModel(input: ProjectionChartInput): Projecti
 
   const rows: ProjectionChartRow[] = axisDates.map((d) => {
     const months = fractionalMonthsBetween(today, d);
-    const projected = startingAmount + monthlyNetContribution * months;
+    const projected = futureValue(startingAmount, monthlyNetContribution, months, annualReturn);
     const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
     const due = hasSchedule ? cumulativeDueAtOrBefore(endOfDay, schedule) : null;
     return { x: d.getTime(), projected, due, target: targetAmount };

@@ -12,8 +12,8 @@ import {
   type MilestoneFormatters,
   type MilestoneSettings,
 } from "@/entities/milestone";
-import { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
-import { formatDate, formatMoney, formatMonths, formatUsd, formatUsdCompact } from "@/shared/lib/format";
+import type { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
+import { formatDate, formatMoney, formatMonths, formatOrdinal, formatPercent, formatUsd, formatUsdCompact } from "@/shared/lib/format";
 import { Callout } from "@/shared/ui/callout";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
@@ -23,13 +23,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/kit/tooltip
 import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
 import { StatusBadge } from "@/shared/ui/status-badge";
-
-/** 35 → "35th", 21 → "21st". */
-function ordinal(n: number): string {
-  const mod100 = n % 100;
-  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
-  return `${n}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th"}`;
-}
 
 /** Every state of the card links to where the goal (target, age, birth date) is set. */
 function EditGoalLink() {
@@ -56,13 +49,16 @@ export function MilestoneCard({
   netWorth,
   monthlyNet,
   settings: rawSettings,
+  configState,
 }: {
   netWorth: number;
   monthlyNet: number;
   /** The user's `preferences.milestone`. */
   settings: MilestoneSettings | undefined;
+  /** From `useMilestoneConfig()` (the dashboard shares it with the health card). */
+  configState: ReturnType<typeof useMilestoneConfig>;
 }) {
-  const { config, error, reload } = useMilestoneConfig();
+  const { config, error, reload } = configState;
   const settings = resolveMilestoneSettings(rawSettings);
   const heading = title(settings.targetUsd, settings.targetAge);
 
@@ -99,7 +95,7 @@ export function MilestoneCard({
     return (
       <Section
         title={heading}
-        description={`Net worth target by your ${ordinal(a.targetAge)} birthday.`}
+        description={`Net worth target by your ${formatOrdinal(a.targetAge)} birthday.`}
         actions={a.missing === "BIRTH_DATE" ? undefined : <EditGoalLink />}
       >
         <Callout tone="info" title="Finish setup to track this milestone">
@@ -128,7 +124,11 @@ export function MilestoneCard({
   return (
     <Section
       title={heading}
-      description={`Deadline ${formatDate(a.deadline)}`}
+      description={
+        a.kind === "projection" && a.annualRealRate > 0
+          ? `Deadline ${formatDate(a.deadline)} · assumes ${formatPercent(a.annualRealRate * 100)} yearly growth after inflation`
+          : `Deadline ${formatDate(a.deadline)}`
+      }
       actions={
         <>
           <Tooltip>

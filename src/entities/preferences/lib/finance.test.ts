@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  buildNetWorthChartSeries,
   buildNetWorthTrend,
   netWorthTrackingUnchanged,
   estimatedMonthlyNetCashflow,
@@ -26,25 +25,16 @@ describe("spending + cashflow", () => {
     expect(resolveAverageMonthlySpending({ averageMonthlySpending: Number.NaN, monthOutflow: 0 })).toBe(0);
   });
 
-  it("estimatedMonthlyNetCashflow branch order", () => {
-    // Legacy inflow/outflow wins only when settings spending is unset.
+  it("monthly net is always income − average spending (legacy overrides ignored)", () => {
     expect(
       estimatedMonthlyNetCashflow({ monthInflow: 100, monthOutflow: 30, netMonthIncome: 7 }, 1_000),
-    ).toBe(70);
-    // Settings spending set → falls through to netMonthIncome.
+    ).toBe(970);
     expect(
       estimatedMonthlyNetCashflow(
-        { monthInflow: 100, monthOutflow: 30, netMonthIncome: 7, averageMonthlySpending: 5 },
-        1_000,
+        { monthInflow: 0, monthOutflow: 0, netMonthIncome: 5_000_000, averageMonthlySpending: 20_000_000 },
+        60_000_000,
       ),
-    ).toBe(7);
-    // Default path: income − spending.
-    expect(
-      estimatedMonthlyNetCashflow(
-        { monthInflow: 0, monthOutflow: 0, netMonthIncome: 0, averageMonthlySpending: 250 },
-        1_000,
-      ),
-    ).toBe(750);
+    ).toBe(40_000_000);
     expect(estimatedMonthlyNetCashflow(PREFERENCES_SEED, 0)).toBe(0);
   });
 
@@ -112,52 +102,49 @@ describe("net worth tracking", () => {
     });
   });
 
-  it("keeps only the last six months of history", () => {
+  it("keeps only the last twelve months of history", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-15T10:00:00+07:00"));
-    const history = ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07"].map(
-      (monthKey, i) => ({ monthKey, value: i }),
-    );
+    const history = Array.from({ length: 14 }, (_, i) => {
+      const d = new Date(2025, 5 + i, 1);
+      return { monthKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, value: i };
+    });
     const next = syncNetWorthTracking({ ...PREFERENCES_SEED, netWorthMonthlyHistory: history }, 99);
-    expect(next.netWorthMonthlyHistory!.map((h) => h.monthKey)).toEqual([
-      "2026-03",
-      "2026-04",
-      "2026-05",
-      "2026-06",
-      "2026-07",
-      "2026-08",
-    ]);
-  });
-
-  it("buildNetWorthChartSeries carries values forward and uses live current month", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-15T10:00:00+07:00"));
-    const series = buildNetWorthChartSeries(
-      [
-        { monthKey: "2026-02", value: 100 },
-        { monthKey: "2026-04", value: 300 },
-        { monthKey: "2026-06", value: 999 },
-      ],
-      500,
-    );
-    expect(series.values).toEqual([100, 100, 100, 300, 300, 500]);
-    expect(series.labels).toHaveLength(6);
+    const keys = next.netWorthMonthlyHistory!.map((h) => h.monthKey);
+    expect(keys).toHaveLength(12);
+    expect(keys[0]).toBe("2025-09");
+    expect(keys.at(-1)).toBe("2026-08");
   });
 });
 
 describe("buildNetWorthTrend", () => {
-  it("matches the chart series values and labels each month", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-15T10:00:00+07:00"));
+  it("starts at the first tracked month, carries gaps, uses live current month", () => {
+    const now = new Date("2026-06-15T10:00:00+07:00");
     const history = [
       { monthKey: "2026-02", value: 100 },
       { monthKey: "2026-04", value: 300 },
     ];
-    const trend = buildNetWorthTrend(history, 500);
-    expect(trend.map((p) => p.value)).toEqual(buildNetWorthChartSeries(history, 500).values);
-    expect(trend.map((p) => p.monthKey)).toEqual(["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"]);
+    const trend = buildNetWorthTrend(history, 500, now);
+    expect(trend.map((p) => p.monthKey)).toEqual(["2026-02", "2026-03", "2026-04", "2026-05", "2026-06"]);
+    expect(trend.map((p) => p.value)).toEqual([100, 100, 300, 300, 500]);
+    expect(trend.map((p) => p.change)).toEqual([null, 0, 200, 0, 200]);
+    expect(trend[2].changePct).toBe(200);
     expect(trend.at(-1)!.live).toBe(true);
     expect(trend.filter((p) => p.live)).toHaveLength(1);
+  });
+
+  it("shows only the current month before any history, and at most 12 months", () => {
+    const now = new Date("2026-06-15T10:00:00+07:00");
+    expect(buildNetWorthTrend([], 42, now)).toEqual([
+      expect.objectContaining({ monthKey: "2026-06", value: 42, live: true, change: null }),
+    ]);
+    const long = Array.from({ length: 20 }, (_, i) => {
+      const d = new Date(2024, 10 + i, 1);
+      return { monthKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, value: i };
+    });
+    const trend = buildNetWorthTrend(long, 1, now);
+    expect(trend).toHaveLength(12);
+    expect(trend[0].monthKey).toBe("2025-07");
   });
 
   it("detects unchanged tracking", () => {

@@ -41,6 +41,8 @@ export type MilestoneAnalysis =
       projectedEndingNetWorth: number;
       feasible: boolean;
       monthsRemaining: number;
+      /** Yearly real return assumed in the projection (fraction). */
+      annualRealRate: number;
       tone: GoalFeasibilityTone;
       label: string;
     });
@@ -83,7 +85,7 @@ export function analyzeMilestone(input: {
   const targetVnd = Math.round(targetUsd * config.vndPerUsd);
   const pastDeadline = deadline.getTime() < now.getTime();
   const pct =
-    targetVnd === 0 ? 0 : Math.min(100, Math.round((currentNetWorth / targetVnd) * 100));
+    targetVnd <= 0 ? 0 : Math.min(100, Math.max(0, Math.round((currentNetWorth / targetVnd) * 100)));
 
   if (currentNetWorth >= targetVnd) {
     return {
@@ -107,6 +109,7 @@ export function analyzeMilestone(input: {
     monthlyNetContribution,
     targetNetWorthVnd: targetVnd,
     deadline,
+    annualRealRate: config.annualRealRate,
     now,
   });
 
@@ -133,6 +136,7 @@ export function analyzeMilestone(input: {
     projectedEndingNetWorth,
     feasible,
     monthsRemaining,
+    annualRealRate: config.annualRealRate,
     tone,
     label,
   };

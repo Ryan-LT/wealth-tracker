@@ -7,7 +7,14 @@ import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { DEBTS_SEED } from "@/entities/debt";
 import { buildGoalPlanSummaries, buildGoalStartingOptions, GOALS_SEED } from "@/entities/goal";
 import { INCOME_SOURCES_SEED } from "@/entities/income";
-import { assetTotalsByCategory, buildAllocationReportForTables, computeDashboardSummary } from "@/entities/portfolio";
+import { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
+import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
+import {
+  assetTotalsByCategory,
+  buildAllocationReportForTables,
+  computeDashboardSummary,
+  computeFinancialHealth,
+} from "@/entities/portfolio";
 import {
   monthToDateNetWorthChangePercent,
   netWorthTrackingUnchanged,
@@ -26,6 +33,7 @@ import { PageContainer } from "@/widgets/app-shell";
 import { AllocationCard } from "./allocation-card";
 import { BalanceSheetCard } from "./balance-sheet-card";
 import { CashflowCard } from "./cashflow-card";
+import { FinancialHealthCard } from "./financial-health-card";
 import { GoalPlansCard } from "./goal-plans-card";
 import { MilestoneCard } from "./milestone-card";
 import { NetWorthTrendCard } from "./net-worth-trend-card";
@@ -38,10 +46,17 @@ export function DashboardPage() {
   const [incomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const [personalLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
+  const milestoneConfig = useMilestoneConfig();
+  const annualRealRate = milestoneConfig.config?.annualRealRate ?? 0;
 
   const summary = useMemo(
-    () => computeDashboardSummary({ assets, debts, settingsAssets, incomeSources, prefs }),
-    [assets, debts, settingsAssets, incomeSources, prefs],
+    () => computeDashboardSummary({ assets, debts, settingsAssets, incomeSources, prefs, personalLoans }),
+    [assets, debts, settingsAssets, incomeSources, prefs, personalLoans],
+  );
+  const health = useMemo(
+    () => computeFinancialHealth({ summary, assets, settingsAssets, debts, annualRealRate }),
+    [summary, assets, settingsAssets, debts, annualRealRate],
   );
   const netWorth = summary.netWorth;
 
@@ -73,7 +88,7 @@ export function DashboardPage() {
           label="Net worth"
           icon={Landmark}
           value={<Money value={netWorth} compact />}
-          hint="Assets − debts"
+          hint={prefs.includeLoansInNetWorth ? "Assets − debts, incl. personal loans" : "Assets − debts"}
           aside={
             Math.abs(mtd) >= 0.05 ? (
               <StatusBadge tone={mtd >= 0 ? "success" : "danger"} title="Change since the start of this month">
@@ -109,8 +124,10 @@ export function DashboardPage() {
         <div className="xl:col-span-2">
           <NetWorthTrendCard history={prefs.netWorthMonthlyHistory ?? []} netWorth={netWorth} />
         </div>
-        <MilestoneCard netWorth={netWorth} monthlyNet={summary.monthlyNet} settings={prefs.milestone} />
+        <MilestoneCard netWorth={netWorth} monthlyNet={summary.monthlyNet} settings={prefs.milestone} configState={milestoneConfig} />
       </div>
+
+      <FinancialHealthCard health={health} annualRealRate={annualRealRate} />
 
       <div className="grid gap-4 md:gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2">
@@ -126,6 +143,8 @@ export function DashboardPage() {
           grossAssets={summary.grossAssets}
           liabilities={summary.liabilities}
           netWorth={netWorth}
+          loansLent={summary.loansLent}
+          loansBorrowed={summary.loansBorrowed}
         />
       </div>
 

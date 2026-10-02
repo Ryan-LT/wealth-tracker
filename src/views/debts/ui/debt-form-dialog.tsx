@@ -17,6 +17,7 @@ const schema = z.object({
   rateKind: z.enum(["Fixed", "Variable"]),
   paymentDayOfMonth: z.number().int().min(1).max(31).optional(),
   nextPayment: z.string().max(200),
+  monthlyPayment: z.number().min(0),
 });
 
 type Values = z.infer<typeof schema>;
@@ -70,6 +71,7 @@ function DebtForm({
       rateKind: debt.rateKind,
       paymentDayOfMonth: debt.paymentDayOfMonth,
       nextPayment: debt.nextPayment,
+      monthlyPayment: debt.monthlyPayment ?? 0,
     },
   });
 
@@ -98,7 +100,15 @@ function DebtForm({
               ]}
             />
           </div>
-          <DayOfMonthField control={form.control} name="paymentDayOfMonth" label="Monthly payment day" description="Day of the month the payment is due." />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MoneyField
+              control={form.control}
+              name="monthlyPayment"
+              label="Monthly payment"
+              description="What you repay each month. Used for the payoff date."
+            />
+            <DayOfMonthField control={form.control} name="paymentDayOfMonth" label="Monthly payment day" description="Day of the month the payment is due." />
+          </div>
           <TextField control={form.control} name="nextPayment" label="Payment note" placeholder="e.g. 12.500.000 ₫, auto-debit from VCB" description="Optional reminder — amount, bank, reference." />
         </DialogBody>
         <DialogFooter>

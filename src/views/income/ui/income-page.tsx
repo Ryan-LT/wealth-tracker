@@ -10,6 +10,8 @@ import { buildGoalStartingOptions } from "@/entities/goal";
 import {
   createIncomeSourceDraft,
   INCOME_SOURCES_SEED,
+  capitalYieldPct,
+  effectiveIncomeCapital,
   incomeCapitalPeers,
   sanitizeIncomeSource,
   totalCapitalAmount,
@@ -18,7 +20,7 @@ import {
 import { summarizeCashflow } from "@/entities/portfolio";
 import { applyAverageMonthlySpending, PREFERENCES_SEED } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
-import { formatOrdinal } from "@/shared/lib/format";
+import { formatOrdinal, formatPercent } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
@@ -120,15 +122,17 @@ export function IncomePage() {
       {
         id: "capital",
         header: "Capital",
-        accessorFn: (s) => totalCapitalAmount(s.capitalLines),
+        accessorFn: (s) => effectiveIncomeCapital(s, sources, seedOptions),
         cell: ({ row }) => {
-          const total = totalCapitalAmount(row.original.capitalLines);
-          const n = row.original.capitalLines?.length ?? 0;
-          return total > 0 ? (
+          const reserved = totalCapitalAmount(row.original.capitalLines);
+          const capital = effectiveIncomeCapital(row.original, sources, seedOptions);
+          const yieldPct = capitalYieldPct(row.original.monthly, capital);
+          return reserved > 0 ? (
             <div>
-              <Money value={total} />
+              <Money value={capital} />
               <p className="text-xs text-muted-foreground">
-                {n} {n === 1 ? "source" : "sources"}
+                {yieldPct !== null ? `${formatPercent(yieldPct)} yield / yr` : "No yield"}
+                {capital < reserved ? <> · of <Money value={reserved} /> reserved</> : null}
               </p>
             </div>
           ) : (
@@ -152,7 +156,7 @@ export function IncomePage() {
         meta: { className: "w-12" },
       },
     ],
-    [actionsFor, cash.totalIncome],
+    [actionsFor, cash.totalIncome, sources, seedOptions],
   );
 
   return (

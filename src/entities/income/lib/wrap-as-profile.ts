@@ -1,4 +1,9 @@
-import { EMPTY_GOAL_PROFILE, type GoalProfile } from "@/entities/goal";
+import {
+  EMPTY_GOAL_PROFILE,
+  totalGoalStartingBalance,
+  type GoalProfile,
+  type GoalStartingOption,
+} from "@/entities/goal";
 import type { IncomeSource } from "@/entities/income/model";
 
 /**
@@ -23,4 +28,24 @@ export function wrapIncomeSourceAsProfile(source: IncomeSource): GoalProfile {
 export function totalCapitalAmount(lines: ReadonlyArray<{ amount: number }> | undefined): number {
   if (!lines) return 0;
   return lines.reduce((s, l) => s + Math.max(0, l.amount), 0);
+}
+
+/**
+ * Capital that actually backs `source`: its reservations, scaled down the same
+ * way goal allocations are when a source asset is worth less than what all
+ * income sources reserved from it.
+ */
+export function effectiveIncomeCapital(
+  source: IncomeSource,
+  allSources: IncomeSource[],
+  options: GoalStartingOption[],
+): number {
+  const wrapped = wrapIncomeSourceAsProfile(source);
+  const peers = allSources.map(wrapIncomeSourceAsProfile);
+  return totalGoalStartingBalance(wrapped.seedLines, options, peers, wrapped);
+}
+
+/** Yearly yield (%) of an income source on its capital; `null` without capital. */
+export function capitalYieldPct(monthly: number, capital: number): number | null {
+  return capital > 0 ? ((Math.max(0, monthly) * 12) / capital) * 100 : null;
 }

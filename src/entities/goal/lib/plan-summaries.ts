@@ -1,4 +1,5 @@
 import { goalProfileForDashboard, type GoalsState } from "@/entities/goal/model";
+import { resolveMonthlyShares } from "@/entities/goal/lib/monthly-share";
 import { totalGoalStartingBalance } from "@/entities/goal/lib/seed-lines";
 import type { GoalStartingOption } from "@/entities/goal/lib/starting-options";
 
@@ -12,6 +13,10 @@ export type GoalPlanSummary = {
   savedCaption: "Allocated starting" | "Saved";
   targetDate: string;
   includeMonthlyIncome: boolean;
+  /** Fraction (0–1) of the household monthly net this plan receives. */
+  monthlyShare: number;
+  /** Expected yearly return in percent. */
+  expectedReturnPct: number;
 };
 
 /**
@@ -24,6 +29,7 @@ export function buildGoalPlanSummaries(
   netWorth: number,
 ): GoalPlanSummary[] {
   if (goals.profiles.length > 0) {
+    const shares = resolveMonthlyShares(goals.profiles);
     return goals.profiles.map((plan) => ({
       key: plan.id,
       planId: plan.id,
@@ -33,6 +39,8 @@ export function buildGoalPlanSummaries(
       savedCaption: "Allocated starting",
       targetDate: plan.targetDate,
       includeMonthlyIncome: plan.includeMonthlyIncome !== false,
+      monthlyShare: shares.byPlan.get(plan.id) ?? 0,
+      expectedReturnPct: plan.expectedReturnPct ?? 0,
     }));
   }
 
@@ -54,6 +62,8 @@ export function buildGoalPlanSummaries(
       savedCaption: "Saved",
       targetDate: primaryProfile?.targetDate ?? "",
       includeMonthlyIncome: primaryProfile?.includeMonthlyIncome !== false,
+      monthlyShare: 1,
+      expectedReturnPct: 0,
     },
   ];
 }

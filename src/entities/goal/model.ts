@@ -50,6 +50,14 @@ export type GoalProfile = {
    * When false, projection uses only allocated starting balances for this plan.
    */
   includeMonthlyIncome?: boolean;
+  /**
+   * Share (0–100 %) of the household monthly net that goes to this plan. Unset =
+   * automatic: plans without a share split what the others leave, evenly. See
+   * {@link resolveMonthlyShares}.
+   */
+  monthlySharePct?: number;
+  /** Expected yearly return (%) on this plan's balance, compounded monthly. Unset = 0. */
+  expectedReturnPct?: number;
 };
 
 /** Goal Plan: compose a new plan before first save (not a persisted plan id). */

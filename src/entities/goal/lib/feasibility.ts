@@ -15,18 +15,9 @@ export type GoalFeasibility = {
   hint: string;
 };
 
-const MS_PER_MONTH = (1000 * 60 * 60 * 24 * 365.25) / 12;
-
-function parseTargetDate(iso: string | undefined): Date | null {
-  if (!iso?.trim()) return null;
-  const raw = iso.trim();
-  const d = new Date(raw.includes("T") ? raw : `${raw}T12:00:00`);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-function monthsBetween(from: Date, to: Date): number {
-  return Math.max(0, (to.getTime() - from.getTime()) / MS_PER_MONTH);
-}
+import { isTargetDatePast, monthsUntilTarget } from "@/entities/goal/lib/projection";
+import { parseIsoDay } from "@/shared/lib/date";
+import { requiredMonthly } from "@/shared/lib/growth";
 
 export type GoalFeasibilityInput = {
   saved: number;
@@ -35,8 +26,13 @@ export type GoalFeasibilityInput = {
   targetDateIso?: string;
   /** When false, projection ignores household monthly net for this plan. */
   includeMonthlyIncome?: boolean;
-  /** From {@link estimatedMonthlyNetCashflow}; ignored when `includeMonthlyIncome` is false. */
+  /**
+   * This plan's monthly contribution: household net × its share (see
+   * `resolveMonthlyShares`). Ignored when `includeMonthlyIncome` is false.
+   */
   estimatedMonthlyNet: number;
+  /** Expected yearly return in percent on the plan balance; default 0. */
+  expectedReturnPct?: number;
   now?: Date;
 };
 
@@ -51,8 +47,10 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
     targetDateIso,
     includeMonthlyIncome = true,
     estimatedMonthlyNet,
+    expectedReturnPct = 0,
     now = new Date(),
   } = input;
+  const annualReturn = Math.max(0, expectedReturnPct) / 100;
 
   if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
     return {
@@ -71,7 +69,7 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
     };
   }
 
-  const deadline = parseTargetDate(targetDateIso);
+  const deadline = parseIsoDay(targetDateIso);
   if (!deadline) {
     const pct = (saved / targetAmount) * 100;
     if (pct >= 85) {
@@ -102,9 +100,9 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
     };
   }
 
-  const monthsLeft = monthsBetween(now, deadline);
+  const monthsLeft = monthsUntilTarget(targetDateIso, now);
 
-  if (deadline.getTime() < now.getTime()) {
+  if (isTargetDatePast(targetDateIso, now)) {
     return {
       tone: "at_risk",
       label: "Past deadline",
@@ -114,14 +112,22 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
 
   const minHorizon = 1 / 12;
   const horizon = Math.max(monthsLeft, minHorizon);
-  const requiredPerMonth = remaining / horizon;
+  // Pace needed from savings, after expected growth on what is already allocated.
+  const requiredPerMonth = requiredMonthly(saved, targetAmount, horizon, annualReturn);
 
   if (includeMonthlyIncome) {
+    if (requiredPerMonth <= 0) {
+      return {
+        tone: "on_track",
+        label: "On track",
+        hint: "Expected growth on the allocated balance reaches the target by the date.",
+      };
+    }
     if (estimatedMonthlyNet <= 0) {
       return {
         tone: "at_risk",
         label: "Budget squeeze",
-        hint: "Household monthly net is not positive while this goal still has a gap.",
+        hint: "This plan gets no positive monthly savings while it still has a gap.",
       };
     }
 
@@ -130,14 +136,14 @@ export function computeGoalFeasibility(input: GoalFeasibilityInput): GoalFeasibi
       return {
         tone: "on_track",
         label: "On track",
-        hint: "Estimated monthly net comfortably covers the pace needed to hit the date.",
+        hint: "This plan's share of monthly savings comfortably covers the pace needed to hit the date.",
       };
     }
     if (ratio >= 0.92) {
       return {
         tone: "steady",
         label: "Feasible",
-        hint: "Monthly net is roughly aligned with the pace implied by your target date.",
+        hint: "This plan's share of monthly savings is roughly aligned with the pace your target date needs.",
       };
     }
     if (ratio >= 0.72) {

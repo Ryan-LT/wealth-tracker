@@ -57,7 +57,9 @@ export function GoalPlansCard({ plans, monthlyNet, onOpenPlan }: GoalPlansCardPr
               targetAmount: plan.targetAmount,
               targetDateIso: plan.targetDate,
               includeMonthlyIncome: plan.includeMonthlyIncome,
-              estimatedMonthlyNet: monthlyNet,
+              // Only this plan's share of the monthly savings (never the whole amount per plan).
+              estimatedMonthlyNet: monthlyNet * plan.monthlyShare,
+              expectedReturnPct: plan.expectedReturnPct,
             });
             return (
               <li key={plan.key}>

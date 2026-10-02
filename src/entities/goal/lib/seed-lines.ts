@@ -154,24 +154,27 @@ export function maxAllocationForSourceKey(
   return Math.max(0, live - takenElsewhere);
 }
 
-/** Effective ₫ for projections after caps (live balance and cross-plan pool). */
+/**
+ * Effective ₫ for projections. While a source's reservations fit its live
+ * balance, each line counts in full. When they exceed it (the asset lost value
+ * after money was reserved), every plan's reservation is scaled down by the
+ * same factor, so together they count exactly the live balance — never more,
+ * and never less.
+ */
 export function effectiveGoalSeedLineAmount(
   line: GoalSeedLine,
   options: GoalStartingOption[],
   savedPlans: GoalProfile[],
   draft: GoalProfile,
 ): number {
-  if (line.sourceKey === "custom") {
-    return Math.max(0, line.amount);
-  }
-  const max = maxAllocationForSourceKey(
-    line.sourceKey,
-    options,
-    savedPlans,
-    draft,
-    line.id,
-  );
-  return Math.min(Math.max(0, line.amount), max);
+  const amount = Math.max(0, line.amount);
+  if (line.sourceKey === "custom") return amount;
+  const live = liveBalanceForSourceKey(line.sourceKey, options);
+  const reserved =
+    allocatedFromSourceKeyAcrossPlans(line.sourceKey, savedPlans, draft, line.id) + amount;
+  if (reserved <= live) return amount;
+  // Whole ₫, rounded down so the plans together never exceed the live balance.
+  return live > 0 ? Math.floor((amount * live) / reserved) : 0;
 }
 
 export function totalGoalStartingBalance(

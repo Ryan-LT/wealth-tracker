@@ -11,6 +11,8 @@ export type Debt = {
   paymentDayOfMonth?: number;
   /** Optional free-text note (amount reminder, reference, etc.). */
   nextPayment: string;
+  /** Typical monthly repayment (principal + interest). Enables the payoff date. */
+  monthlyPayment?: number;
 };
 
 export const DEBTS_SEED: Debt[] = [];

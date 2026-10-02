@@ -47,7 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             richColors
             closeButton
             position="bottom-right"
-            mobileOffset={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}
+            mobileOffset={{ bottom: "calc(4.75rem + env(safe-area-inset-bottom))" }}
           />
         </ThemeProvider>
         <ServiceWorkerRegistrar />

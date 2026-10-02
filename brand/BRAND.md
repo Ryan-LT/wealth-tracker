@@ -97,8 +97,10 @@ Calm, plain and precise, like a good accountant who is on your side.
 ## Icons
 
 - **UI icons:** unchanged; Lucide, outline style.
-- **App icons:** the favicon, home-screen and PWA icons in `src/app/icon.svg`,
-  `src/app/favicon.ico` and `public/icons/` were kept as they are.
+- **App icons:** the Cairn mark is the favicon (`src/app/icon.svg`,
+  `src/app/favicon.ico`), the iOS home-screen icon (`public/apple-touch-icon.png`,
+  full-bleed; iOS rounds it) and the PWA icons in `public/icons/`, where the
+  maskable versions keep the stones inside the 80% safe zone.
 
 ## Names that did not change
 

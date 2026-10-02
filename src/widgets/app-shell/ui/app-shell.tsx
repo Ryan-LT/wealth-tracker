@@ -140,7 +140,7 @@ function ScrollArea({ dataState, children }: { dataState: AppDataState; children
     <main
       ref={ref}
       aria-busy={skeletonPath !== null || dataState === "loading" || undefined}
-      className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0"
+      className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0"
     >
       {skeletonPath ? <RouteSkeleton pathname={skeletonPath} /> : null}
       {/* Kept mounted (just hidden) while a slow page change is in flight. */}

@@ -14,7 +14,7 @@ const TABS = NAV.filter((i) => i.mobileTab);
 const SLOTS = TABS.length + 1; // + More
 
 /**
- * Floating bottom dock below `md`. The highlight slides to the tapped tab
+ * Bottom tab bar below `md`, docked to the screen edge (above the home indicator). The highlight slides to the tapped tab
  * immediately, before the page has rendered; "More" opens a sheet with the
  * remaining pages and quick-add actions.
  */
@@ -28,16 +28,16 @@ export function MobileTabBar() {
     <>
       <nav
         aria-label="Primary"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl supports-[backdrop-filter]:bg-card/75 md:hidden"
       >
         <ul
-          className="pointer-events-auto relative mx-auto grid h-16 max-w-md rounded-2xl border border-border/80 bg-card/80 p-1 shadow-lg shadow-black/5 backdrop-blur-xl supports-[backdrop-filter]:bg-card/70 dark:shadow-black/40"
+          className="relative mx-auto grid h-16 max-w-lg px-1.5 py-1.5"
           style={{ gridTemplateColumns: `repeat(${SLOTS}, minmax(0, 1fr))` }}
         >
           <span
             aria-hidden
-            className="absolute inset-y-1 left-1 rounded-xl bg-primary-soft transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none"
-            style={{ width: `calc((100% - 0.5rem) / ${SLOTS})`, transform: `translateX(${activeIndex * 100}%)` }}
+            className="absolute inset-y-1.5 left-1.5 rounded-xl bg-primary-soft transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none"
+            style={{ width: `calc((100% - 0.75rem) / ${SLOTS})`, transform: `translateX(${activeIndex * 100}%)` }}
           />
           {TABS.map((item, i) => (
             <li key={item.href} className="relative">
